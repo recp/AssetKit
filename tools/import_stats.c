@@ -11,6 +11,7 @@
  */
 
 #include <ak/assetkit.h>
+#include "../src/string_fast.h"
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -41,6 +42,30 @@ stats_now_ms(void) {
 
   clock_gettime(CLOCK_MONOTONIC, &ts);
   return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
+}
+
+static bool
+stats_parse_int_arg(const char * __restrict arg,
+                    int        * __restrict out) {
+  const char *p;
+  AkInt       value;
+  char       *end;
+
+  if (!arg || !out)
+    return false;
+
+  p = arg;
+  if (*p == '-' || *p == '+')
+    p++;
+  if (*p < '0' || *p > '9')
+    return false;
+
+  end = ak_str_parse_int_fast((char *)arg, NULL, &value);
+  if (*end != '\0')
+    return false;
+
+  *out = value;
+  return true;
 }
 
 static int
@@ -236,10 +261,12 @@ main(int argc, char **argv) {
 
   while (firstPath < argc) {
     if (strcmp(argv[firstPath], "-n") == 0 && firstPath + 1 < argc) {
-      iterations = atoi(argv[firstPath + 1]);
+      if (!stats_parse_int_arg(argv[firstPath + 1], &iterations))
+        iterations = 0;
       firstPath += 2;
     } else if (strcmp(argv[firstPath], "-w") == 0 && firstPath + 1 < argc) {
-      warmup = atoi(argv[firstPath + 1]);
+      if (!stats_parse_int_arg(argv[firstPath + 1], &warmup))
+        warmup = -1;
       firstPath += 2;
     } else {
       break;

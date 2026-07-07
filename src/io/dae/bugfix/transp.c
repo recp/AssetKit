@@ -15,6 +15,9 @@
  */
 
 #include "transp.h"
+#include "../../../string_fast.h"
+
+#include <limits.h>
 #include <string.h>
 
 static
@@ -57,24 +60,18 @@ static
 const char*
 dae_parse_next_uint(const char * __restrict p,
                     int        * __restrict out) {
-  int  value;
-  bool found;
+  AkUInt value;
 
   while (*p && (*p < '0' || *p > '9'))
     p++;
-
-  value = 0;
-  found = false;
-  while (*p >= '0' && *p <= '9') {
-    value = value * 10 + (*p - '0');
-    p++;
-    found = true;
-  }
-
-  if (!found)
+  if (!*p)
     return NULL;
 
-  *out = value;
+  p = ak_str_parse_uint_fast((char *)p, NULL, &value);
+  if (value > (AkUInt)INT_MAX)
+    return NULL;
+
+  *out = (int)value;
   return p;
 }
 

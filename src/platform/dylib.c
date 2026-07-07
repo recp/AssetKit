@@ -25,7 +25,7 @@
 #else
 #  include <dlfcn.h>
 #endif
-#include <stdio.h>
+#include <string.h>
 
 static const char AK_DYLIB_ANCHOR = 0;
 
@@ -43,6 +43,43 @@ ak_dylib_open(const char * __restrict path) {
 }
 
 static
+bool
+ak_dylib_make_name(char       * __restrict dst,
+                   size_t                  cap,
+                   const char * __restrict prefix,
+                   const char * __restrict name,
+                   const char * __restrict suffix) {
+  size_t prefixLen;
+  size_t nameLen;
+  size_t suffixLen;
+  size_t totalLen;
+  char  *p;
+
+  if (!dst || !prefix || !name || !suffix || cap == 0)
+    return false;
+
+  prefixLen = strlen(prefix);
+  nameLen   = strlen(name);
+  suffixLen = strlen(suffix);
+  if (prefixLen > (size_t)-1 - nameLen
+      || prefixLen + nameLen > (size_t)-1 - suffixLen)
+    return false;
+
+  totalLen = prefixLen + nameLen + suffixLen;
+  if (totalLen >= cap)
+    return false;
+
+  p = dst;
+  memcpy(p, prefix, prefixLen);
+  p += prefixLen;
+  memcpy(p, name, nameLen);
+  p += nameLen;
+  memcpy(p, suffix, suffixLen + 1u);
+
+  return true;
+}
+
+static
 void*
 ak_dylib_openSibling(const char * __restrict file) {
   char   modpath[1024];
@@ -51,9 +88,6 @@ ak_dylib_openSibling(const char * __restrict file) {
   char  *sep2;
   size_t dirlen;
   size_t filelen;
-#ifndef AK_WINAPI
-  int    len;
-#endif
 
   if (!file)
     return NULL;
@@ -77,13 +111,15 @@ ak_dylib_openSibling(const char * __restrict file) {
 #else
   {
     Dl_info info;
+    size_t  modlen;
 
     if (!dladdr((const void *)&AK_DYLIB_ANCHOR, &info) || !info.dli_fname)
       return NULL;
 
-    len = snprintf(modpath, sizeof(modpath), "%s", info.dli_fname);
-    if (len <= 0 || (size_t)len >= sizeof(modpath))
+    modlen = strlen(info.dli_fname);
+    if (modlen >= sizeof(modpath))
       return NULL;
+    memcpy(modpath, info.dli_fname, modlen + 1u);
   }
 #endif
 
@@ -113,28 +149,26 @@ ak_dylib_openName(const char * __restrict name) {
   char rpath[256];
 #endif
   void *lib;
-  int  len;
 
   if (!name)
     return NULL;
 
 #ifdef AK_WINAPI
-  len = snprintf(path, sizeof(path), "%s.dll", name);
-#elif defined(__APPLE__)
-  len = snprintf(path, sizeof(path), "lib%s.dylib", name);
-#else
-  len = snprintf(path, sizeof(path), "lib%s.so", name);
-#endif
-
-  if (len <= 0 || (size_t)len >= sizeof(path))
+  if (!ak_dylib_make_name(path, sizeof(path), "", name, ".dll"))
     return NULL;
+#elif defined(__APPLE__)
+  if (!ak_dylib_make_name(path, sizeof(path), "lib", name, ".dylib"))
+    return NULL;
+#else
+  if (!ak_dylib_make_name(path, sizeof(path), "lib", name, ".so"))
+    return NULL;
+#endif
 
   if ((lib = ak_dylib_openSibling(path)))
     return lib;
 
 #if defined(__APPLE__)
-  len = snprintf(rpath, sizeof(rpath), "@rpath/lib%s.dylib", name);
-  if (len > 0 && (size_t)len < sizeof(rpath)
+  if (ak_dylib_make_name(rpath, sizeof(rpath), "@rpath/lib", name, ".dylib")
       && (lib = ak_dylib_open(rpath)))
     return lib;
 #endif

@@ -61,20 +61,14 @@ bool
 gltf_animPtrIndex(const char ** __restrict p,
                   const char  * __restrict end,
                   uint32_t    * __restrict index) {
-  uint32_t val;
-  bool     found;
+  AkUInt val;
 
-  val   = 0;
-  found = false;
+  if (*p >= end || **p < '0' || **p > '9')
+    return false;
 
-  while (*p < end && **p >= '0' && **p <= '9') {
-    found = true;
-    val   = val * 10 + (uint32_t)(**p - '0');
-    (*p)++;
-  }
-
+  *p     = ak_str_parse_uint_end_fast((char *)*p, (char *)end, &val);
   *index = val;
-  return found;
+  return true;
 }
 
 static

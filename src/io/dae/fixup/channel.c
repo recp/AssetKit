@@ -15,6 +15,8 @@
  */
 
 #include "channel.h"
+#include "../../../string_fast.h"
+
 #include <string.h>
 
 typedef struct DAEMatrixAnimFix {
@@ -91,22 +93,7 @@ bool
 dae_parse_u32_between(const char * __restrict begin,
                       const char * __restrict end,
                       uint32_t   * __restrict out) {
-  uint32_t value;
-
-  if (!begin || !end || begin >= end)
-    return false;
-
-  value = 0;
-  do {
-    char c = *begin++;
-    if (c < '0' || c > '9')
-      return false;
-    value = value * 10u + (uint32_t)(c - '0');
-  } while (begin < end);
-
-  *out = value;
-
-  return true;
+  return ak_str_parse_u32_slice_fast(begin, end, out);
 }
 
 /*----------------------------------------------------------------------------

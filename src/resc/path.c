@@ -58,6 +58,22 @@
   } while (0)
 
 static
+const char*
+ak_path_scheme_sep(const char * __restrict str) {
+  const char *p;
+
+  if (!str)
+    return NULL;
+
+  for (p = str; p[0] && p[1] && p[2]; p++) {
+    if (p[0] == ':' && p[1] == '/' && p[2] == '/')
+      return p;
+  }
+
+  return NULL;
+}
+
+static
 bool
 ak_path_same_file(const char * __restrict a,
                   const char * __restrict b) {
@@ -94,7 +110,7 @@ ak_path_isfile(const char *path) {
   if (*it == '/' || *it == '\\')
     return 1;
 
-  if ((schemeEnd = strstr(it, "://")))
+  if ((schemeEnd = ak_path_scheme_sep(it)))
     if ((size_t)(schemeEnd - it) != 4
         || ak_str_pack4_ci_fast(it, 4) != AK_PATH_FILE_SCHEME_U32)
       return 0;

@@ -66,11 +66,7 @@ wobj_parse_face_index(char  * __restrict p,
   if (!ak_str_isdigit_fast(*p))
     return ak_strtoi_one_fast(p, dest);
 
-  value = 0;
-  do {
-    value = value * 10u + (AkUInt)(*p++ - '0');
-  } while (ak_str_isdigit_fast(*p));
-
+  p = ak_str_parse_uint_index_fast(p, NULL, &value);
   *dest = (AkInt)value;
 
   return p;
@@ -624,32 +620,6 @@ wobj_skip_inline_space(char * __restrict p) {
 
 AK_INLINE
 bool
-wobj_parse_positive_index_fast(char  ** __restrict pp,
-                               AkInt  * __restrict out) {
-  char   *p;
-  AkUInt  value;
-
-  p = *pp;
-  if (!ak_str_isdigit_fast(*p))
-    return false;
-
-  value = 0;
-  do {
-    value = value * 10u + (AkUInt)(*p++ - '0');
-    if (value > (AkUInt)INT32_MAX)
-      return false;
-  } while (ak_str_isdigit_fast(*p));
-
-  if (value == 0)
-    return false;
-
-  *out = (AkInt)value;
-  *pp  = p;
-  return true;
-}
-
-AK_INLINE
-bool
 wobj_face_first_token_vn_fast(char * __restrict p) {
   p = wobj_skip_inline_space(p);
   if (!ak_str_isdigit_fast(*p))
@@ -679,12 +649,12 @@ wobj_try_parse_tri_vn_fast(WOPrim  * __restrict prim,
     AkInt posIdx, norIdx;
 
     p = wobj_skip_inline_space(p);
-    if (!wobj_parse_positive_index_fast(&p, &posIdx))
+    if (!ak_str_parse_positive_i32_token_fast(&p, &posIdx))
       return false;
     if (p[0] != '/' || p[1] != '/')
       return false;
     p += 2;
-    if (!wobj_parse_positive_index_fast(&p, &norIdx))
+    if (!ak_str_parse_positive_i32_token_fast(&p, &norIdx))
       return false;
     if (!WOBJ_TOKEN_SEP(p[0]) && p[0] != '#')
       return false;
@@ -746,7 +716,7 @@ wobj_try_parse_tri_fast(WOPrim  * __restrict prim,
     int   tokenMode;
 
     p = wobj_skip_inline_space(p);
-    if (!wobj_parse_positive_index_fast(&p, &posIdx))
+    if (!ak_str_parse_positive_i32_token_fast(&p, &posIdx))
       return false;
     texIdx = 0;
     norIdx = 0;
@@ -755,17 +725,17 @@ wobj_try_parse_tri_fast(WOPrim  * __restrict prim,
       p++;
       if (p[0] == '/') {
         p++;
-        if (!wobj_parse_positive_index_fast(&p, &norIdx))
+        if (!ak_str_parse_positive_i32_token_fast(&p, &norIdx))
           return false;
         tokenMode = 2;
       } else {
-        if (!wobj_parse_positive_index_fast(&p, &texIdx))
+        if (!ak_str_parse_positive_i32_token_fast(&p, &texIdx))
           return false;
         tokenMode = 1;
         if (p[0] == '/') {
           p++;
           if (!WOBJ_TOKEN_SEP(p[0]) && p[0] != '#') {
-            if (!wobj_parse_positive_index_fast(&p, &norIdx))
+            if (!ak_str_parse_positive_i32_token_fast(&p, &norIdx))
               return false;
             tokenMode = 3;
           }

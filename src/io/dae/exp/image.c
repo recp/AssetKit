@@ -20,6 +20,7 @@
 #include "../strpool.h"
 #include "../../common/path.h"
 #include "../../common/string.h"
+#include "../../common/text_number.h"
 #include "../../common/util.h"
 #include "../../common/uri.h"
 
@@ -91,35 +92,33 @@ dae_image_buffer_uri(AkImageSource * __restrict source,
                      uint32_t                   imageIdx,
                      size_t                     collisionIdx) {
   const char *ext;
+  char        indexBuf[32];
+  char       *indexEnd;
   char       *uri;
-  char        stack[64];
-  int         written;
+  size_t      extLen;
+  size_t      indexLen;
   size_t      size;
 
-  ext = dae_image_mime_ext(source);
-  written = collisionIdx == 0
-            ? snprintf(stack, sizeof(stack), "image_%u%s", imageIdx, ext)
-            : snprintf(stack,
-                       sizeof(stack),
-                       "image_%u_%zu%s",
-                       imageIdx,
-                       collisionIdx,
-                       ext);
-  if (written <= 0)
+  ext      = dae_image_mime_ext(source);
+  extLen   = strlen(ext);
+  indexEnd = ak_io_text_format_uint32(indexBuf, imageIdx);
+  if (collisionIdx != 0) {
+    *indexEnd++ = '_';
+    indexEnd = ak_io_text_format_uint64(indexEnd, (uint64_t)collisionIdx);
+  }
+  indexLen = (size_t)(indexEnd - indexBuf);
+
+  if (indexLen > (size_t)-1 - extLen - 7u)
     return NULL;
 
-  if ((size_t)written < sizeof(stack))
-    return io_strdup(stack);
-
-  size = (size_t)written + 1u;
+  size = 6u + indexLen + extLen + 1u;
   uri  = malloc(size);
   if (!uri)
     return NULL;
 
-  if (collisionIdx == 0)
-    snprintf(uri, size, "image_%u%s", imageIdx, ext);
-  else
-    snprintf(uri, size, "image_%u_%zu%s", imageIdx, collisionIdx, ext);
+  memcpy(uri, "image_", 6u);
+  memcpy(uri + 6u, indexBuf, indexLen);
+  memcpy(uri + 6u + indexLen, ext, extLen + 1u);
 
   return uri;
 }
@@ -347,7 +346,12 @@ dae_image_rewrite_uri(uint32_t                 imageIdx,
                       char       * __restrict  out,
                       size_t                   outCap) {
   const char *base;
-  int         written;
+  char        indexBuf[16];
+  char       *indexEnd;
+  char       *p;
+  size_t      baseLen;
+  size_t      indexLen;
+  size_t      totalLen;
 
   if (!out || outCap == 0)
     return false;
@@ -356,8 +360,25 @@ dae_image_rewrite_uri(uint32_t                 imageIdx,
   if (!base)
     base = "image";
 
-  written = snprintf(out, outCap, "image_%u_%s", imageIdx, base);
-  return written > 0 && (size_t)written < outCap;
+  baseLen  = strlen(base);
+  indexEnd = ak_io_text_format_uint32(indexBuf, imageIdx);
+  indexLen = (size_t)(indexEnd - indexBuf);
+  if (baseLen > (size_t)-1 - indexLen - 8u)
+    return false;
+
+  totalLen = 6u + indexLen + 1u + baseLen;
+  if (totalLen >= outCap)
+    return false;
+
+  p = out;
+  memcpy(p, "image_", 6u);
+  p += 6u;
+  memcpy(p, indexBuf, indexLen);
+  p += indexLen;
+  *p++ = '_';
+  memcpy(p, base, baseLen + 1u);
+
+  return true;
 }
 
 static
@@ -365,37 +386,35 @@ char*
 dae_image_indexed_basename(const char * __restrict base,
                            uint32_t                imageIdx,
                            size_t                  collisionIdx) {
+  char   indexBuf[32];
+  char  *indexEnd;
   char  *uri;
-  char   stack[512];
-  int    written;
+  size_t baseLen;
+  size_t indexLen;
   size_t size;
 
   if (!base || !*base)
     base = "image";
 
-  written = collisionIdx == 0
-            ? snprintf(stack, sizeof(stack), "image_%u_%s", imageIdx, base)
-            : snprintf(stack,
-                       sizeof(stack),
-                       "image_%u_%zu_%s",
-                       imageIdx,
-                       collisionIdx,
-                       base);
-  if (written <= 0)
+  baseLen  = strlen(base);
+  indexEnd = ak_io_text_format_uint32(indexBuf, imageIdx);
+  if (collisionIdx != 0) {
+    *indexEnd++ = '_';
+    indexEnd = ak_io_text_format_uint64(indexEnd, (uint64_t)collisionIdx);
+  }
+  indexLen = (size_t)(indexEnd - indexBuf);
+  if (baseLen > (size_t)-1 - indexLen - 8u)
     return NULL;
 
-  if ((size_t)written < sizeof(stack))
-    return io_strdup(stack);
-
-  size = (size_t)written + 1u;
+  size = 6u + indexLen + 1u + baseLen + 1u;
   uri  = malloc(size);
   if (!uri)
     return NULL;
 
-  if (collisionIdx == 0)
-    snprintf(uri, size, "image_%u_%s", imageIdx, base);
-  else
-    snprintf(uri, size, "image_%u_%zu_%s", imageIdx, collisionIdx, base);
+  memcpy(uri, "image_", 6u);
+  memcpy(uri + 6u, indexBuf, indexLen);
+  uri[6u + indexLen] = '_';
+  memcpy(uri + 6u + indexLen + 1u, base, baseLen + 1u);
 
   return uri;
 }

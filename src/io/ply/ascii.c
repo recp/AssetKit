@@ -25,22 +25,13 @@ AK_INLINE
 char*
 ply_ascii_parse_index(char   * __restrict p,
                       AkUInt * __restrict dest) {
-  AkUInt value;
-
   while (*p && ak_str_sep_fast(*p))
     p++;
 
   if (!ak_str_isdigit_fast(*p))
     return ak_str_parse_uint_fast(p, NULL, dest);
 
-  value = 0;
-  do {
-    value = value * 10u + (AkUInt)(*p++ - '0');
-  } while (ak_str_isdigit_fast(*p));
-
-  *dest = value;
-
-  return p;
+  return ak_str_parse_uint_index_fast(p, NULL, dest);
 }
 
 AK_INLINE

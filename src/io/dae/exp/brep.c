@@ -18,6 +18,7 @@
 #include "source.h"
 #include "../brep/semantic.h"
 #include "../strpool.h"
+#include "../../common/text_number.h"
 
 #include <string.h>
 
@@ -74,6 +75,39 @@ dae_accessor_effective_count(AkAccessor * __restrict acc) {
 
   maxRows = 1u + (available - fillSize) / stride;
   return acc->count < maxRows ? acc->count : (uint32_t)maxRows;
+}
+
+static
+bool
+dae_brep_cverts_owner(char       * __restrict owner,
+                      size_t                  ownerCap,
+                      const char * __restrict prefix,
+                      size_t                  prefixLen,
+                      uint32_t                idx) {
+  char *p;
+
+  if (!owner || !prefix || ownerCap == 0)
+    return false;
+  if (ownerCap <= 1u
+                  + 10u
+                  + (sizeof("_cverts") - 1u)
+                  + 1u)
+    return false;
+  if (prefixLen > ownerCap
+                  - 1u
+                  - 10u
+                  - (sizeof("_cverts") - 1u)
+                  - 1u)
+    return false;
+
+  p = owner;
+  memcpy(p, prefix, prefixLen);
+  p += prefixLen;
+  *p++ = '_';
+  p = ak_io_text_format_uint32(p, idx);
+  memcpy(p, "_cverts", sizeof("_cverts"));
+
+  return true;
 }
 
 static
@@ -881,12 +915,12 @@ dae_write_brep_curve(DAEExpState  * __restrict st,
       char     owner[64];
 
       nurbs = ak_objGet(obj);
-      snprintf(owner,
-               sizeof(owner),
-               "%.*s_%u_cverts",
-               (int)itemName.len,
-               itemName.ptr,
-               idx);
+      if (!dae_brep_cverts_owner(owner,
+                                 sizeof(owner),
+                                 itemName.ptr,
+                                 itemName.len,
+                                 idx))
+        return false;
       if (!dae_write_nurbs_body(st, nurbs, geomIdx, DAE_EXP_NAME_CSTR(owner)))
         return false;
       break;
@@ -1020,7 +1054,12 @@ dae_write_brep_surface(DAEExpState  * __restrict st,
       char            owner[64];
 
       nurbsSurface = ak_objGet(obj);
-      snprintf(owner, sizeof(owner), "surface_%u_cverts", idx);
+      if (!dae_brep_cverts_owner(owner,
+                                 sizeof(owner),
+                                 "surface",
+                                 sizeof("surface") - 1u,
+                                 idx))
+        return false;
       if (!dae_write_nurbs_surface_body(st,
                                         nurbsSurface,
                                         geomIdx,

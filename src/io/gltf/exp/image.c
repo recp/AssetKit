@@ -18,6 +18,7 @@
 #include "../strpool.h"
 #include "../../common/path.h"
 #include "../../common/string.h"
+#include "../../common/text_number.h"
 #include "../../common/util.h"
 #include "../../common/uri.h"
 #include "../../../image/export.h"
@@ -388,27 +389,23 @@ gltf_image_indexed_basename(const char * __restrict base,
                             GLTFExpIndex            imageIndex,
                             size_t                  collisionIndex) {
   char   indexBuf[32];
+  char  *indexEnd;
   char  *uri;
   size_t baseLen;
   size_t indexLen;
   size_t totalLen;
-  int    written;
 
   if (!base || !*base)
     return NULL;
 
-  if (collisionIndex == 0)
-    written = snprintf(indexBuf, sizeof(indexBuf), "%u", (unsigned)imageIndex);
-  else
-    written = snprintf(indexBuf, sizeof(indexBuf),
-                       "%u_%zu",
-                       (unsigned)imageIndex,
-                       collisionIndex);
-  if (written < 0 || (size_t)written >= sizeof(indexBuf))
-    return NULL;
+  indexEnd = ak_io_text_format_uint32(indexBuf, imageIndex);
+  if (collisionIndex != 0) {
+    *indexEnd++ = '_';
+    indexEnd = ak_io_text_format_uint64(indexEnd, (uint64_t)collisionIndex);
+  }
 
   baseLen  = strlen(base);
-  indexLen = (size_t)written;
+  indexLen = (size_t)(indexEnd - indexBuf);
   if (baseLen > (size_t)-1 - indexLen - 9u)
     return NULL;
 

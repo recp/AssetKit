@@ -930,6 +930,32 @@ ak_str_parse_uint_index_fast(char   * __restrict p,
 }
 
 AK_INLINE
+bool
+ak_str_parse_positive_i32_token_fast(char  ** __restrict pp,
+                                     AkInt  * __restrict out) {
+  char   *p;
+  AkUInt  value;
+
+  p = *pp;
+  if (!ak_str_isdigit_fast(*p))
+    return false;
+
+  value = 0;
+  do {
+    value = value * 10u + (AkUInt)(*p++ - '0');
+    if (value > (AkUInt)INT32_MAX)
+      return false;
+  } while (ak_str_isdigit_fast(*p));
+
+  if (value == 0)
+    return false;
+
+  *out = (AkInt)value;
+  *pp  = p;
+  return true;
+}
+
+AK_INLINE
 char*
 ak_str_parse_uint_index_end_fast(char   * __restrict p,
                                  char   * __restrict end,

@@ -19,6 +19,7 @@
 
 #include "../../../include/ak/assetkit.h"
 #include "strpool.h"
+#include "../../string_fast.h"
 
 #include <ds/forward-list-sep.h>
 #include <ds/rb.h>
@@ -138,27 +139,20 @@ int32_t
 gltf_jsonInt32(const json_t * __restrict obj, int32_t def) {
   const char *p;
   const char *end;
-  int32_t     val;
-  bool        neg;
+  AkInt       val;
 
   if (!obj || obj->type != JSON_STRING || !obj->value)
     return def;
 
   p   = (const char *)obj->value;
   end = p + obj->valsize;
-  neg = p < end && *p == '-';
-  if (neg || (p < end && *p == '+'))
+  if (p < end && (*p == '-' || *p == '+'))
     p++;
   if (p >= end || *p < '0' || *p > '9')
     return def;
 
-  val = 0;
-  do {
-    val = val * 10 + (*p - '0');
-    p++;
-  } while (p < end && *p >= '0' && *p <= '9');
-
-  return neg ? -val : val;
+  ak_str_parse_int_fast((char *)obj->value, (char *)end, &val);
+  return (int32_t)val;
 }
 
 static inline

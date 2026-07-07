@@ -865,7 +865,14 @@ if(AK_BUILD_TOOLS)
   add_executable(assetkit_import_stats tools/import_stats.c)
   ak_target_c_options(assetkit_import_stats)
   ak_target_link_options(assetkit_import_stats)
-  target_link_libraries(assetkit_import_stats PRIVATE ${PROJECT_NAME})
+  target_include_directories(assetkit_import_stats
+      PRIVATE
+          ${CMAKE_CURRENT_SOURCE_DIR}/src
+          ${PROJECT_SOURCE_DIR}/deps/ds/include
+          ${PROJECT_SOURCE_DIR}/deps/json/include
+          ${PROJECT_SOURCE_DIR}/deps/xml/include
+          ${AK_CGLM_INCLUDE_DIR})
+  target_link_libraries(assetkit_import_stats PRIVATE ${PROJECT_NAME} ds)
 endif()
 
 if(AK_BUILD_CLI)
