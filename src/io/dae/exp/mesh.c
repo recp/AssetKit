@@ -59,6 +59,88 @@ dae_input_in_vertices(AkMeshPrimitive * __restrict prim,
 }
 
 static
+bool
+dae_write_p_single_input_fast(DAEExpWriter    * __restrict w,
+                              AkMeshPrimitive * __restrict prim,
+                              AkInput         * __restrict input,
+                              uint32_t                     vertexCount) {
+  uint32_t i;
+
+  if (!w || !prim || !input)
+    return false;
+
+  if (prim->indices) {
+    const AkIndexArray *indices;
+    uint32_t            stride;
+
+    indices = prim->indices;
+    stride  = prim->indexStride ? prim->indexStride : 1u;
+    if (stride != 1u || input->indexOffset != 0u || indices->count < vertexCount)
+      return false;
+
+    switch (indices->componentType) {
+      case AKT_UBYTE: {
+        const uint8_t *items;
+
+        items = (const uint8_t *)indices->items;
+        for (i = 0; i < vertexCount; i++) {
+          if (i > 0)
+            dae_w_ch(w, ' ');
+          dae_w_uint(w, items[i]);
+        }
+        return true;
+      }
+      case AKT_USHORT: {
+        const uint16_t *items;
+
+        items = (const uint16_t *)indices->items;
+        for (i = 0; i < vertexCount; i++) {
+          if (i > 0)
+            dae_w_ch(w, ' ');
+          dae_w_uint(w, items[i]);
+        }
+        return true;
+      }
+      case AKT_UINT: {
+        const uint32_t *items;
+
+        items = (const uint32_t *)indices->items;
+        for (i = 0; i < vertexCount; i++) {
+          if (i > 0)
+            dae_w_ch(w, ' ');
+          dae_w_uint(w, items[i]);
+        }
+        return true;
+      }
+      default:
+        return false;
+    }
+  }
+
+  if (prim->indexAccessor) {
+    IOIndexRows rows;
+
+    if (!io_index_rows_init(&rows, prim->indexAccessor))
+      return false;
+
+    for (i = 0; i < vertexCount; i++) {
+      if (i > 0)
+        dae_w_ch(w, ' ');
+      dae_w_uint(w, io_index_rows_get_unchecked(&rows, i));
+    }
+    return true;
+  }
+
+  for (i = 0; i < vertexCount; i++) {
+    if (i > 0)
+      dae_w_ch(w, ' ');
+    dae_w_uint(w, i);
+  }
+
+  return true;
+}
+
+static
 void
 dae_write_vertices(DAEExpState * __restrict st,
                    AkMeshPrimitive * __restrict prim,
@@ -249,7 +331,10 @@ dae_write_primitive(DAEExpState      * __restrict st,
 
   vertexCount = io_primitive_vertex_count(prim);
   dae_w_lit(w, "<p>");
-  if (prim->type == AK_PRIMITIVE_LINES
+  if (pInputCount == 1u
+      && prim->type != AK_PRIMITIVE_LINES
+      && dae_write_p_single_input_fast(w, prim, pInputs[0], vertexCount)) {
+  } else if (prim->type == AK_PRIMITIVE_LINES
       && ((AkLines *)prim)->mode == AK_LINE_LOOP) {
     bool firstIndex;
 
