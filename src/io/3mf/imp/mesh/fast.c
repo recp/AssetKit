@@ -1592,16 +1592,18 @@ ak_3mf_fast_add_production_object(AK3MFImportState       * __restrict st,
 
 AK_INLINE
 bool
-ak_3mf_fast_expected_attr_value(const char      ** __restrict cursor,
-                                const char       * __restrict tagEnd,
-                                char                           c0,
-                                char                           c1,
-                                AK3MFFastSlice   * __restrict value) {
+ak_3mf_fast_expected_u32_attr(const char ** __restrict cursor,
+                              const char  * __restrict tagEnd,
+                              char                      c0,
+                              char                      c1,
+                              uint32_t    * __restrict out) {
   const char *p;
+  uint64_t    value;
   char        quote;
+  bool        found;
 
   p = ak_3mf_fast_skip_space(*cursor, tagEnd);
-  if (p + 3u >= tagEnd || p[0] != c0 || p[1] != c1 || p[2] != '=')
+  if (!out || p + 3u >= tagEnd || p[0] != c0 || p[1] != c1 || p[2] != '=')
     return false;
   p += 3u;
 
@@ -1609,14 +1611,90 @@ ak_3mf_fast_expected_attr_value(const char      ** __restrict cursor,
   if (quote != '"' && quote != '\'')
     return false;
 
-  value->begin = p;
+  value = 0u;
+  found = false;
+  while (p < tagEnd && *p >= '0' && *p <= '9') {
+    value = value * 10u + (uint64_t)(*p++ - '0');
+    if (value > UINT32_MAX)
+      return false;
+    found = true;
+  }
+  if (!found || p >= tagEnd || *p != quote)
+    return false;
+
+  p++;
+  while (p < tagEnd && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
+    p++;
+
+  *cursor = p;
+  *out    = (uint32_t)value;
+  return true;
+}
+
+AK_INLINE
+bool
+ak_3mf_fast_expected_paint_attr(const char      ** __restrict cursor,
+                                const char       * __restrict tagEnd,
+                                AK3MFFastSlice    * __restrict paint,
+                                AK3MFPaintKind    * __restrict paintKind) {
+  const char *p;
+  const char *valueBegin;
+  const char *valueEnd;
+  char        quote;
+  AK3MFPaintKind kind;
+
+  if (!cursor || !*cursor || !tagEnd || !paint || !paintKind)
+    return false;
+
+  p = ak_3mf_fast_skip_space(*cursor, tagEnd);
+  kind = AK_3MF_PAINT_NONE;
+
+  if ((size_t)(tagEnd - p) > _s_ak_paint_color_len
+      && ak_str_load8_fast(p) == _s_ak_paint_color_u64_prefix
+      && p[8] == 'l'
+      && p[9] == 'o'
+      && p[10] == 'r'
+      && p[_s_ak_paint_color_len] == '=') {
+    p += _s_ak_paint_color_len + 1u;
+    kind = AK_3MF_PAINT_ORCA;
+  } else if ((size_t)(tagEnd - p) > _s_ak_mmu_segmentation_len
+             && ak_str_load8_fast(p) == _s_ak_mmu_segmentation_u64_prefix
+             && p[8] == 'e'
+             && p[9] == 'n'
+             && p[10] == 't'
+             && p[11] == 'a'
+             && p[12] == 't'
+             && p[13] == 'i'
+             && p[14] == 'o'
+             && p[15] == 'n'
+             && p[_s_ak_mmu_segmentation_len] == '=') {
+    p += _s_ak_mmu_segmentation_len + 1u;
+    kind = AK_3MF_PAINT_SEGMENTATION;
+  } else {
+    return false;
+  }
+
+  if (p >= tagEnd)
+    return false;
+  quote = *p++;
+  if (quote != '"' && quote != '\'')
+    return false;
+
+  valueBegin = p;
   while (p < tagEnd && *p != quote)
     p++;
   if (p >= tagEnd)
     return false;
+  valueEnd = p++;
 
-  value->end = p;
-  *cursor    = p + 1u;
+  while (p < tagEnd && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
+    p++;
+
+  paint->begin = valueBegin;
+  paint->end   = valueEnd;
+  if (kind == AK_3MF_PAINT_ORCA || *paintKind == AK_3MF_PAINT_NONE)
+    *paintKind = kind;
+  *cursor      = p;
   return true;
 }
 
@@ -1812,19 +1890,13 @@ ak_3mf_fast_parse_triangle(const char *p,
   hasV3 = false;
 
   {
-    AK3MFFastSlice v1;
-    AK3MFFastSlice v2;
-    AK3MFFastSlice v3;
     const char *q;
 
     q = p;
-    if (ak_3mf_fast_expected_attr_value(&q, tagEnd, 'v', '1', &v1)
-        && ak_3mf_fast_expected_attr_value(&q, tagEnd, 'v', '2', &v2)
-        && ak_3mf_fast_expected_attr_value(&q, tagEnd, 'v', '3', &v3)) {
-      return ak_3mf_fast_parse_u32_slice(&v1, &v[0])
-             && ak_3mf_fast_parse_u32_slice(&v2, &v[1])
-             && ak_3mf_fast_parse_u32_slice(&v3, &v[2])
-             && v[0] < vertexCount
+    if (ak_3mf_fast_expected_u32_attr(&q, tagEnd, 'v', '1', &v[0])
+        && ak_3mf_fast_expected_u32_attr(&q, tagEnd, 'v', '2', &v[1])
+        && ak_3mf_fast_expected_u32_attr(&q, tagEnd, 'v', '3', &v[2])) {
+      return v[0] < vertexCount
              && v[1] < vertexCount
              && v[2] < vertexCount;
     }
@@ -1881,6 +1953,21 @@ ak_3mf_fast_parse_triangle_paint(const char       *p,
   paint->begin = NULL;
   paint->end = NULL;
   *paintKind = AK_3MF_PAINT_NONE;
+
+  {
+    const char *q;
+
+    q = p;
+    if (ak_3mf_fast_expected_u32_attr(&q, tagEnd, 'v', '1', &v[0])
+        && ak_3mf_fast_expected_u32_attr(&q, tagEnd, 'v', '2', &v[1])
+        && ak_3mf_fast_expected_u32_attr(&q, tagEnd, 'v', '3', &v[2])) {
+      (void)ak_3mf_fast_expected_paint_attr(&q, tagEnd, paint, paintKind);
+      p     = q;
+      hasV1 = true;
+      hasV2 = true;
+      hasV3 = true;
+    }
+  }
 
   while (ak_3mf_fast_next_attr_id(&p, tagEnd, &attrId, &attrValue)) {
     switch (attrId) {
