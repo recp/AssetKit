@@ -172,6 +172,8 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
   AK3MFBuffer      contentTypes;
   AK3MFBuffer      rels;
   AkZipWriteEntry *entries;
+  AK3MFPackageSource *source;
+  AkZipArchive     *sourceArchive;
   AkPrintDocument *print;
   AkPrintPackagePart *part;
   size_t           extraPartCount;
@@ -184,6 +186,7 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
   if (!doc || !filepath)
     return AK_ERR;
 
+  sourceArchive = NULL;
   if (ak_3mf_try_clone_source_package(doc, filepath))
     return AK_OK;
 
@@ -266,13 +269,28 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
   entries[2].data = model.data;
   entries[2].size = model.len;
 
+  source = ak_3mf_package_source_get(print);
+  if (source && source->path
+      && ak_zip_open(source->path, &sourceArchive) != AK_OK)
+    sourceArchive = NULL;
+
   entryIndex = 3u;
   for (part = print ? print->parts : NULL; part; part = part->next) {
+    size_t sourceIndex;
+
     if (!ak_3mf_extra_part_exportable(part))
       continue;
     entries[entryIndex].name = ak_3mf_zip_part_name(part->name);
     entries[entryIndex].data = part->data;
     entries[entryIndex].size = part->size;
+    if (sourceArchive
+        && (part->flags & AK_PRINT_PACKAGE_PART_DATA_MUTATED) == 0u
+        && ak_zip_archive_find_entry_index(sourceArchive,
+                                           entries[entryIndex].name,
+                                           &sourceIndex)) {
+      entries[entryIndex].sourceArchive = sourceArchive;
+      entries[entryIndex].sourceIndex   = sourceIndex;
+    }
     entryIndex++;
   }
 
@@ -283,6 +301,7 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
                                                     entryCount,
                                                     compressionLevel);
 
+  ak_zip_close(sourceArchive);
   free(entries);
   ak_3mf_buf_free(&contentTypes);
   ak_3mf_buf_free(&rels);

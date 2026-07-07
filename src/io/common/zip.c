@@ -419,6 +419,31 @@ ak_zip_archive_find_entry(AkZipArchive * __restrict archive,
 }
 
 AK_HIDE
+bool
+ak_zip_archive_find_entry_index(AkZipArchive * __restrict archive,
+                                const char   * __restrict entryName,
+                                size_t       * __restrict outIndex) {
+  size_t i;
+
+  if (outIndex)
+    *outIndex = 0u;
+  if (!archive || !entryName || !outIndex)
+    return false;
+
+  for (i = 0u; i < archive->entryCount; i++) {
+    const AkZipCentralEntry *entry;
+
+    entry = &archive->entries[i];
+    if (ak_zip_entry_name_eq(entry->name, entry->nameLen, entryName)) {
+      *outIndex = i;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+AK_HIDE
 AkResult
 ak_zip_archive_visit_entries(AkZipArchive      * __restrict archive,
                              AkZipEntryVisitor              visitor,
@@ -656,6 +681,99 @@ ak_zip_reserve_scratch(unsigned char ** __restrict scratch,
 
 static
 bool
+ak_zip_archive_entry_payload(const AkZipArchive       * __restrict archive,
+                             const AkZipCentralEntry * __restrict entry,
+                             const unsigned char    ** __restrict payload,
+                             size_t                  * __restrict payloadSize) {
+  const unsigned char *local;
+  size_t               localOffset;
+  size_t               srcOffset;
+  uint16_t             localNameLen;
+  uint16_t             localExtraLen;
+
+  if (payload)
+    *payload = NULL;
+  if (payloadSize)
+    *payloadSize = 0u;
+  if (!archive || !entry || !payload || !payloadSize)
+    return false;
+  if (entry->method != AK_ZIP_METHOD_STORED
+      && entry->method != AK_ZIP_METHOD_DEFLATED)
+    return false;
+  if ((entry->flags & 1u) != 0u)
+    return false;
+
+  localOffset = entry->localOffset;
+  if (localOffset > archive->fileSize || archive->fileSize - localOffset < 30u)
+    return false;
+
+  local = (const unsigned char *)archive->fileData + localOffset;
+  if (io_load_u32le(local) != AK_ZIP_LOCAL_FILE_HEADER)
+    return false;
+
+  localNameLen  = io_load_u16le(local + 26);
+  localExtraLen = io_load_u16le(local + 28);
+  srcOffset     = localOffset + 30u + localNameLen + localExtraLen;
+  if (srcOffset > archive->fileSize
+      || entry->compressedSize > archive->fileSize - srcOffset)
+    return false;
+
+  *payload     = (const unsigned char *)archive->fileData + srcOffset;
+  *payloadSize = entry->compressedSize;
+  return true;
+}
+
+static
+bool
+ak_zip_write_local_source_file(
+                        FILE                    * __restrict file,
+                        const AkZipWriteEntry   * __restrict entry,
+                        AkZipStoredEntry        * __restrict stored) {
+  const AkZipArchive      *archive;
+  const AkZipCentralEntry *source;
+  const unsigned char     *payload;
+  size_t                   payloadSize;
+  long                     nameLen;
+  long                     offset;
+
+  if (!file || !entry || !entry->name || !entry->sourceArchive || !stored)
+    return false;
+
+  archive = entry->sourceArchive;
+  if (entry->sourceIndex >= archive->entryCount)
+    return false;
+
+  source = &archive->entries[entry->sourceIndex];
+  if (!ak_zip_archive_entry_payload(archive, source, &payload, &payloadSize))
+    return false;
+
+  nameLen = (long)strlen(entry->name);
+  if (nameLen <= 0 || nameLen > UINT16_MAX)
+    return false;
+
+  offset = ftell(file);
+  if (offset < 0 || offset > UINT32_MAX)
+    return false;
+
+  stored->crc32            = source->crc32;
+  stored->localOffset      = (uint32_t)offset;
+  stored->nameLen          = (uint16_t)nameLen;
+  stored->method           = source->method;
+  stored->compressedSize   = source->compressedSize;
+  stored->uncompressedSize = source->uncompressedSize;
+
+  return ak_zip_write_local_header(file,
+                                   stored->nameLen,
+                                   stored->method,
+                                   stored->crc32,
+                                   stored->compressedSize,
+                                   stored->uncompressedSize)
+         && fwrite(entry->name, 1, (size_t)nameLen, file) == (size_t)nameLen
+         && fwrite(payload, 1, payloadSize, file) == payloadSize;
+}
+
+static
+bool
 ak_zip_write_local_file(FILE                          * __restrict file,
                         const AkZipWriteEntry        * __restrict entry,
                         AkZipStoredEntry             * __restrict stored,
@@ -668,6 +786,10 @@ ak_zip_write_local_file(FILE                          * __restrict file,
   size_t      maxCompressedSize;
   long        nameLen;
   long        offset;
+
+  if (entry && entry->sourceArchive
+      && ak_zip_write_local_source_file(file, entry, stored))
+    return true;
 
   if (!file || !entry || !entry->name || (!entry->data && entry->size > 0u))
     return false;

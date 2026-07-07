@@ -22,10 +22,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
+typedef struct AkZipArchive AkZipArchive;
+typedef struct AkZipDecompressor AkZipDecompressor;
+
 typedef struct AkZipWriteEntry {
-  const char    *name;
-  const void    *data;
-  size_t         size;
+  const char          *name;
+  const void          *data;
+  const AkZipArchive  *sourceArchive;
+  size_t               size;
+  size_t               sourceIndex;
 } AkZipWriteEntry;
 
 typedef struct AkZipEntryInfo {
@@ -37,9 +42,6 @@ typedef struct AkZipEntryInfo {
   uint16_t       method;
   uint16_t       flags;
 } AkZipEntryInfo;
-
-typedef struct AkZipArchive AkZipArchive;
-typedef struct AkZipDecompressor AkZipDecompressor;
 
 typedef bool (*AkZipEntryVisitor)(const AkZipEntryInfo * __restrict info,
                                   void                 * __restrict userdata);
@@ -68,6 +70,12 @@ AkResult
 ak_zip_archive_visit_entries(AkZipArchive      * __restrict archive,
                              AkZipEntryVisitor              visitor,
                              void             * __restrict userdata);
+
+AK_HIDE
+bool
+ak_zip_archive_find_entry_index(AkZipArchive * __restrict archive,
+                                const char   * __restrict entryName,
+                                size_t       * __restrict outIndex);
 
 AK_HIDE
 AkResult

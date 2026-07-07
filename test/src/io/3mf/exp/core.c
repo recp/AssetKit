@@ -66,6 +66,106 @@ ak_test_3mf_zip_first_method(const char *path, uint16_t *method) {
   return true;
 }
 
+static bool
+ak_test_3mf_zip_entry_method(const char *path,
+                             const char *entryName,
+                             uint16_t   *method) {
+  unsigned char *data;
+  FILE          *file;
+  long           fileSize;
+  size_t         entryNameLen;
+  size_t         centralOffset;
+  size_t         centralSize;
+  size_t         cursor;
+  size_t         eocdPos;
+  size_t         start;
+  uint16_t       entryCount;
+  uint16_t       i;
+  bool           ok;
+
+  if (!path || !entryName || !method)
+    return false;
+
+  *method = 0u;
+  file = fopen(path, "rb");
+  if (!file)
+    return false;
+  ok = fseek(file, 0, SEEK_END) == 0;
+  fileSize = ok ? ftell(file) : -1;
+  ok = ok && fileSize >= 22 && fseek(file, 0, SEEK_SET) == 0;
+  data = ok ? malloc((size_t)fileSize) : NULL;
+  if (!data)
+    ok = false;
+  if (ok)
+    ok = fread(data, 1, (size_t)fileSize, file) == (size_t)fileSize;
+  fclose(file);
+  if (!ok) {
+    free(data);
+    return false;
+  }
+
+  eocdPos = (size_t)fileSize - 22u;
+  start   = (size_t)fileSize > 65557u ? (size_t)fileSize - 65557u : 0u;
+  for (;;) {
+    if (ak_test_3mf_load_u32le(data + eocdPos) == 0x06054b50u)
+      break;
+    if (eocdPos == start) {
+      free(data);
+      return false;
+    }
+    eocdPos--;
+  }
+
+  entryCount    = ak_test_3mf_load_u16le(data + eocdPos + 10u);
+  centralSize   = ak_test_3mf_load_u32le(data + eocdPos + 12u);
+  centralOffset = ak_test_3mf_load_u32le(data + eocdPos + 16u);
+  if (centralOffset > (size_t)fileSize
+      || centralSize > (size_t)fileSize - centralOffset) {
+    free(data);
+    return false;
+  }
+
+  entryNameLen = strlen(entryName);
+  cursor       = centralOffset;
+  for (i = 0u; i < entryCount; i++) {
+    uint16_t nameLen;
+    uint16_t extraLen;
+    uint16_t commentLen;
+    uint16_t entryMethod;
+
+    if (cursor > (size_t)fileSize || (size_t)fileSize - cursor < 46u
+        || ak_test_3mf_load_u32le(data + cursor) != 0x02014b50u) {
+      free(data);
+      return false;
+    }
+
+    entryMethod = ak_test_3mf_load_u16le(data + cursor + 10u);
+    nameLen     = ak_test_3mf_load_u16le(data + cursor + 28u);
+    extraLen    = ak_test_3mf_load_u16le(data + cursor + 30u);
+    commentLen  = ak_test_3mf_load_u16le(data + cursor + 32u);
+    cursor += 46u;
+    if (nameLen > (size_t)fileSize - cursor) {
+      free(data);
+      return false;
+    }
+    if (nameLen == entryNameLen
+        && memcmp(data + cursor, entryName, entryNameLen) == 0) {
+      *method = entryMethod;
+      free(data);
+      return true;
+    }
+    cursor += nameLen;
+    if ((size_t)extraLen + (size_t)commentLen > (size_t)fileSize - cursor) {
+      free(data);
+      return false;
+    }
+    cursor += (size_t)extraLen + (size_t)commentLen;
+  }
+
+  free(data);
+  return false;
+}
+
 static uint32_t
 ak_test_3mf_crc32(const void *data, size_t size) {
   const unsigned char *bytes;
@@ -303,6 +403,74 @@ ak_test_write_3mf_production_child_model(const char *path) {
   entries[3].name = "3D/child.model";
   entries[3].data = childModel;
   entries[3].size = sizeof(childModel) - 1u;
+
+  return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
+}
+
+static bool
+ak_test_write_3mf_production_child_model_with_extra(const char *path) {
+  static const char contentTypes[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
+    "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
+    "<Override PartName=\"/3D/3dmodel.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "<Override PartName=\"/3D/child.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "<Override PartName=\"/Metadata/blob.bin\" ContentType=\"application/octet-stream\"/>"
+    "</Types>";
+  static const char rels[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    "<Relationship Id=\"rel0\" "
+    "Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" "
+    "Target=\"/3D/3dmodel.model\"/>"
+    "</Relationships>";
+  static const char rootModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" requiredextensions=\"p\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:p=\"http://schemas.microsoft.com/3dmanufacturing/production/2015/06\">"
+    "<resources/>"
+    "<build p:UUID=\"build-uuid\">"
+    "<item objectid=\"7\" p:path=\"/3D/child.model\" p:UUID=\"item-uuid\"/>"
+    "</build>"
+    "</model>";
+  static const char childModel[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:p=\"http://schemas.microsoft.com/3dmanufacturing/production/2015/06\">"
+    "<resources>"
+    "<object id=\"7\" type=\"model\" p:UUID=\"object-uuid\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"1\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"1\" z=\"0\"/>"
+    "</vertices>"
+    "<triangles><triangle v1=\"0\" v2=\"1\" v3=\"2\"/></triangles>"
+    "</mesh>"
+    "</object>"
+    "</resources>"
+    "<build/>"
+    "</model>";
+  static const char blob[] = "preserved source package data";
+  AkTest3MFZipEntry entries[5];
+
+  entries[0].name = "[Content_Types].xml";
+  entries[0].data = contentTypes;
+  entries[0].size = sizeof(contentTypes) - 1u;
+  entries[1].name = "_rels/.rels";
+  entries[1].data = rels;
+  entries[1].size = sizeof(rels) - 1u;
+  entries[2].name = "3D/3dmodel.model";
+  entries[2].data = rootModel;
+  entries[2].size = sizeof(rootModel) - 1u;
+  entries[3].name = "3D/child.model";
+  entries[3].data = childModel;
+  entries[3].size = sizeof(childModel) - 1u;
+  entries[4].name = "Metadata/blob.bin";
+  entries[4].data = blob;
+  entries[4].size = sizeof(blob) - 1u;
 
   return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
 }
@@ -1602,6 +1770,56 @@ TEST_IMPL(three_mf_export_package_parts_roundtrip) {
                 AK_TEST_3MF_GCODE_PART,
                 sizeof(AK_TEST_3MF_GCODE_PART) - 1u) == 0);
 
+  ak_test_export_cleanup(outDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_export_preserved_model_part_raw_copy) {
+  static const char mutatedBlob[] = "mutated data";
+  AkDoc              *doc;
+  AkDoc              *roundTrip;
+  AkPrintDocument    *print;
+  AkPrintPackagePart *part;
+  AkPrintPackagePart *blobPart;
+  uint16_t            method;
+  const char         *outDir = "./assetkit_import_3mf_raw_copy_source";
+  const char         *mfPath = "./assetkit_import_3mf_raw_copy_source/model.3mf";
+  const char         *roundTripDir = "./assetkit_export_3mf_raw_copy_source";
+  const char         *roundTripPath = "./assetkit_export_3mf_raw_copy_source/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(roundTripDir);
+  ASSERT(mkdir(outDir, 0777) == 0);
+  ASSERT(ak_test_write_3mf_production_child_model_with_extra(mfPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(doc != NULL);
+  print = ak_printDocument(doc);
+  ASSERT(print != NULL);
+
+  blobPart = NULL;
+  for (part = print->parts; part; part = part->next) {
+    if (part->name && strcmp(part->name, "Metadata/blob.bin") == 0) {
+      blobPart = part;
+      break;
+    }
+  }
+  ASSERT(blobPart != NULL);
+  ASSERT(ak_printSetPackagePartData(doc,
+                                    blobPart,
+                                    mutatedBlob,
+                                    sizeof(mutatedBlob) - 1u));
+
+  ASSERT(ak_export(doc, roundTripDir, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(ak_test_3mf_zip_entry_method(roundTripPath, "3D/child.model", &method));
+  ASSERT(method == 0u);
+
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, roundTripPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+
+  ak_test_export_cleanup(roundTripDir);
   ak_test_export_cleanup(outDir);
   TEST_SUCCESS
 }
