@@ -137,11 +137,21 @@ typedef struct AK3MFPaintMidpoint {
   uint32_t index;
 } AK3MFPaintMidpoint;
 
+typedef struct AK3MFPaintChunkPlan {
+  size_t firstTriangle;
+  size_t triangleCount;
+  size_t counts[AK_3MF_PAINT_BUCKET_COUNT];
+  size_t outputTriangleCount;
+  size_t extraVertexCount;
+} AK3MFPaintChunkPlan;
+
 typedef struct AK3MFPaintPlan {
   size_t   counts[AK_3MF_PAINT_BUCKET_COUNT];
   size_t   outputTriangleCount;
   size_t   extraVertexCount;
   uint32_t defaultExtruder;
+  uint32_t chunkCount;
+  AK3MFPaintChunkPlan chunks[AK_3MF_FAST_PARALLEL_MAX_THREADS];
   struct AK3MFPaintTriangle *triangles;
 } AK3MFPaintPlan;
 
@@ -168,6 +178,19 @@ typedef struct AK3MFPaintBucketFill {
   size_t   offsets[AK_3MF_PAINT_BUCKET_COUNT];
   AkTypeId componentType;
 } AK3MFPaintBucketFill;
+
+typedef struct AK3MFPaintFillWorker {
+  const AK3MFFastMeshSlices *slices;
+  AK3MFPaintPlan           *plan;
+  AK3MFPaintBucketFill      fill;
+  float                    *positions;
+  size_t                    firstTriangle;
+  size_t                    triangleCount;
+  size_t                    vertexCursor;
+  size_t                    vertexEnd;
+  size_t                    expectedOffsets[AK_3MF_PAINT_BUCKET_COUNT];
+  bool                      ok;
+} AK3MFPaintFillWorker;
 
 typedef struct AK3MFPaintSubdivider {
   AK3MFPaintMidpoint  stackMidpoints[AK_3MF_PAINT_STACK_LOCAL];
@@ -3233,14 +3256,25 @@ ak_3mf_fast_analyze_paint_parallel(const AK3MFFastMeshSlices * __restrict slices
     return false;
 
   for (i = 0u; i < chunkCount; i++) {
+    AK3MFPaintChunkPlan *chunkPlan;
+
     if (!workers[i].ok)
       return false;
+
+    chunkPlan = &plan->chunks[i];
+    memset(chunkPlan, 0, sizeof(*chunkPlan));
+    chunkPlan->firstTriangle       = chunks[i].firstIndex;
+    chunkPlan->triangleCount       = chunks[i].count;
+    chunkPlan->outputTriangleCount = workers[i].outputTriangleCount;
+    chunkPlan->extraVertexCount    = workers[i].extraVertexCount;
+    memcpy(chunkPlan->counts, workers[i].counts, sizeof(chunkPlan->counts));
 
     for (bucket = 0u; bucket < AK_3MF_PAINT_BUCKET_COUNT; bucket++)
       plan->counts[bucket] += workers[i].counts[bucket];
     plan->outputTriangleCount += workers[i].outputTriangleCount;
     plan->extraVertexCount    += workers[i].extraVertexCount;
   }
+  plan->chunkCount = chunkCount;
 
   return plan->outputTriangleCount > 0u
          && plan->outputTriangleCount <= UINT32_MAX;
@@ -3285,9 +3319,18 @@ ak_3mf_fast_analyze_paint(AK3MFImportState          * __restrict st,
     triangleIndex++;
   }
 
-  return triangleIndex == slices->triangleCount
-         && plan->outputTriangleCount > 0u
-         && plan->outputTriangleCount <= UINT32_MAX;
+  if (triangleIndex != slices->triangleCount
+      || plan->outputTriangleCount == 0u
+      || plan->outputTriangleCount > UINT32_MAX)
+    return false;
+
+  plan->chunkCount = 1u;
+  plan->chunks[0].firstTriangle       = 0u;
+  plan->chunks[0].triangleCount       = slices->triangleCount;
+  plan->chunks[0].outputTriangleCount = plan->outputTriangleCount;
+  plan->chunks[0].extraVertexCount    = plan->extraVertexCount;
+  memcpy(plan->chunks[0].counts, plan->counts, sizeof(plan->chunks[0].counts));
+  return true;
 }
 
 static
@@ -3357,6 +3400,149 @@ ak_3mf_fast_append_painted_primitive(AK3MFImportState        * __restrict st,
 }
 
 static
+void
+ak_3mf_fast_fill_paint_indices_worker(void *userdata) {
+  AK3MFPaintFillWorker *worker;
+  size_t                triangleIndex;
+  uint32_t              bucket;
+
+  worker = userdata;
+  if (!worker || !worker->slices || !worker->plan || !worker->positions) {
+    if (worker)
+      worker->ok = false;
+    return;
+  }
+
+  for (triangleIndex = worker->firstTriangle;
+       triangleIndex < worker->firstTriangle + worker->triangleCount;
+       triangleIndex++) {
+    AK3MFPaintTriangle *cached;
+
+    cached = &worker->plan->triangles[triangleIndex];
+    if (cached->state != AK_3MF_PAINT_STATE_SEGMENTED) {
+      if (!ak_3mf_fast_paint_emit_state(worker->plan,
+                                        &worker->fill,
+                                        cached->state,
+                                        cached->v)) {
+        worker->ok = false;
+        return;
+      }
+      continue;
+    }
+
+    {
+      AK3MFFastSlice paint;
+
+      paint.begin = worker->slices->triangles.begin + cached->paintOffset;
+      paint.end   = paint.begin + cached->paintSize;
+      if (!ak_3mf_fast_paint_process_segmentation(worker->plan,
+                                                  &worker->fill,
+                                                  &paint,
+                                                  cached->v,
+                                                  worker->positions,
+                                                  &worker->vertexCursor,
+                                                  worker->vertexEnd)) {
+        worker->ok = false;
+        return;
+      }
+    }
+  }
+
+  if (worker->vertexCursor != worker->vertexEnd) {
+    worker->ok = false;
+    return;
+  }
+
+  for (bucket = 0u; bucket < AK_3MF_PAINT_BUCKET_COUNT; bucket++) {
+    if (worker->fill.offsets[bucket] != worker->expectedOffsets[bucket]) {
+      worker->ok = false;
+      return;
+    }
+  }
+
+  worker->ok = true;
+}
+
+static
+bool
+ak_3mf_fast_fill_paint_indices_parallel(const AK3MFFastMeshSlices * __restrict slices,
+                                        AK3MFPaintPlan            * __restrict plan,
+                                        AK3MFPaintBucketFill      * __restrict fill,
+                                        float                      * __restrict positions,
+                                        size_t                                  outputVertexCount) {
+  AK3MFPaintFillWorker workers[AK_3MF_FAST_PARALLEL_MAX_THREADS];
+  AkThreadTask         tasks[AK_3MF_FAST_PARALLEL_MAX_THREADS];
+  size_t               bucketBase[AK_3MF_PAINT_BUCKET_COUNT];
+  size_t               vertexCursor;
+  uint32_t             chunkCount;
+  uint32_t             i;
+  uint32_t             bucket;
+
+  if (!slices || !plan || !fill || !positions || plan->chunkCount <= 1u)
+    return false;
+
+  chunkCount = plan->chunkCount;
+  if (chunkCount > AK_3MF_FAST_PARALLEL_MAX_THREADS)
+    return false;
+
+  memset(bucketBase, 0, sizeof(bucketBase));
+  vertexCursor = slices->vertexCount;
+  for (i = 0u; i < chunkCount; i++) {
+    const AK3MFPaintChunkPlan *chunk;
+
+    chunk = &plan->chunks[i];
+    memset(&workers[i], 0, sizeof(workers[i]));
+    workers[i].slices        = slices;
+    workers[i].plan          = plan;
+    workers[i].fill          = *fill;
+    workers[i].positions     = positions;
+    workers[i].firstTriangle = chunk->firstTriangle;
+    workers[i].triangleCount = chunk->triangleCount;
+    workers[i].vertexCursor  = vertexCursor;
+    workers[i].vertexEnd     = vertexCursor + chunk->extraVertexCount;
+    if (workers[i].vertexEnd < vertexCursor
+        || workers[i].vertexEnd > outputVertexCount)
+      return false;
+    vertexCursor = workers[i].vertexEnd;
+
+    for (bucket = 0u; bucket < AK_3MF_PAINT_BUCKET_COUNT; bucket++) {
+      size_t base;
+      size_t nextBase;
+
+      base = bucketBase[bucket];
+      workers[i].fill.offsets[bucket] = base * 3u;
+      nextBase = base + chunk->counts[bucket];
+      if (nextBase < base || nextBase > plan->counts[bucket])
+        return false;
+      workers[i].expectedOffsets[bucket] = nextBase * 3u;
+      bucketBase[bucket] = nextBase;
+    }
+
+    tasks[i].func     = ak_3mf_fast_fill_paint_indices_worker;
+    tasks[i].userdata = &workers[i];
+  }
+
+  if (vertexCursor != outputVertexCount)
+    return false;
+  for (bucket = 0u; bucket < AK_3MF_PAINT_BUCKET_COUNT; bucket++) {
+    if (bucketBase[bucket] != plan->counts[bucket])
+      return false;
+  }
+
+  if (!ak_thread_run_tasks(tasks, chunkCount))
+    return false;
+
+  for (i = 0u; i < chunkCount; i++) {
+    if (!workers[i].ok)
+      return false;
+  }
+
+  for (bucket = 0u; bucket < AK_3MF_PAINT_BUCKET_COUNT; bucket++)
+    fill->offsets[bucket] = plan->counts[bucket] * 3u;
+  return true;
+}
+
+static
 bool
 ak_3mf_fast_fill_paint_indices(const AK3MFFastMeshSlices * __restrict slices,
                                AK3MFPaintPlan            * __restrict plan,
@@ -3366,6 +3552,13 @@ ak_3mf_fast_fill_paint_indices(const AK3MFFastMeshSlices * __restrict slices,
   size_t   vertexCursor;
   size_t   triangleIndex;
   uint32_t bucket;
+
+  if (ak_3mf_fast_fill_paint_indices_parallel(slices,
+                                              plan,
+                                              fill,
+                                              positions,
+                                              outputVertexCount))
+    return true;
 
   vertexCursor = slices->vertexCount;
   for (triangleIndex = 0u;
