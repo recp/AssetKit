@@ -33,7 +33,19 @@ bool
 gltf_animSegEq(const char * __restrict seg,
                size_t                   segLen,
                const char * __restrict name) {
-  return ak_str_eq_ci_len_fast(seg, segLen, name, strlen(name));
+  size_t i;
+
+  if (!seg || !name)
+    return false;
+
+  for (i = 0; i < segLen; i++) {
+    if (name[i] == '\0'
+        || ak_str_ascii_lower_fast(seg[i])
+           != ak_str_ascii_lower_fast(name[i]))
+      return false;
+  }
+
+  return name[segLen] == '\0';
 }
 
 static
@@ -41,18 +53,21 @@ bool
 gltf_animPtrSeg(const char ** __restrict p,
                 const char  * __restrict end,
                 const char  * __restrict name) {
-  size_t len;
+  const char *seg;
 
   if (*p >= end || **p != '/')
     return false;
 
   (*p)++;
-  len = strlen(name);
-
-  if ((size_t)(end - *p) < len || strncmp(*p, name, len) != 0)
+  seg = *p;
+  while (seg < end && *name) {
+    if (*seg++ != *name++)
+      return false;
+  }
+  if (*name)
     return false;
 
-  *p += len;
+  *p = seg;
   return true;
 }
 

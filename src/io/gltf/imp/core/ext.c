@@ -43,7 +43,7 @@ gltf_extNameCmp(const void * __restrict a,
 
   valSize = (size_t)((const json_t *)a)->valsize;
   minSize = valSize < extname->nameSize ? valSize : extname->nameSize;
-  res     = strncmp(val, extname->name, minSize);
+  res     = memcmp(val, extname->name, minSize);
 
   if (res != 0)                    return res;
   if (valSize < extname->nameSize) return -1;

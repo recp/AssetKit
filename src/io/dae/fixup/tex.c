@@ -16,6 +16,7 @@
 
 #include "tex.h"
 #include "../strpool.h"
+#include "../../../string_fast.h"
 
 #include <string.h>
 
@@ -89,8 +90,8 @@ dae_tex_needs_sid_resolve(const char *target) {
   return target
          && (target[0] == '#'
              || target[0] == '.'
-             || strchr(target, '/')
-             || strchr(target, '.'));
+             || ak_str_has_char_fast(target, '/')
+             || ak_str_has_char_fast(target, '.'));
 }
 
 static

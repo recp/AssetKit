@@ -22,6 +22,7 @@
 #include "../../common/primitive.h"
 #include "../../common/text_number.h"
 #include "../../common/zip.h"
+#include "../../../string_fast.h"
 
 #include <math.h>
 #include <stddef.h>

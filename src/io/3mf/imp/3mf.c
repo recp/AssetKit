@@ -141,7 +141,17 @@ bool
 ak_3mf_cstr_starts_lit(const char * __restrict str,
                        const char * __restrict lit,
                        size_t                  litLen) {
-  return str && lit && strncmp(str, lit, litLen) == 0;
+  size_t i;
+
+  if (!str || !lit)
+    return false;
+
+  for (i = 0; i < litLen; i++) {
+    if (str[i] == '\0' || str[i] != lit[i])
+      return false;
+  }
+
+  return true;
 }
 
 static
@@ -1119,12 +1129,44 @@ ak_3mf_entry_is_2d_part(const char * __restrict entryName) {
 
 static
 const char*
+ak_3mf_default_content_type_for_extension(const char * __restrict ext) {
+  if (!ext)
+    return NULL;
+
+  switch (ext[0]) {
+    case 'p':
+      if (ak_str_eq_cstr_fast(ext, "png", sizeof("png") - 1u))
+        return "image/png";
+      break;
+    case 'j':
+      if (ak_str_eq_cstr_fast(ext, "jpg", sizeof("jpg") - 1u)
+          || ak_str_eq_cstr_fast(ext, "jpeg", sizeof("jpeg") - 1u))
+        return "image/jpeg";
+      break;
+    case 'r':
+      if (ak_str_eq_cstr_fast(ext, "rels", sizeof("rels") - 1u))
+        return AK_3MF_CT_RELS;
+      break;
+    case 'm':
+      if (ak_str_eq_cstr_fast(ext, "model", sizeof("model") - 1u))
+        return AK_3MF_CT_MODEL;
+      break;
+    default:
+      break;
+  }
+
+  return NULL;
+}
+
+static
+const char*
 ak_3mf_content_type_dup(AkDoc       * __restrict doc,
                         xml_t       * __restrict contentTypesRoot,
                         const char  * __restrict entryName) {
   AkHeap  *heap;
   xml_t   *child;
   const char *ext;
+  const char *defaultContentType;
 
   if (!doc || !entryName)
     return NULL;
@@ -1172,17 +1214,9 @@ ak_3mf_content_type_dup(AkDoc       * __restrict doc,
     }
   }
 
-  ext = ak_3mf_entry_extension(entryName);
-  if (ext) {
-    if (strcmp(ext, "rels") == 0)
-      return AK_3MF_CT_RELS;
-    if (strcmp(ext, "model") == 0)
-      return AK_3MF_CT_MODEL;
-    if (strcmp(ext, "png") == 0)
-      return "image/png";
-    if (strcmp(ext, "jpg") == 0 || strcmp(ext, "jpeg") == 0)
-      return "image/jpeg";
-  }
+  if ((ext = ak_3mf_entry_extension(entryName)))
+    if ((defaultContentType = ak_3mf_default_content_type_for_extension(ext)))
+      return defaultContentType;
 
   return "application/octet-stream";
 }
@@ -3870,11 +3904,21 @@ ak_3mf_boolean_operation_from_attr(const xml_attr_t * __restrict attr) {
   if (!attr || !attr->val || attr->valsize == 0u)
     return AK_PRINT_BOOLEAN_OPERATION_UNION;
 
-  if (ak_3mf_slice_eq_cstr(attr->val, attr->valsize, "union"))
+  if (ak_str_eq_packed_fast(attr->val,
+                            attr->valsize,
+                            AK_STR_PACK8_CHARS('u', 'n', 'i', 'o',
+                                               'n', '\0', '\0', '\0'),
+                            5u))
     return AK_PRINT_BOOLEAN_OPERATION_UNION;
-  if (ak_3mf_slice_eq_cstr(attr->val, attr->valsize, "difference"))
+  if (ak_str_eq_fast(attr->val,
+                     attr->valsize,
+                     "difference",
+                     sizeof("difference") - 1u))
     return AK_PRINT_BOOLEAN_OPERATION_DIFFERENCE;
-  if (ak_3mf_slice_eq_cstr(attr->val, attr->valsize, "intersection"))
+  if (ak_str_eq_fast(attr->val,
+                     attr->valsize,
+                     "intersection",
+                     sizeof("intersection") - 1u))
     return AK_PRINT_BOOLEAN_OPERATION_INTERSECTION;
 
   return AK_PRINT_BOOLEAN_OPERATION_UNKNOWN;

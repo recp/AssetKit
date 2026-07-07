@@ -34,6 +34,30 @@ ak_3mf_zip_part_name(const char * __restrict name) {
 
 static
 bool
+ak_3mf_reserved_part_name(const char * __restrict name) {
+  if (!name)
+    return false;
+
+  switch (name[0]) {
+    case '_':
+      return ak_str_eq_cstr_fast(name,
+                                 "_rels/.rels",
+                                 sizeof("_rels/.rels") - 1u);
+    case '3':
+      return ak_str_eq_cstr_fast(name,
+                                 "3D/3dmodel.model",
+                                 sizeof("3D/3dmodel.model") - 1u);
+    case '[':
+      return ak_str_eq_cstr_fast(name,
+                                 "[Content_Types].xml",
+                                 sizeof("[Content_Types].xml") - 1u);
+    default:
+      return false;
+  }
+}
+
+static
+bool
 ak_3mf_extra_part_exportable(const AkPrintPackagePart * __restrict part) {
   const char *name;
 
@@ -43,9 +67,7 @@ ak_3mf_extra_part_exportable(const AkPrintPackagePart * __restrict part) {
   name = ak_3mf_zip_part_name(part->name);
   if (!name)
     return false;
-  if (strcmp(name, "[Content_Types].xml") == 0
-      || strcmp(name, "_rels/.rels") == 0
-      || strcmp(name, "3D/3dmodel.model") == 0)
+  if (ak_3mf_reserved_part_name(name))
     return false;
 
   return true;

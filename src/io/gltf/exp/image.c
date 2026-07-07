@@ -22,6 +22,7 @@
 #include "../../common/util.h"
 #include "../../common/uri.h"
 #include "../../../image/export.h"
+#include "../../../string_fast.h"
 
 #include <ak/path.h>
 
@@ -80,7 +81,7 @@ gltf_image_source_path(GLTFExpState  * __restrict st,
                               _s_gltf_file_uri,
                               _s_gltf_file_uri_len);
   if (filePath) {
-    if (strchr(filePath, '%')) {
+    if (ak_str_has_char_fast(filePath, '%')) {
       if (!io_uri_decode_path(filePath, pathbuf, pathbuflen))
         return NULL;
       return pathbuf;
@@ -95,7 +96,7 @@ gltf_image_source_path(GLTFExpState  * __restrict st,
     const char *uriPath;
 
     uriPath = source->uri;
-    if (strchr(uriPath, '%')) {
+    if (ak_str_has_char_fast(uriPath, '%')) {
       if (!io_uri_decode_path(uriPath, relbuf, sizeof(relbuf)))
         return NULL;
       uriPath = relbuf;
@@ -112,7 +113,7 @@ bool
 gltf_image_cstr_eq_token(const char * __restrict val,
                          const char * __restrict token,
                          size_t                  tokenLen) {
-  return val && strlen(val) == tokenLen && memcmp(val, token, tokenLen) == 0;
+  return ak_str_eq_cstr_fast(val, token, tokenLen);
 }
 
 bool
@@ -142,7 +143,7 @@ gltf_image_data_uri_mime(const char * __restrict uri) {
     return NULL;
 
   start = uri + _s_gltf_b64d_len;
-  end   = strchr(start, ';');
+  end   = ak_str_find_char_fast(start, ';');
   if (!end || end <= start)
     return NULL;
 
@@ -603,7 +604,7 @@ gltf_image_copy_export_uri(GLTFExpState  * __restrict st,
     return true;
 
   dstRel = exportUri;
-  if (strchr(exportUri, '%')) {
+  if (ak_str_has_char_fast(exportUri, '%')) {
     if (!io_uri_decode_path(exportUri, relbuf, sizeof(relbuf))
         || !gltf_image_uri_rel_safe(relbuf))
       return false;

@@ -23,14 +23,16 @@
 
 static inline
 bool
-dae_url_has_scheme_sep(const char * __restrict str) {
+dae_url_has_path_or_scheme_sep(const char * __restrict str) {
   const char *p;
 
   if (!str)
     return false;
 
-  for (p = str; p[0] && p[1] && p[2]; p++) {
-    if (p[0] == ':' && p[1] == '/' && p[2] == '/')
+  for (p = str; *p; p++) {
+    if (*p == '/' || *p == '\\')
+      return true;
+    if (p[0] == ':' && p[1] && p[2] && p[1] == '/' && p[2] == '/')
       return true;
   }
 
@@ -60,9 +62,7 @@ dae_url_has_scheme_sep(const char * __restrict str) {
   do {                                                                   \
     char *_dbu_str = (urlstring_);                                       \
     if (_dbu_str && _dbu_str[0] != '#'                                   \
-        && !strchr(_dbu_str, '/')                                        \
-        && !strchr(_dbu_str, '\\')                                       \
-        && !dae_url_has_scheme_sep(_dbu_str)) {                          \
+        && !dae_url_has_path_or_scheme_sep(_dbu_str)) {                  \
       size_t  _dbu_len = strlen(_dbu_str);                               \
       char   *_dbu_norm = dae_alloca(_dbu_len + 2);                      \
       _dbu_norm[0] = '#';                                                \

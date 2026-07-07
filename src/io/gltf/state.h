@@ -105,7 +105,7 @@ gltf_jsonKeyEqLen(const json_t * __restrict obj,
   return obj
       && obj->key
       && (size_t)obj->keysize == len
-      && strncmp(obj->key, key, len) == 0;
+      && ak_str_eq_fast(obj->key, (size_t)obj->keysize, key, len);
 }
 
 static inline

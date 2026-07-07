@@ -23,6 +23,7 @@
 #include "../../common/text_number.h"
 #include "../../common/util.h"
 #include "../../common/uri.h"
+#include "../../../string_fast.h"
 
 #include <ak/path.h>
 
@@ -63,9 +64,10 @@ dae_prepare_texture_image(DAEExpState  * __restrict st,
 
 static
 bool
-dae_cstr_eq(const char * __restrict val,
-            const char * __restrict token) {
-  return val && token && strcmp(val, token) == 0;
+dae_cstr_eq_token(const char * __restrict val,
+                  const char * __restrict token,
+                  size_t                  tokenLen) {
+  return ak_str_eq_cstr_fast(val, token, tokenLen);
 }
 
 static
@@ -74,13 +76,13 @@ dae_image_mime_ext(AkImageSource * __restrict source) {
   const char *mime;
 
   mime = source ? source->mimeType : NULL;
-  if (dae_cstr_eq(mime, "image/png"))
+  if (dae_cstr_eq_token(mime, "image/png", sizeof("image/png") - 1u))
     return ".png";
-  if (dae_cstr_eq(mime, "image/jpeg"))
+  if (dae_cstr_eq_token(mime, "image/jpeg", sizeof("image/jpeg") - 1u))
     return ".jpg";
-  if (dae_cstr_eq(mime, "image/webp"))
+  if (dae_cstr_eq_token(mime, "image/webp", sizeof("image/webp") - 1u))
     return ".webp";
-  if (dae_cstr_eq(mime, "image/ktx2"))
+  if (dae_cstr_eq_token(mime, "image/ktx2", sizeof("image/ktx2") - 1u))
     return ".ktx2";
 
   return ".bin";
@@ -184,7 +186,7 @@ dae_image_source_path(DAEExpState  * __restrict st,
                               _s_dae_file_uri,
                               _s_dae_file_uri_len);
   if (filePath) {
-    if (strchr(filePath, '%')) {
+    if (ak_str_has_char_fast(filePath, '%')) {
       if (!io_uri_decode_path(filePath, pathbuf, pathbufCap))
         return NULL;
       return pathbuf;
@@ -322,8 +324,9 @@ dae_uri_basename(const char * __restrict uri) {
   base = io_path_basename(uri);
 
   if (!*base
-      || strcmp(base, ".") == 0
-      || strcmp(base, "..") == 0)
+      || (base[0] == '.'
+          && (base[1] == '\0'
+              || (base[1] == '.' && base[2] == '\0'))))
     return NULL;
 
   return base;

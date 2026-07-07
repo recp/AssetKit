@@ -16,6 +16,7 @@
 
 #include "writer.h"
 #include "../../common/text_number.h"
+#include "../../../string_fast.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -205,7 +206,7 @@ dae_write_extra(DAEExpWriter * __restrict w, AkTreeNode * __restrict extra) {
   if (!extra)
     return;
 
-  if (extra->name && strcmp(extra->name, _s_dae_extra) == 0) {
+  if (ak_str_eq_cstr_fast(extra->name, _s_dae_extra, _s_dae_extra_len)) {
     dae_write_extra_node(w, extra, 0);
     return;
   }

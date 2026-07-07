@@ -15,6 +15,7 @@
  */
 
 #include "../common.h"
+#include "../string_fast.h"
 #include "export.h"
 #include "../io/common/uri.h"
 #include "../../include/ak/bbox.h"
@@ -104,7 +105,7 @@ ak_imageLoad(AkImage * __restrict image) {
         return;
 
       uriPath = source->uri;
-      if (strchr(source->uri, '%')) {
+      if (ak_str_has_char_fast(source->uri, '%')) {
         if (!io_uri_decode_path(source->uri, uribuf, sizeof(uribuf)))
           return;
         uriPath = uribuf;

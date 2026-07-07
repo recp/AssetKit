@@ -22,6 +22,23 @@
 #include "common.h"
 #include "string_fast.h"
 
+static
+void
+ak_str_sep_table(const char * __restrict sep,
+                 uint32_t                table[8]) {
+  unsigned char c;
+
+  memset(table, 0, sizeof(uint32_t) * 8u);
+  while ((c = (unsigned char)*sep++))
+    table[c >> 5u] |= 1u << (c & 31u);
+}
+
+static
+bool
+ak_str_sep_table_has(const uint32_t table[8], unsigned char c) {
+  return (table[c >> 5u] & (1u << (c & 31u))) != 0u;
+}
+
 AK_EXPORT
 const char*
 ak_strltrim_fast(const char * __restrict str) {
@@ -53,6 +70,7 @@ int
 ak_strtok_count(char * __restrict buff,
                 char * __restrict sep,
                 size_t           *len) {
+  uint32_t table[8];
   int i, count, itemc, buflen, found_sep;
 
   buflen = (int)strlen(buff);
@@ -65,9 +83,11 @@ ak_strtok_count(char * __restrict buff,
   if (buflen == 1)
     return 1;
 
+  ak_str_sep_table(sep, table);
+
   found_sep = false;
   for (i = 0; i < buflen; i++) {
-    if (strchr(sep, buff[i])){
+    if (ak_str_sep_table_has(table, (unsigned char)buff[i])) {
       if (!found_sep) {
         itemc++;
         found_sep = true;
@@ -83,11 +103,11 @@ ak_strtok_count(char * __restrict buff,
     *len = buflen - count;
 
   /* left trim */
-  if (strchr(sep, buff[0]))
+  if (ak_str_sep_table_has(table, (unsigned char)buff[0]))
     itemc--;
 
   /* right trim */
-  if (strchr(sep, buff[buflen - 1]))
+  if (ak_str_sep_table_has(table, (unsigned char)buff[buflen - 1]))
     itemc--;
 
   return itemc + 1;

@@ -299,6 +299,45 @@ ak_str_eq_fast(const char * __restrict s,
 
 AK_INLINE
 bool
+ak_str_eq_cstr_fast(const char * __restrict s,
+                    const char * __restrict lit,
+                    size_t                  litLen) {
+  size_t i;
+
+  if (!s || !lit)
+    return false;
+
+  for (i = 0; i < litLen; i++) {
+    if (s[i] == '\0' || s[i] != lit[i])
+      return false;
+  }
+
+  return s[litLen] == '\0';
+}
+
+AK_INLINE
+const char*
+ak_str_find_char_fast(const char * __restrict s, char ch) {
+  if (!s)
+    return NULL;
+
+  while (*s) {
+    if (*s == ch)
+      return s;
+    s++;
+  }
+
+  return ch == '\0' ? s : NULL;
+}
+
+AK_INLINE
+bool
+ak_str_has_char_fast(const char * __restrict s, char ch) {
+  return ak_str_find_char_fast(s, ch) != NULL;
+}
+
+AK_INLINE
+bool
 ak_str_eq_ci_fast(const char * __restrict s,
                   const char * __restrict lit,
                   size_t                  len) {

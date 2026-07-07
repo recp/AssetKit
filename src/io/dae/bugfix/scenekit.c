@@ -16,6 +16,7 @@
 
 #include "scenekit.h"
 #include "../../../mat/internal.h"
+#include "../../../string_fast.h"
 
 #include <ctype.h>
 #include <string.h>
@@ -83,7 +84,9 @@ dae_scenekit_is_red_fill(AkMaterial          * __restrict material,
 
   if (!material
       || !material->name
-      || strcmp(material->name, _s_dae_material) != 0
+      || !ak_str_eq_cstr_fast(material->name,
+                              _s_dae_material,
+                              _s_dae_material_len)
       || !common
       || !common->diffuse
       || !common->diffuse->color)

@@ -6,6 +6,7 @@
 
 #include "extra.h"
 #include "../strpool.h"
+#include "../../../string_fast.h"
 
 #include <string.h>
 
@@ -14,9 +15,7 @@ bool
 gltf_extra_name_eq(const char * __restrict str,
                    const char * __restrict name,
                    size_t                  nameLen) {
-  return str
-         && strlen(str) == nameLen
-         && memcmp(str, name, nameLen) == 0;
+  return ak_str_eq_cstr_fast(str, name, nameLen);
 }
 
 static
@@ -96,8 +95,7 @@ gltf_extra_value_eq(const AkTreeNode * __restrict node,
                     size_t                        nameLen) {
   return node
          && node->val
-         && strlen(node->val) == nameLen
-         && memcmp(node->val, name, nameLen) == 0;
+         && ak_str_eq_cstr_fast(node->val, name, nameLen);
 }
 
 static
@@ -180,8 +178,12 @@ gltf_extra_reserved_root_child(AkTreeNode * __restrict node) {
 
   name = node ? node->name : NULL;
   return name
-         && (strcmp(name, "extensions") == 0
-             || strcmp(name, "extensionsRequired") == 0);
+         && (gltf_extra_name_eq(name,
+                                _s_gltf_extensions,
+                                _s_gltf_extensions_len)
+             || gltf_extra_name_eq(name,
+                                   _s_gltf_extensionsRequired,
+                                   _s_gltf_extensionsRequired_len));
 }
 
 bool

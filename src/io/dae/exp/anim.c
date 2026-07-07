@@ -16,6 +16,7 @@
 
 #include "anim.h"
 #include "source.h"
+#include "../../../string_fast.h"
 
 #include <cglm/cglm.h>
 
@@ -307,14 +308,14 @@ dae_anim_target_supported(DAEExpState * __restrict st,
   if (!target || !*target)
     goto resolved;
 
-  if (strchr(target, '/'))
+  if (ak_str_has_char_fast(target, '/'))
     return true;
 
   return channel->targetType == AK_TARGET_WEIGHTS
          && channel->resolvedTarget
          && channel->resolvedTarget->target
-         && strchr(target, '(')
-         && strchr(target, ')');
+         && ak_str_has_char_fast(target, '(')
+         && ak_str_has_char_fast(target, ')');
 
 resolved:
   if (channel

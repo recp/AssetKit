@@ -32,18 +32,25 @@
 
 #include "postscript.h"
 #include "../../id.h"
+#include "../../string_fast.h"
 
 #include "../../../include/ak/path.h"
 
 #include <stdlib.h>
 
-static ak_enumpair daeVersions[] = {
-  {"1.5.0",             AK_COLLADA_VERSION_150},
-  {"1.5",               AK_COLLADA_VERSION_150},
-  {"1.4.1",             AK_COLLADA_VERSION_141},
-  {"1.4.0",             AK_COLLADA_VERSION_140},
-  {"1.4",               AK_COLLADA_VERSION_140},
-  {NULL, 0}
+typedef struct DAEVersionPair {
+  const char *key;
+  size_t      keyLen;
+  int         val;
+} DAEVersionPair;
+
+static DAEVersionPair daeVersions[] = {
+  {"1.5.0", sizeof("1.5.0") - 1u, AK_COLLADA_VERSION_150},
+  {"1.5",   sizeof("1.5")   - 1u, AK_COLLADA_VERSION_150},
+  {"1.4.1", sizeof("1.4.1") - 1u, AK_COLLADA_VERSION_141},
+  {"1.4.0", sizeof("1.4.0") - 1u, AK_COLLADA_VERSION_140},
+  {"1.4",   sizeof("1.4")   - 1u, AK_COLLADA_VERSION_140},
+  {NULL, 0u, 0}
 };
 
 typedef void*(*AkLoadLibraryItemFn)(DAEState * __restrict dst,
@@ -162,10 +169,13 @@ dae_doc(AkDoc     ** __restrict dest,
   /* because it is current and most used version */
   dst->version = AK_COLLADA_VERSION_141;
   if ((versionAttr = DAE_XMLA8(xml, version))) {
-    ak_enumpair *v;
+    DAEVersionPair *v;
 
     for (v = daeVersions; v->key; v++) {
-      if (!strncmp(v->key, versionAttr->val, versionAttr->valsize)) {
+      if (ak_str_eq_fast(versionAttr->val,
+                         versionAttr->valsize,
+                         v->key,
+                         v->keyLen)) {
         dst->version = v->val;
         break;
       }

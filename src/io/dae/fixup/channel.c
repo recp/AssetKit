@@ -120,7 +120,7 @@ dae_parseChannelTargetIndexed(const char  *target,
 
   /* Trailing "(N)" must be present and well-formed. */
   if (!(open = strrchr(target, '('))
-      || !(close = strchr(open + 1, ')'))
+      || !(close = ak_str_find_char_fast(open + 1, ')'))
       || close == open + 1)
     return false;
 
@@ -277,8 +277,8 @@ dae_resolveMatrixElement(AkContext        * __restrict ctx,
   else
     seg = target;
 
-  if (!(open1 = strchr(seg, '('))
-      || !(close1 = strchr(open1 + 1, ')'))
+  if (!(open1 = ak_str_find_char_fast(seg, '('))
+      || !(close1 = ak_str_find_char_fast(open1 + 1, ')'))
       || close1 == open1 + 1)
     return false;
 
@@ -290,7 +290,8 @@ dae_resolveMatrixElement(AkContext        * __restrict ctx,
   hasB  = false;
   if (*(close1 + 1) == '(') {
     open2 = close1 + 1;
-    if (!(close2 = strchr(open2 + 1, ')')) || close2 == open2 + 1)
+    if (!(close2 = ak_str_find_char_fast(open2 + 1, ')'))
+        || close2 == open2 + 1)
       return false;
 
     if (!dae_parse_u32_between(open2 + 1, close2, &b) || close2[1] != '\0')

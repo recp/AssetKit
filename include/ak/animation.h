@@ -24,7 +24,6 @@ extern "C" {
   
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include "type.h"
 #include "source.h"
 #include "url.h"
@@ -125,9 +124,24 @@ typedef struct AkBakedAnimation {
 } AkBakedAnimation;
 
 AK_INLINE
+const char*
+ak_channelTargetDot(const char *target) {
+  if (!target)
+    return NULL;
+
+  while (*target) {
+    if (*target == '.')
+      return target;
+    target++;
+  }
+
+  return NULL;
+}
+
+AK_INLINE
 bool
 ak_channelTargetIsPartial(const AkChannel *ch) {
-  return ch->target && strchr(ch->target, '.') != NULL;
+  return ch->target && ak_channelTargetDot(ch->target) != NULL;
 }
 
 /**
@@ -139,7 +153,7 @@ AK_INLINE
 const char *
 ak_channelTargetAttr(const AkChannel *ch) {
   const char *dot;
-  if (!ch->target || !(dot = strchr(ch->target, '.'))) return NULL;
+  if (!ch->target || !(dot = ak_channelTargetDot(ch->target))) return NULL;
   return dot + 1;
 }
 

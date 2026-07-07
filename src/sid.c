@@ -16,6 +16,7 @@
 
 #include "common.h"
 #include "sid.h"
+#include "string_fast.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -195,7 +196,7 @@ ak_sidElement(AkContext  * __restrict ctx,
 
   heap  = NULL;
   it    = ak_strltrim_fast(target);
-  sidp  = strchr(target, '/');
+  sidp  = (char *)ak_str_find_char_fast(target, '/');
   *isdot = *it == '.' || !sidp;
 
   if (*idnode && *isdot) {
@@ -487,7 +488,7 @@ again:
   siddup  = strdup(target + sidoff);
   if (!siddup)
     goto err;
-  attrLoc = strchr(siddup, '.');
+  attrLoc = (char *)ak_str_find_char_fast(siddup, '.');
   sid_it  = strtok_r(siddup, "/ \t", &saveptr);
 
   if (!sid_it)

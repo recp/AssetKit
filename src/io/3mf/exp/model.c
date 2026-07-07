@@ -75,7 +75,10 @@ ak_3mf_path_is_root_model(const char * __restrict path) {
 
   while (*path == '/' || *path == '\\')
     path++;
-  return strcmp(path, "3D/3dmodel.model") == 0;
+
+  return ak_str_eq_cstr_fast(path,
+                             "3D/3dmodel.model",
+                             sizeof("3D/3dmodel.model") - 1u);
 }
 
 static

@@ -32,9 +32,25 @@ ak_enumpair_cmp2(const void * a, const void * b) {
 AK_HIDE int
 ak_enumpair_json_val_cmp(const void * a, const void * b) {
   const char *s;
+  const char *key;
+  size_t      sLen;
+  size_t      keyLen;
+  size_t      minLen;
+  int         cmp;
   
   if (!(s = json_string(a)))
     return -1;
 
-  return strncmp(s, ((const ak_enumpair *)b)->key, ((json_t *)a)->valsize);
+  key    = ((const ak_enumpair *)b)->key;
+  sLen   = (size_t)((const json_t *)a)->valsize;
+  keyLen = strlen(key);
+  minLen = sLen < keyLen ? sLen : keyLen;
+  cmp    = memcmp(s, key, minLen);
+  if (cmp != 0)
+    return cmp;
+  if (sLen < keyLen)
+    return -1;
+  if (sLen > keyLen)
+    return 1;
+  return 0;
 }

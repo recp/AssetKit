@@ -15,6 +15,7 @@
  */
 
 #include "../common.h"
+#include "../string_fast.h"
 #include "../../include/ak/path.h"
 #include "resource.h"
 
@@ -168,7 +169,7 @@ ak__url_decode_path(const char * __restrict url,
   size_t i;
   size_t j;
 
-  if (!url || !strchr(url, '%'))
+  if (!url || !ak_str_has_char_fast(url, '%'))
     return url;
   if (!dst || dstCap == 0)
     return NULL;
