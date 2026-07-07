@@ -177,34 +177,6 @@ typedef struct AK3MFPaintSubdivider {
 } AK3MFPaintSubdivider;
 
 AK_INLINE
-bool
-ak_3mf_fast_parse_u32_slice(const AK3MFFastSlice * __restrict slice,
-                            uint32_t             * __restrict out) {
-  uint64_t    value;
-  const char *p;
-  bool        found;
-
-  if (!slice || !out || !slice->begin || slice->end <= slice->begin)
-    return false;
-
-  p     = slice->begin;
-  value = 0u;
-  found = false;
-  while (p < slice->end && *p >= '0' && *p <= '9') {
-    value = value * 10u + (uint64_t)(*p++ - '0');
-    if (value > UINT32_MAX)
-      return false;
-    found = true;
-  }
-
-  if (!found)
-    return false;
-
-  *out = (uint32_t)value;
-  return true;
-}
-
-AK_INLINE
 const char*
 ak_3mf_fast_tag_end(const char * __restrict p,
                     const char * __restrict end) {
@@ -486,7 +458,7 @@ ak_3mf_fast_attr_u32_local(const char * __restrict tagBegin,
                                         &slice))
     return false;
 
-  return ak_3mf_fast_parse_u32_slice(&slice, out);
+  return ak_str_parse_u32_slice_fast(slice.begin, slice.end, out);
 }
 
 AK_INLINE
@@ -1620,90 +1592,14 @@ ak_3mf_fast_add_production_object(AK3MFImportState       * __restrict st,
 
 AK_INLINE
 bool
-ak_3mf_fast_parse_simple_float_quoted(const char  * __restrict p,
-                                      const char  * __restrict tagEnd,
-                                      char                       quote,
-                                      float       * __restrict out,
-                                      const char ** __restrict afterQuote) {
-  static const float invPow10[] = {
-    1.0f,
-    1.0e-1f,
-    1.0e-2f,
-    1.0e-3f,
-    1.0e-4f,
-    1.0e-5f,
-    1.0e-6f,
-    1.0e-7f,
-    1.0e-8f,
-    1.0e-9f,
-    1.0e-10f,
-    1.0e-11f,
-    1.0e-12f,
-    1.0e-13f,
-    1.0e-14f,
-    1.0e-15f,
-    1.0e-16f,
-    1.0e-17f,
-    1.0e-18f
-  };
-  uint64_t intValue;
-  uint64_t fracValue;
-  uint32_t fracDigits;
-  bool     neg;
-  bool     found;
-  float    value;
-
-  if (!p || !tagEnd || !out || !afterQuote || p >= tagEnd)
-    return false;
-
-  neg = false;
-  if (*p == '-' || *p == '+')
-    neg = *p++ == '-';
-
-  intValue = 0u;
-  found    = false;
-  while (p < tagEnd && *p >= '0' && *p <= '9') {
-    if (intValue > (UINT64_MAX - (uint64_t)(*p - '0')) / 10u)
-      return false;
-    intValue = intValue * 10u + (uint64_t)(*p++ - '0');
-    found = true;
-  }
-
-  fracValue  = 0u;
-  fracDigits = 0u;
-  if (p < tagEnd && *p == '.') {
-    p++;
-    while (p < tagEnd && *p >= '0' && *p <= '9') {
-      if (fracDigits + 1u >= AK_ARRAY_LEN(invPow10))
-        return false;
-      fracValue = fracValue * 10u + (uint64_t)(*p++ - '0');
-      fracDigits++;
-      found = true;
-    }
-  }
-
-  if (!found || p >= tagEnd || *p != quote)
-    return false;
-
-  value = (float)intValue;
-  if (fracDigits > 0u)
-    value += (float)fracValue * invPow10[fracDigits];
-  *out        = neg ? -value : value;
-  *afterQuote = p + 1u;
-  return true;
-}
-
-AK_INLINE
-bool
 ak_3mf_fast_expected_u32_attr(const char ** __restrict cursor,
                               const char  * __restrict tagEnd,
                               char                      c0,
                               char                      c1,
                               uint32_t    * __restrict out) {
   const char *p;
-  uint64_t    value;
+  const char *afterQuote;
   char        quote;
-  bool        found;
 
   p = ak_3mf_fast_skip_space(*cursor, tagEnd);
   if (!out || p + 3u >= tagEnd || p[0] != c0 || p[1] != c1 || p[2] != '=')
@@ -1714,23 +1610,14 @@ ak_3mf_fast_expected_u32_attr(const char ** __restrict cursor,
   if (quote != '"' && quote != '\'')
     return false;
 
-  value = 0u;
-  found = false;
-  while (p < tagEnd && *p >= '0' && *p <= '9') {
-    value = value * 10u + (uint64_t)(*p++ - '0');
-    if (value > UINT32_MAX)
-      return false;
-    found = true;
-  }
-  if (!found || p >= tagEnd || *p != quote)
+  if (!ak_str_parse_u32_quoted_fast(p, tagEnd, quote, out, &afterQuote))
     return false;
 
-  p++;
+  p = afterQuote;
   while (p < tagEnd && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
     p++;
 
   *cursor = p;
-  *out    = (uint32_t)value;
   return true;
 }
 
@@ -1811,11 +1698,7 @@ ak_3mf_fast_expected_float_attr_parse(const char ** __restrict cursor,
   const char *valueBegin;
   const char *afterQuote;
   float       value;
-  float       fracMul;
-  int         exp;
   char        quote;
-  bool        neg;
-  bool        found;
 
   if (!cursor || !*cursor || !tagEnd || !out)
     return false;
@@ -1830,79 +1713,18 @@ ak_3mf_fast_expected_float_attr_parse(const char ** __restrict cursor,
     return false;
 
   valueBegin = p;
-  if (ak_3mf_fast_parse_simple_float_quoted(valueBegin,
-                                            tagEnd,
-                                            quote,
-                                            &value,
-                                            &afterQuote)) {
-    p = afterQuote;
-    while (p < tagEnd && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
-      p++;
-
-    *out    = value;
-    *cursor = p;
-    return true;
-  }
-
-  p = valueBegin;
-  neg = false;
-  if (p < tagEnd && (*p == '-' || *p == '+'))
-    neg = *p++ == '-';
-
-  value = 0.0f;
-  found = false;
-  while (p < tagEnd && *p >= '0' && *p <= '9') {
-    value = value * 10.0f + (float)(*p++ - '0');
-    found = true;
-  }
-
-  if (p < tagEnd && *p == '.') {
-    p++;
-    fracMul = 0.1f;
-    while (p < tagEnd && *p >= '0' && *p <= '9') {
-      value  += (float)(*p++ - '0') * fracMul;
-      fracMul *= 0.1f;
-      found = true;
-    }
-  }
-
-  if (!found)
+  if (!ak_str_parse_float_quoted_fast(valueBegin,
+                                      tagEnd,
+                                      quote,
+                                      &value,
+                                      &afterQuote))
     return false;
 
-  if (p < tagEnd && (*p == 'e' || *p == 'E')) {
-    const char *expBegin;
-    bool        expNeg;
-    bool        expFound;
-
-    p++;
-    expBegin = p;
-    expNeg   = false;
-    if (p < tagEnd && (*p == '-' || *p == '+'))
-      expNeg = *p++ == '-';
-
-    exp = 0;
-    expFound = false;
-    while (p < tagEnd && *p >= '0' && *p <= '9') {
-      if (exp < 10000)
-        exp = exp * 10 + (*p - '0');
-      p++;
-      expFound = true;
-    }
-
-    if (expFound)
-      value *= ak_str_pow10if_fast(expNeg ? -exp : exp);
-    else
-      p = expBegin;
-  }
-
-  if (p >= tagEnd || *p != quote)
-    return false;
-
-  p++;
+  p = afterQuote;
   while (p < tagEnd && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
     p++;
 
-  *out    = neg ? -value : value;
+  *out    = value;
   *cursor = p;
   return true;
 }
@@ -2124,17 +1946,17 @@ ak_3mf_fast_parse_triangle(const char *p,
   while (ak_3mf_fast_next_attr_id(&p, tagEnd, &attrId, &attrValue)) {
     switch (attrId) {
       case AK_3MF_FAST_ATTR_V1:
-        if (!ak_3mf_fast_parse_u32_slice(&attrValue, &v[0]))
+        if (!ak_str_parse_u32_slice_fast(attrValue.begin, attrValue.end, &v[0]))
           return false;
         hasV1 = true;
         break;
       case AK_3MF_FAST_ATTR_V2:
-        if (!ak_3mf_fast_parse_u32_slice(&attrValue, &v[1]))
+        if (!ak_str_parse_u32_slice_fast(attrValue.begin, attrValue.end, &v[1]))
           return false;
         hasV2 = true;
         break;
       case AK_3MF_FAST_ATTR_V3:
-        if (!ak_3mf_fast_parse_u32_slice(&attrValue, &v[2]))
+        if (!ak_str_parse_u32_slice_fast(attrValue.begin, attrValue.end, &v[2]))
           return false;
         hasV3 = true;
         break;
@@ -2191,17 +2013,17 @@ ak_3mf_fast_parse_triangle_paint(const char       *p,
   while (ak_3mf_fast_next_attr_id(&p, tagEnd, &attrId, &attrValue)) {
     switch (attrId) {
       case AK_3MF_FAST_ATTR_V1:
-        if (!ak_3mf_fast_parse_u32_slice(&attrValue, &v[0]))
+        if (!ak_str_parse_u32_slice_fast(attrValue.begin, attrValue.end, &v[0]))
           return false;
         hasV1 = true;
         break;
       case AK_3MF_FAST_ATTR_V2:
-        if (!ak_3mf_fast_parse_u32_slice(&attrValue, &v[1]))
+        if (!ak_str_parse_u32_slice_fast(attrValue.begin, attrValue.end, &v[1]))
           return false;
         hasV2 = true;
         break;
       case AK_3MF_FAST_ATTR_V3:
-        if (!ak_3mf_fast_parse_u32_slice(&attrValue, &v[2]))
+        if (!ak_str_parse_u32_slice_fast(attrValue.begin, attrValue.end, &v[2]))
           return false;
         hasV3 = true;
         break;

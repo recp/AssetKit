@@ -19,52 +19,12 @@
 #include "string_fast.h"
 
 AK_INLINE
-char*
-xml_str_skip_array_sep(char * __restrict tok,
-                       char * __restrict end) {
-  return ak_str_skip_sep_fast(tok, end, false);
-}
-
-AK_INLINE
 unsigned long
 xml_strtof_node(char          * __restrict src,
                 size_t                     srclen,
                 unsigned long              n,
                 AkFloat       * __restrict dest) {
-  AkFloat      *out;
-  char         *tok, *end;
-  unsigned long rem;
-
-  if (n == 0)
-    return 0;
-
-  out = dest;
-  tok = src;
-  rem = n;
-
-  if (srclen != 0) {
-    end = src + srclen;
-
-    do {
-      tok = xml_str_skip_array_sep(tok, end);
-      if (tok >= end)
-        break;
-
-      tok = ak_str_parse_float_end_fast(tok, end, out++);
-      rem--;
-    } while (rem > 0ul && tok < end);
-  } else {
-    do {
-      tok = ak_str_skip_sep_fast(tok, NULL, false);
-      if (*tok == '\0')
-        break;
-
-      tok = ak_str_parse_float_fast(tok, NULL, out++);
-      rem--;
-    } while (rem > 0ul && *tok != '\0');
-  }
-
-  return rem;
+  return ak_str_parse_float_array_fast(src, srclen, n, dest, false);
 }
 
 AK_INLINE
@@ -74,51 +34,7 @@ xml_strtoui_node_max(char          * __restrict src,
                      unsigned long              n,
                      AkUInt        * __restrict dest,
                      AkUInt        * __restrict maxValue) {
-  char          *tok, *end;
-  AkUInt        *out;
-  AkUInt         value, maxv;
-  unsigned long rem;
-
-  if (n == 0)
-    return 0;
-
-  out  = dest;
-  tok  = src;
-  rem  = n;
-  maxv = maxValue ? *maxValue : 0;
-
-  if (srclen != 0) {
-    end = src + srclen;
-
-    do {
-      tok = xml_str_skip_array_sep(tok, end);
-      if (tok >= end)
-        break;
-
-      tok = ak_str_parse_uint_end_fast(tok, end, &value);
-      *out++ = value;
-      if (value > maxv)
-        maxv = value;
-      rem--;
-    } while (rem > 0ul && tok < end);
-  } else {
-    do {
-      tok = ak_str_skip_sep_fast(tok, NULL, false);
-      if (*tok == '\0')
-        break;
-
-      tok = ak_str_parse_uint_fast(tok, NULL, &value);
-      *out++ = value;
-      if (value > maxv)
-        maxv = value;
-      rem--;
-    } while (rem > 0ul && *tok != '\0');
-  }
-
-  if (maxValue)
-    *maxValue = maxv;
-
-  return rem;
+  return ak_str_parse_uint_array_fast(src, srclen, n, dest, maxValue);
 }
 
 static
@@ -234,7 +150,7 @@ xml_strtoindex_node(AkHeap        * __restrict heap,
     out = (uint8_t *)(void *)indices->items + written;
 
     do {
-      tok = xml_str_skip_array_sep(tok, end);
+      tok = ak_str_skip_sep_fast(tok, end, false);
       if (tok >= end)
         break;
 
@@ -320,7 +236,7 @@ parse_ushort_end:
 
     out = (uint16_t *)(void *)indices->items + written;
     do {
-      tok = xml_str_skip_array_sep(tok, end);
+      tok = ak_str_skip_sep_fast(tok, end, false);
       if (tok >= end)
         break;
 
@@ -384,7 +300,7 @@ parse_uint_end:
 
     out = (uint32_t *)(void *)indices->items + written;
     do {
-      tok = xml_str_skip_array_sep(tok, end);
+      tok = ak_str_skip_sep_fast(tok, end, false);
       if (tok >= end)
         break;
 

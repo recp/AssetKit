@@ -29,7 +29,6 @@
 #include "../../../id.h"
 #include "../../../../include/ak/path.h"
 
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -4090,11 +4089,11 @@ static
 bool
 ak_3mf_parse_transform_attr(const xml_attr_t * __restrict attr,
                             float                         matrix[16]) {
-  char   *copy;
-  char   *it;
-  char   *end;
-  float   values[12];
-  size_t  i;
+  const char *it;
+  const char *end;
+  const char *next;
+  float       values[12];
+  size_t      i;
 
   matrix[0] = 1.0f; matrix[1] = 0.0f; matrix[2] = 0.0f; matrix[3] = 0.0f;
   matrix[4] = 0.0f; matrix[5] = 1.0f; matrix[6] = 0.0f; matrix[7] = 0.0f;
@@ -4104,25 +4103,14 @@ ak_3mf_parse_transform_attr(const xml_attr_t * __restrict attr,
   if (!attr || !attr->val || attr->valsize == 0)
     return true;
 
-  copy = malloc((size_t)attr->valsize + 1u);
-  if (!copy)
-    return false;
-
-  memcpy(copy, attr->val, attr->valsize);
-  copy[attr->valsize] = '\0';
-
-  it = copy;
+  it  = attr->val;
+  end = attr->val + attr->valsize;
   for (i = 0; i < 12u; i++) {
-    errno     = 0;
-    values[i] = strtof(it, &end);
-    if (end == it || errno == ERANGE) {
-      free(copy);
+    it = ak_str_skip_sep_fast((char *)it, (char *)end, false);
+    if (!ak_str_parse_float_token_fast(it, end, &values[i], &next))
       return false;
-    }
-    it = end;
+    it = next;
   }
-
-  free(copy);
 
   matrix[0]  = values[0];
   matrix[1]  = values[1];

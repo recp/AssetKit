@@ -420,6 +420,138 @@ ak_str_pow10if_fast(int exp) {
 }
 
 AK_INLINE
+bool
+ak_str_parse_u32_slice_fast(const char * __restrict p,
+                            const char * __restrict end,
+                            uint32_t   * __restrict dest) {
+  uint64_t value;
+  bool     found;
+
+  if (!p || !end || !dest || p >= end)
+    return false;
+
+  value = 0u;
+  found = false;
+  while (p < end && ak_str_isdigit_fast(*p)) {
+    value = value * 10u + (uint64_t)(*p++ - '0');
+    if (value > UINT32_MAX)
+      return false;
+    found = true;
+  }
+
+  if (!found || p != end)
+    return false;
+
+  *dest = (uint32_t)value;
+  return true;
+}
+
+AK_INLINE
+bool
+ak_str_parse_u32_quoted_fast(const char  * __restrict p,
+                             const char  * __restrict end,
+                             char                       quote,
+                             uint32_t    * __restrict dest,
+                             const char ** __restrict afterQuote) {
+  uint64_t value;
+  bool     found;
+
+  if (!p || !end || !dest || !afterQuote || p >= end)
+    return false;
+
+  value = 0u;
+  found = false;
+  while (p < end && ak_str_isdigit_fast(*p)) {
+    value = value * 10u + (uint64_t)(*p++ - '0');
+    if (value > UINT32_MAX)
+      return false;
+    found = true;
+  }
+
+  if (!found || p >= end || *p != quote)
+    return false;
+
+  *dest       = (uint32_t)value;
+  *afterQuote = p + 1u;
+  return true;
+}
+
+AK_INLINE
+bool
+ak_str_parse_simple_float_quoted_fast(const char  * __restrict p,
+                                      const char  * __restrict end,
+                                      char                       quote,
+                                      AkFloat     * __restrict dest,
+                                      const char ** __restrict afterQuote) {
+  static const float invPow10[] = {
+    1.0f,
+    1.0e-1f,
+    1.0e-2f,
+    1.0e-3f,
+    1.0e-4f,
+    1.0e-5f,
+    1.0e-6f,
+    1.0e-7f,
+    1.0e-8f,
+    1.0e-9f,
+    1.0e-10f,
+    1.0e-11f,
+    1.0e-12f,
+    1.0e-13f,
+    1.0e-14f,
+    1.0e-15f,
+    1.0e-16f,
+    1.0e-17f,
+    1.0e-18f
+  };
+  uint64_t intValue;
+  uint64_t fracValue;
+  uint32_t fracDigits;
+  bool     neg;
+  bool     found;
+  float    value;
+
+  if (!p || !end || !dest || !afterQuote || p >= end)
+    return false;
+
+  neg = false;
+  if (*p == '-' || *p == '+')
+    neg = *p++ == '-';
+
+  intValue = 0u;
+  found    = false;
+  while (p < end && ak_str_isdigit_fast(*p)) {
+    if (intValue > (UINT64_MAX - (uint64_t)(*p - '0')) / 10u)
+      return false;
+    intValue = intValue * 10u + (uint64_t)(*p++ - '0');
+    found = true;
+  }
+
+  fracValue  = 0u;
+  fracDigits = 0u;
+  if (p < end && *p == '.') {
+    p++;
+    while (p < end && ak_str_isdigit_fast(*p)) {
+      if (fracDigits + 1u >= AK_ARRAY_LEN(invPow10))
+        return false;
+      fracValue = fracValue * 10u + (uint64_t)(*p++ - '0');
+      fracDigits++;
+      found = true;
+    }
+  }
+
+  if (!found || p >= end || *p != quote)
+    return false;
+
+  value = (float)intValue;
+  if (fracDigits > 0u)
+    value += (float)fracValue * invPow10[fracDigits];
+  *dest       = neg ? -value : value;
+  *afterQuote = p + 1u;
+  return true;
+}
+
+AK_INLINE
 char*
 ak_str_parse_float_fast(char    * __restrict p,
                         char    * __restrict end,
@@ -553,6 +685,67 @@ ak_str_parse_float_end_fast(char    * __restrict p,
   *dest = neg ? -value : value;
 
   return p;
+}
+
+AK_INLINE
+bool
+ak_str_float_token_start_fast(const char * __restrict p,
+                              const char * __restrict end) {
+  if (!p || !end || p >= end)
+    return false;
+
+  if (*p == '-' || *p == '+')
+    p++;
+
+  if (p >= end)
+    return false;
+
+  return ak_str_isdigit_fast(*p)
+         || (*p == '.' && p + 1u < end && ak_str_isdigit_fast(p[1]));
+}
+
+AK_INLINE
+bool
+ak_str_parse_float_token_fast(const char  * __restrict p,
+                              const char  * __restrict end,
+                              AkFloat     * __restrict dest,
+                              const char ** __restrict afterToken) {
+  char *parsed;
+
+  if (!dest || !afterToken || !ak_str_float_token_start_fast(p, end))
+    return false;
+
+  parsed = ak_str_parse_float_end_fast((char *)p, (char *)end, dest);
+  if ((const char *)parsed <= p)
+    return false;
+
+  *afterToken = parsed;
+  return true;
+}
+
+AK_INLINE
+bool
+ak_str_parse_float_quoted_fast(const char  * __restrict p,
+                               const char  * __restrict end,
+                               char                       quote,
+                               AkFloat     * __restrict dest,
+                               const char ** __restrict afterQuote) {
+  char *parsed;
+
+  if (ak_str_parse_simple_float_quoted_fast(p, end, quote, dest, afterQuote))
+    return true;
+
+  if (!p || !end || !dest || !afterQuote || p >= end
+      || !ak_str_float_token_start_fast(p, end))
+    return false;
+
+  parsed = ak_str_parse_float_end_fast((char *)p, (char *)end, dest);
+  if ((const char *)parsed <= p || (const char *)parsed >= end
+      || *parsed != quote)
+    return false;
+
+  *afterQuote = parsed + 1u;
+  return true;
 }
 
 AK_INLINE
@@ -879,6 +1072,185 @@ ak_str_parse_i64_fast(char    * __restrict p,
   *dest = neg ? -(AkInt64)value : (AkInt64)value;
 
   return p;
+}
+
+AK_INLINE
+unsigned long
+ak_str_parse_float_array_fast(char     * __restrict src,
+                              size_t                 srclen,
+                              unsigned long          n,
+                              AkFloat  * __restrict dest,
+                              bool                   lineOnly) {
+  AkFloat      *out;
+  char         *tok;
+  char         *end;
+  unsigned long rem;
+
+  if (n == 0)
+    return 0;
+
+  out = dest;
+  tok = src;
+  rem = n;
+
+  if (srclen != 0) {
+    end = src + srclen;
+    do {
+      tok = ak_str_skip_sep_fast(tok, end, lineOnly);
+      if (tok >= end || (lineOnly && (*tok == '\n' || *tok == '\r')))
+        break;
+      tok = ak_str_parse_float_end_fast(tok, end, out++);
+      rem--;
+    } while (rem > 0ul && tok < end);
+  } else {
+    do {
+      tok = ak_str_skip_sep_fast(tok, NULL, lineOnly);
+      if (*tok == '\0' || (lineOnly && (*tok == '\n' || *tok == '\r')))
+        break;
+      tok = ak_str_parse_float_fast(tok, NULL, out++);
+      rem--;
+    } while (rem > 0ul
+             && *tok != '\0'
+             && (!lineOnly || (*tok != '\n' && *tok != '\r')));
+  }
+
+  return rem;
+}
+
+AK_INLINE
+unsigned long
+ak_str_parse_double_array_fast(char      * __restrict src,
+                               size_t                  srclen,
+                               unsigned long           n,
+                               AkDouble  * __restrict dest) {
+  AkDouble     *out;
+  char         *tok;
+  char         *end;
+  unsigned long rem;
+
+  if (n == 0)
+    return 0;
+
+  out = dest;
+  tok = src;
+  rem = n;
+
+  if (srclen != 0) {
+    end = src + srclen;
+    do {
+      tok = ak_str_skip_sep_fast(tok, end, false);
+      if (tok >= end)
+        break;
+      tok = ak_str_parse_double_fast(tok, end, out++);
+      rem--;
+    } while (rem > 0ul && tok < end);
+  } else {
+    do {
+      tok = ak_str_skip_sep_fast(tok, NULL, false);
+      if (*tok == '\0')
+        break;
+      tok = ak_str_parse_double_fast(tok, NULL, out++);
+      rem--;
+    } while (rem > 0ul && *tok != '\0');
+  }
+
+  return rem;
+}
+
+AK_INLINE
+unsigned long
+ak_str_parse_uint_array_fast(char     * __restrict src,
+                             size_t                 srclen,
+                             unsigned long          n,
+                             AkUInt   * __restrict dest,
+                             AkUInt   * __restrict maxValue) {
+  AkUInt       *out;
+  char         *tok;
+  char         *end;
+  AkUInt        value;
+  AkUInt        maxv;
+  unsigned long rem;
+
+  if (n == 0)
+    return 0;
+
+  out  = dest;
+  tok  = src;
+  rem  = n;
+  maxv = maxValue ? *maxValue : 0;
+
+  if (srclen != 0) {
+    end = src + srclen;
+    do {
+      tok = ak_str_skip_sep_fast(tok, end, false);
+      if (tok >= end)
+        break;
+      tok = ak_str_parse_uint_end_fast(tok, end, &value);
+      *out++ = value;
+      if (value > maxv)
+        maxv = value;
+      rem--;
+    } while (rem > 0ul && tok < end);
+  } else {
+    do {
+      tok = ak_str_skip_sep_fast(tok, NULL, false);
+      if (*tok == '\0')
+        break;
+      tok = ak_str_parse_uint_fast(tok, NULL, &value);
+      *out++ = value;
+      if (value > maxv)
+        maxv = value;
+      rem--;
+    } while (rem > 0ul && *tok != '\0');
+  }
+
+  if (maxValue)
+    *maxValue = maxv;
+
+  return rem;
+}
+
+AK_INLINE
+unsigned long
+ak_str_parse_int_array_fast(char    * __restrict src,
+                            size_t                srclen,
+                            unsigned long         n,
+                            AkInt   * __restrict dest,
+                            bool                  lineOnly) {
+  AkInt        *out;
+  char         *tok;
+  char         *end;
+  unsigned long rem;
+
+  if (n == 0)
+    return 0;
+
+  out = dest;
+  tok = src;
+  rem = n;
+
+  if (srclen != 0) {
+    end = src + srclen;
+    do {
+      tok = ak_str_skip_sep_fast(tok, end, lineOnly);
+      if (tok >= end || (lineOnly && (*tok == '\n' || *tok == '\r')))
+        break;
+      tok = ak_str_parse_int_fast(tok, end, out++);
+      rem--;
+    } while (rem > 0ul && tok < end);
+  } else {
+    do {
+      tok = ak_str_skip_sep_fast(tok, NULL, lineOnly);
+      if (*tok == '\0' || (lineOnly && (*tok == '\n' || *tok == '\r')))
+        break;
+      tok = ak_str_parse_int_fast(tok, NULL, out++);
+      rem--;
+    } while (rem > 0ul
+             && *tok != '\0'
+             && (!lineOnly || (*tok != '\n' && *tok != '\r')));
+  }
+
+  return rem;
 }
 
 AK_INLINE

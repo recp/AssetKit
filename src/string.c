@@ -22,18 +22,6 @@
 #include "common.h"
 #include "string_fast.h"
 
-static inline
-char*
-ak_str_skip_array_sep(char * __restrict tok,
-                      char * __restrict end) {
-  char c;
-
-  while (tok < end && ((void)(c = *tok), AK_ARRAY_SEP_CHECK))
-    tok++;
-
-  return tok;
-}
-
 AK_EXPORT
 const char*
 ak_strltrim_fast(const char * __restrict str) {
@@ -164,38 +152,7 @@ ak_strtof(char    * __restrict src,
           size_t               srclen,
           unsigned long        n,
           AkFloat * __restrict dest) {
-  AkFloat *out;
-  char    *tok, *end;
-  unsigned long rem;
-
-  if (n == 0)
-    return 0;
-
-  out = dest;
-  tok = src;
-  rem = n;
-
-  if (srclen != 0) {
-    end = src + srclen;
-    
-    do {
-      tok = ak_str_skip_array_sep(tok, end);
-      if (tok >= end)
-        break;
-      tok = ak_str_parse_float_end_fast(tok, end, out++);
-      rem--;
-    } while (rem > 0ul && tok < end);
-  } else {
-    do {
-      tok = ak_str_skip_sep_fast(tok, NULL, false);
-      if (*tok == '\0')
-        break;
-      tok = ak_str_parse_float_fast(tok, NULL, out++);
-      rem--;
-    } while (rem > 0ul && *tok != '\0');
-  }
-
-  return rem;
+  return ak_str_parse_float_array_fast(src, srclen, n, dest, false);
 }
 
 AK_EXPORT
@@ -204,38 +161,7 @@ ak_strtof_line(char    * __restrict src,
                size_t               srclen,
                unsigned long        n,
                AkFloat * __restrict dest) {
-  AkFloat *out;
-  char    *tok, *end;
-  unsigned long rem;
-
-  if (n == 0)
-    return 0;
-
-  out = dest;
-  tok = src;
-  rem = n;
-
-  if (srclen != 0) {
-    end = src + srclen;
-    
-    do {
-      tok = ak_str_skip_sep_fast(tok, end, true);
-      if (tok >= end)
-        break;
-      tok = ak_str_parse_float_end_fast(tok, end, out++);
-      rem--;
-    } while (rem > 0ul && tok < end);
-  } else {
-    do {
-      tok = ak_str_skip_sep_fast(tok, NULL, true);
-      if (*tok == '\0' || *tok == '\n' || *tok == '\r')
-        break;
-      tok = ak_str_parse_float_fast(tok, NULL, out++);
-      rem--;
-    } while (rem > 0ul && *tok != '\0' && *tok != '\n' && *tok != '\r');
-  }
-
-  return rem;
+  return ak_str_parse_float_array_fast(src, srclen, n, dest, true);
 }
 
 AK_EXPORT
@@ -244,38 +170,7 @@ ak_strtod(char     * __restrict src,
           size_t                srclen,
           unsigned long         n,
           AkDouble * __restrict dest) {
-  AkDouble *out;
-  char     *tok, *end;
-  unsigned long rem;
-
-  if (n == 0)
-    return 0;
-
-  out = dest;
-  tok = src;
-  rem = n;
-
-  if (srclen != 0) {
-    end = src + srclen;
-    
-    do {
-      tok = ak_str_skip_sep_fast(tok, end, false);
-      if (tok >= end)
-        break;
-      tok = ak_str_parse_double_fast(tok, end, out++);
-      rem--;
-    } while (rem > 0ul && tok < end);
-  } else {
-    do {
-      tok = ak_str_skip_sep_fast(tok, NULL, false);
-      if (*tok == '\0')
-        break;
-      tok = ak_str_parse_double_fast(tok, NULL, out++);
-      rem--;
-    } while (rem > 0ul && *tok != '\0');
-  }
-
-  return rem;
+  return ak_str_parse_double_array_fast(src, srclen, n, dest);
 }
 
 AK_EXPORT
@@ -284,38 +179,7 @@ ak_strtoui(char    * __restrict src,
            size_t               srclen,
            unsigned long        n,
            AkUInt  * __restrict dest) {
-  char   *tok, *end;
-  AkUInt *out;
-  unsigned long rem;
-
-  if (n == 0)
-    return 0;
-
-  out = dest;
-  tok = src;
-  rem = n;
-
-  if (srclen != 0) {
-    end = src + srclen;
-    
-    do {
-      tok = ak_str_skip_array_sep(tok, end);
-      if (tok >= end)
-        break;
-      tok = ak_str_parse_uint_end_fast(tok, end, out++);
-      rem--;
-    } while (rem > 0ul && tok < end);
-  } else {
-    do {
-      tok = ak_str_skip_sep_fast(tok, NULL, false);
-      if (*tok == '\0')
-        break;
-      tok = ak_str_parse_uint_fast(tok, NULL, out++);
-      rem--;
-    } while (rem > 0ul && *tok != '\0');
-  }
-
-  return rem;
+  return ak_str_parse_uint_array_fast(src, srclen, n, dest, NULL);
 }
 
 AK_EXPORT
@@ -324,38 +188,7 @@ ak_strtoi(char    * __restrict src,
           size_t               srclen,
           unsigned long        n,
           AkInt   * __restrict dest) {
-  AkInt  *out;
-  char   *tok, *end;
-  unsigned long rem;
-  
-  if (n == 0)
-    return 0;
-  
-  out = dest;
-  tok = src;
-  rem = n;
-  
-  if (srclen != 0) {
-    end = src + srclen;
-    
-    do {
-      tok = ak_str_skip_array_sep(tok, end);
-      if (tok >= end)
-        break;
-      tok = ak_str_parse_int_fast(tok, end, out++);
-      rem--;
-    } while (rem > 0ul && tok < end);
-  } else {
-    do {
-      tok = ak_str_skip_sep_fast(tok, NULL, false);
-      if (*tok == '\0')
-        break;
-      tok = ak_str_parse_int_fast(tok, NULL, out++);
-      rem--;
-    } while (rem > 0ul && *tok != '\0');
-  }
-  
-  return rem;
+  return ak_str_parse_int_array_fast(src, srclen, n, dest, false);
 }
 
 AK_EXPORT
@@ -364,38 +197,7 @@ ak_strtoi_line(char    * __restrict src,
                size_t               srclen,
                unsigned long        n,
                AkInt   * __restrict dest) {
-  AkInt  *out;
-  char   *tok, *end;
-  unsigned long rem;
-  
-  if (n == 0)
-    return 0;
-  
-  out = dest;
-  tok = src;
-  rem = n;
-  
-  if (srclen != 0) {
-    end = src + srclen;
-    
-    do {
-      tok = ak_str_skip_sep_fast(tok, end, true);
-      if (tok >= end)
-        break;
-      tok = ak_str_parse_int_fast(tok, end, out++);
-      rem--;
-    } while (rem > 0ul && tok < end);
-  } else {
-    do {
-      tok = ak_str_skip_sep_fast(tok, NULL, true);
-      if (*tok == '\0' || *tok == '\n' || *tok == '\r')
-        break;
-      tok = ak_str_parse_int_fast(tok, NULL, out++);
-      rem--;
-    } while (rem > 0ul && *tok != '\0' && *tok != '\n' && *tok != '\r');
-  }
-  
-  return rem;
+  return ak_str_parse_int_array_fast(src, srclen, n, dest, true);
 }
 
 AK_EXPORT
