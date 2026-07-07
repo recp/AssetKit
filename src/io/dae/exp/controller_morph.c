@@ -51,7 +51,7 @@ dae_write_morph_target_source(DAEExpState * __restrict st,
   dae_w_lit(w, "\"><IDREF_array id=\"");
   dae_w_morph_source_id(w, morphIdx, DAE_EXP_NAME_LIT("targets_array"));
   dae_w_lit(w, "\" count=\"");
-  dae_w_uint(w, morph->targetCount);
+  dae_w_uint_fast(w, morph->targetCount);
   dae_w_lit(w, "\">");
 
   targetIdx = 0;
@@ -80,7 +80,7 @@ dae_write_morph_target_source(DAEExpState * __restrict st,
   dae_w_lit(w, "</IDREF_array><technique_common><accessor source=\"#");
   dae_w_morph_source_id(w, morphIdx, DAE_EXP_NAME_LIT("targets_array"));
   dae_w_lit(w, "\" count=\"");
-  dae_w_uint(w, morph->targetCount);
+  dae_w_uint_fast(w, morph->targetCount);
   dae_w_lit(w, "\" stride=\"1\"><param name=\"MORPH_TARGET\" type=\"IDREF\"/>"
                "</accessor></technique_common></source>");
 
@@ -111,7 +111,7 @@ dae_write_morph_weight_source(DAEExpState * __restrict st,
   dae_w_lit(w, "\"><float_array id=\"");
   dae_w_morph_source_id(w, morphIdx, DAE_EXP_NAME_LIT("weights_array"));
   dae_w_lit(w, "\" count=\"");
-  dae_w_uint(w, morph->targetCount);
+  dae_w_uint_fast(w, morph->targetCount);
   dae_w_lit(w, "\">");
 
   for (i = 0; i < morph->targetCount; i++) {
@@ -123,13 +123,13 @@ dae_write_morph_weight_source(DAEExpState * __restrict st,
 
     if (i > 0)
       dae_w_ch(w, ' ');
-    dae_w_float(w, weight);
+    dae_w_float_fast(w, weight);
   }
 
   dae_w_lit(w, "</float_array><technique_common><accessor source=\"#");
   dae_w_morph_source_id(w, morphIdx, DAE_EXP_NAME_LIT("weights_array"));
   dae_w_lit(w, "\" count=\"");
-  dae_w_uint(w, morph->targetCount);
+  dae_w_uint_fast(w, morph->targetCount);
   dae_w_lit(w, "\" stride=\"1\"><param name=\"MORPH_WEIGHT\" type=\"float\"/>"
                "</accessor></technique_common></source>");
 

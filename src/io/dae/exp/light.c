@@ -60,11 +60,11 @@ dae_write_color3(DAEExpWriter * __restrict w,
   dae_w_ch(w, '<');
   dae_w_name(w, DAE_EXP_NAME(color));
   dae_w_ch(w, '>');
-  dae_w_float(w, (color ? color->rgba.R : 1.0f) * intensity);
+  dae_w_float_fast(w, (color ? color->rgba.R : 1.0f) * intensity);
   dae_w_ch(w, ' ');
-  dae_w_float(w, (color ? color->rgba.G : 1.0f) * intensity);
+  dae_w_float_fast(w, (color ? color->rgba.G : 1.0f) * intensity);
   dae_w_ch(w, ' ');
-  dae_w_float(w, (color ? color->rgba.B : 1.0f) * intensity);
+  dae_w_float_fast(w, (color ? color->rgba.B : 1.0f) * intensity);
   dae_w_lit(w, "</");
   dae_w_name(w, DAE_EXP_NAME(color));
   dae_w_ch(w, '>');

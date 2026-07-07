@@ -80,18 +80,6 @@ dae_w_cstr(DAEExpWriter * __restrict w, const char * __restrict str) {
 
 AK_HIDE
 void
-dae_w_uint(DAEExpWriter * __restrict w, size_t val) {
-  dae_w_uint_fast(w, val);
-}
-
-AK_HIDE
-void
-dae_w_float(DAEExpWriter * __restrict w, float val) {
-  dae_w_float_fast(w, val);
-}
-
-AK_HIDE
-void
 dae_w_double(DAEExpWriter * __restrict w, double val) {
   char   buf[64];
   size_t outLen;
@@ -240,7 +228,7 @@ dae_w_attr_uint(DAEExpWriter * __restrict w,
   dae_w_ch(w, ' ');
   dae_w_name(w, name);
   dae_w_lit(w, "=\"");
-  dae_w_uint(w, value);
+  dae_w_uint_fast(w, value);
   dae_w_ch(w, '"');
 }
 
@@ -251,5 +239,5 @@ dae_w_id(DAEExpWriter * __restrict w,
          uint32_t                  idx) {
   dae_w_name(w, prefix);
   dae_w_ch(w, '_');
-  dae_w_uint(w, idx);
+  dae_w_uint_fast(w, idx);
 }

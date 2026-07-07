@@ -207,7 +207,7 @@ dae_write_transform_item(DAEExpState * __restrict st,
       for (i = 0; i < 9; i++) {
         if (i > 0)
           dae_w_ch(w, ' ');
-        dae_w_float(w, ((float *)lookAt->val)[i]);
+        dae_w_float_fast(w, ((float *)lookAt->val)[i]);
       }
       dae_w_lit(w, "</lookat>");
       break;
@@ -219,13 +219,13 @@ dae_write_transform_item(DAEExpState * __restrict st,
       dae_w_lit(w, "<rotate");
       dae_write_transform_sid_attr(w, obj);
       dae_w_ch(w, '>');
-      dae_w_float(w, rotate->val[0]);
+      dae_w_float_fast(w, rotate->val[0]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, rotate->val[1]);
+      dae_w_float_fast(w, rotate->val[1]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, rotate->val[2]);
+      dae_w_float_fast(w, rotate->val[2]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, glm_deg(rotate->val[3]));
+      dae_w_float_fast(w, glm_deg(rotate->val[3]));
       dae_w_lit(w, "</rotate>");
       break;
     }
@@ -239,13 +239,13 @@ dae_write_transform_item(DAEExpState * __restrict st,
       dae_w_lit(w, "<rotate");
       dae_write_transform_sid_attr(w, obj);
       dae_w_ch(w, '>');
-      dae_w_float(w, axis[0]);
+      dae_w_float_fast(w, axis[0]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, axis[1]);
+      dae_w_float_fast(w, axis[1]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, axis[2]);
+      dae_w_float_fast(w, axis[2]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, angleDeg);
+      dae_w_float_fast(w, angleDeg);
       dae_w_lit(w, "</rotate>");
       break;
     }
@@ -256,11 +256,11 @@ dae_write_transform_item(DAEExpState * __restrict st,
       dae_w_lit(w, "<scale");
       dae_write_transform_sid_attr(w, obj);
       dae_w_ch(w, '>');
-      dae_w_float(w, scale->val[0]);
+      dae_w_float_fast(w, scale->val[0]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, scale->val[1]);
+      dae_w_float_fast(w, scale->val[1]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, scale->val[2]);
+      dae_w_float_fast(w, scale->val[2]);
       dae_w_lit(w, "</scale>");
       break;
     }
@@ -271,19 +271,19 @@ dae_write_transform_item(DAEExpState * __restrict st,
       dae_w_lit(w, "<skew");
       dae_write_transform_sid_attr(w, obj);
       dae_w_ch(w, '>');
-      dae_w_float(w, glm_deg(skew->angle));
+      dae_w_float_fast(w, glm_deg(skew->angle));
       dae_w_ch(w, ' ');
-      dae_w_float(w, skew->rotateAxis[0]);
+      dae_w_float_fast(w, skew->rotateAxis[0]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, skew->rotateAxis[1]);
+      dae_w_float_fast(w, skew->rotateAxis[1]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, skew->rotateAxis[2]);
+      dae_w_float_fast(w, skew->rotateAxis[2]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, skew->aroundAxis[0]);
+      dae_w_float_fast(w, skew->aroundAxis[0]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, skew->aroundAxis[1]);
+      dae_w_float_fast(w, skew->aroundAxis[1]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, skew->aroundAxis[2]);
+      dae_w_float_fast(w, skew->aroundAxis[2]);
       dae_w_lit(w, "</skew>");
       break;
     }
@@ -294,11 +294,11 @@ dae_write_transform_item(DAEExpState * __restrict st,
       dae_w_lit(w, "<translate");
       dae_write_transform_sid_attr(w, obj);
       dae_w_ch(w, '>');
-      dae_w_float(w, translate->val[0]);
+      dae_w_float_fast(w, translate->val[0]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, translate->val[1]);
+      dae_w_float_fast(w, translate->val[1]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, translate->val[2]);
+      dae_w_float_fast(w, translate->val[2]);
       dae_w_lit(w, "</translate>");
       break;
     }

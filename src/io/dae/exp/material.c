@@ -178,13 +178,13 @@ void
 dae_write_color_value(DAEExpWriter * __restrict w,
                       AkColor      * __restrict color) {
   dae_w_lit(w, "<color>");
-  dae_w_float(w, color->rgba.R);
+  dae_w_float_fast(w, color->rgba.R);
   dae_w_ch(w, ' ');
-  dae_w_float(w, color->rgba.G);
+  dae_w_float_fast(w, color->rgba.G);
   dae_w_ch(w, ' ');
-  dae_w_float(w, color->rgba.B);
+  dae_w_float_fast(w, color->rgba.B);
   dae_w_ch(w, ' ');
-  dae_w_float(w, color->rgba.A);
+  dae_w_float_fast(w, color->rgba.A);
   dae_w_lit(w, "</color>");
 }
 
@@ -368,7 +368,7 @@ dae_write_material_float_tag(DAEExpWriter * __restrict w,
   dae_w_ch(w, '<');
   dae_w_name(w, tag);
   dae_w_lit(w, "><float>");
-  dae_w_float(w, value);
+  dae_w_float_fast(w, value);
   dae_w_lit(w, "</float></");
   dae_w_name(w, tag);
   dae_w_ch(w, '>');
@@ -434,7 +434,7 @@ dae_w_texcoord(DAEExpWriter * __restrict w,
 
   slot = dae_texcoord_slot(texref, slotOverride);
   dae_w_name(w, DAE_EXP_NAME(TEXCOORD));
-  dae_w_uint(w, (uint32_t)slot);
+  dae_w_uint_fast(w, (uint32_t)slot);
 }
 
 static
@@ -535,7 +535,7 @@ dae_write_texture_newparam(DAEExpState * __restrict st,
   w = &st->w;
   if (st->useCollada150) {
     dae_w_lit(w, "<newparam sid=\"sampler_");
-    dae_w_uint(w, matIdx);
+    dae_w_uint_fast(w, matIdx);
     dae_w_name(w, suffix);
     dae_w_lit(w, "\"><sampler2D><instance_image url=\"#");
     dae_w_id(w, DAE_EXP_NAME(image), imageIdx);
@@ -549,16 +549,16 @@ dae_write_texture_newparam(DAEExpState * __restrict st,
   }
 
   dae_w_lit(w, "<newparam sid=\"surface_");
-  dae_w_uint(w, matIdx);
+  dae_w_uint_fast(w, matIdx);
   dae_w_name(w, suffix);
   dae_w_lit(w, "\"><surface type=\"2D\"><init_from>");
   dae_w_id(w, DAE_EXP_NAME(image), imageIdx);
   dae_w_lit(w, "</init_from></surface></newparam>");
   dae_w_lit(w, "<newparam sid=\"sampler_");
-  dae_w_uint(w, matIdx);
+  dae_w_uint_fast(w, matIdx);
   dae_w_name(w, suffix);
   dae_w_lit(w, "\"><sampler2D><source>surface_");
-  dae_w_uint(w, matIdx);
+  dae_w_uint_fast(w, matIdx);
   dae_w_name(w, suffix);
   dae_w_lit(w, "</source>");
   dae_write_sampler_state(w,
@@ -575,7 +575,7 @@ dae_write_texture_value(DAEExpWriter * __restrict w,
                         DAEExpName                suffix,
                         AkTextureRef * __restrict texref) {
   dae_w_lit(w, "<texture texture=\"sampler_");
-  dae_w_uint(w, matIdx);
+  dae_w_uint_fast(w, matIdx);
   dae_w_name(w, suffix);
   dae_w_lit(w, "\" texcoord=\"");
   dae_w_texcoord(w, texref, -1);
@@ -846,7 +846,7 @@ dae_write_instance_texcoord_binding(DAEExpState        * __restrict st,
   dae_w_lit(w, "<bind_vertex_input semantic=\"");
   dae_w_texcoord(w, texref, slot);
   dae_w_lit(w, "\" input_semantic=\"TEXCOORD\" input_set=\"");
-  dae_w_uint(w, (uint32_t)dae_texcoord_slot(texref, slot));
+  dae_w_uint_fast(w, (uint32_t)dae_texcoord_slot(texref, slot));
   dae_w_lit(w, "\"/>");
 
   if (!texref->texcoord && slotCount < 8u)

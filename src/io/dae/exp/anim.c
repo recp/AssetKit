@@ -486,7 +486,7 @@ dae_w_anim_sampler_id(DAEExpWriter * __restrict w,
                       uint32_t                  samplerIdx) {
   dae_w_anim_id(w, animIdx);
   dae_w_lit(w, "_sampler_");
-  dae_w_uint(w, samplerIdx);
+  dae_w_uint_fast(w, samplerIdx);
 }
 
 static
@@ -498,7 +498,7 @@ dae_w_anim_sampler_id_variant(DAEExpWriter * __restrict w,
   dae_w_anim_sampler_id(w, animIdx, samplerIdx);
   if (variantIdx != UINT32_MAX) {
     dae_w_lit(w, "_weight_");
-    dae_w_uint(w, variantIdx);
+    dae_w_uint_fast(w, variantIdx);
   }
 }
 
@@ -685,7 +685,7 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
   dae_w_lit(w, "\"><float_array id=\"");
   dae_w_anim_source_id_variant(w, animIdx, samplerIdx, variantIdx, semName);
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, (size_t)acc->count * componentCount);
+  dae_w_uint_fast(w, (size_t)acc->count * componentCount);
   dae_w_lit(w, "\">");
 
   for (i = 0; i < acc->count; i++) {
@@ -725,16 +725,16 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
           && targetType == AK_TARGET_ROTATE
           && c == 3)
         val = glm_deg(val);
-      dae_w_float(w, val);
+      dae_w_float_fast(w, val);
     }
   }
 
   dae_w_lit(w, "</float_array><technique_common><accessor source=\"#");
   dae_w_anim_source_id_variant(w, animIdx, samplerIdx, variantIdx, semName);
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, acc->count);
+  dae_w_uint_fast(w, acc->count);
   dae_w_lit(w, "\" stride=\"");
-  dae_w_uint(w, componentCount);
+  dae_w_uint_fast(w, componentCount);
   dae_w_lit(w, "\">");
 
   for (c = 0; c < componentCount; c++) {
@@ -803,7 +803,7 @@ dae_write_anim_morph_output_source(DAEExpState * __restrict st,
                                weightIdx,
                                DAE_EXP_NAME(OUTPUT));
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, keyCount);
+  dae_w_uint_fast(w, keyCount);
   dae_w_lit(w, "\">");
 
   for (i = 0; i < keyCount; i++) {
@@ -828,7 +828,7 @@ dae_write_anim_morph_output_source(DAEExpState * __restrict st,
       val     = row[0];
     }
 
-    dae_w_float(w, val);
+    dae_w_float_fast(w, val);
   }
 
   dae_w_lit(w, "</float_array><technique_common><accessor source=\"#");
@@ -838,7 +838,7 @@ dae_write_anim_morph_output_source(DAEExpState * __restrict st,
                                weightIdx,
                                DAE_EXP_NAME(OUTPUT));
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, keyCount);
+  dae_w_uint_fast(w, keyCount);
   dae_w_lit(w, "\" stride=\"1\"><param name=\"MORPH_WEIGHT\" type=\"float\"/>"
                "</accessor></technique_common></source>");
 
@@ -878,7 +878,7 @@ dae_write_anim_interp_source_variant(DAEExpState    * __restrict st,
                                variantIdx,
                                DAE_EXP_NAME(INTERPOLATION));
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, inputAcc->count);
+  dae_w_uint_fast(w, inputAcc->count);
   dae_w_lit(w, "\">");
 
   for (i = 0; i < inputAcc->count; i++) {
@@ -900,7 +900,7 @@ dae_write_anim_interp_source_variant(DAEExpState    * __restrict st,
                                variantIdx,
                                DAE_EXP_NAME(INTERPOLATION));
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, inputAcc->count);
+  dae_w_uint_fast(w, inputAcc->count);
   dae_w_lit(w, "\" stride=\"1\"><param name=\"INTERPOLATION\" type=\"name\"/>"
                "</accessor></technique_common></source>");
 
@@ -1164,9 +1164,9 @@ dae_write_animation_channel_target_at(DAEExpState * __restrict st,
                 ? channel->resolvedTarget->off
                 : weightIdx;
     dae_w_lit(w, "morph_");
-    dae_w_uint(w, morphIdx);
+    dae_w_uint_fast(w, morphIdx);
     dae_w_lit(w, "_weights(");
-    dae_w_uint(w, targetIdx);
+    dae_w_uint_fast(w, targetIdx);
     dae_w_ch(w, ')');
     return true;
   }

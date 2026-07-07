@@ -93,15 +93,3 @@ wobj_w_name(WOBJExpWriter * __restrict w,
     }
   }
 }
-
-AK_HIDE
-void
-wobj_w_uint(WOBJExpWriter * __restrict w, uint32_t val) {
-  wobj_w_uint_fast(w, val);
-}
-
-AK_HIDE
-void
-wobj_w_float(WOBJExpWriter * __restrict w, float val) {
-  wobj_w_float_fast(w, val);
-}

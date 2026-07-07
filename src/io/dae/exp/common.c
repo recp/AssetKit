@@ -254,7 +254,7 @@ AK_HIDE
 void
 dae_w_prim_material_symbol(DAEExpWriter * __restrict w, uint32_t primIdx) {
   dae_w_lit(w, "mat_");
-  dae_w_uint(w, primIdx);
+  dae_w_uint_fast(w, primIdx);
 }
 
 AK_HIDE
@@ -265,7 +265,7 @@ dae_w_geom_prim_id(DAEExpWriter * __restrict w,
                    DAEExpName                suffix) {
   dae_w_geom_id(w, geomIdx);
   dae_w_lit(w, "_prim_");
-  dae_w_uint(w, primIdx);
+  dae_w_uint_fast(w, primIdx);
   if (suffix.ptr && suffix.len > 0) {
     dae_w_ch(w, '_');
     dae_w_name(w, suffix);
@@ -280,7 +280,7 @@ dae_write_float_elem(DAEExpWriter * __restrict w,
   dae_w_ch(w, '<');
   dae_w_name(w, tag);
   dae_w_ch(w, '>');
-  dae_w_float(w, val);
+  dae_w_float_fast(w, val);
   dae_w_lit(w, "</");
   dae_w_name(w, tag);
   dae_w_ch(w, '>');
@@ -297,7 +297,7 @@ dae_w_matrix4x4_dae(DAEExpWriter * __restrict w,
     for (c = 0; c < 4; c++) {
       if (r > 0 || c > 0)
         dae_w_ch(w, ' ');
-      dae_w_float(w, matrix[c][r]);
+      dae_w_float_fast(w, matrix[c][r]);
     }
   }
 }

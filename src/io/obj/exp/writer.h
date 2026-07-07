@@ -106,12 +106,4 @@ void
 wobj_w_name(WOBJExpWriter * __restrict w,
             const char    * __restrict name);
 
-AK_HIDE
-void
-wobj_w_uint(WOBJExpWriter * __restrict w, uint32_t val);
-
-AK_HIDE
-void
-wobj_w_float(WOBJExpWriter * __restrict w, float val);
-
 #endif /* assetkit_obj_exp_writer_h */

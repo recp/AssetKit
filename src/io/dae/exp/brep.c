@@ -357,7 +357,7 @@ dae_w_brep_indexed_id(DAEExpWriter * __restrict w,
                       uint32_t                  idx) {
   dae_w_brep_id(w, geomIdx, suffix);
   dae_w_ch(w, '_');
-  dae_w_uint(w, idx);
+  dae_w_uint_fast(w, idx);
 }
 
 static
@@ -368,7 +368,7 @@ dae_w_brep_source_id(DAEExpWriter * __restrict w,
                      uint32_t                  inputIdx) {
   dae_w_brep_id(w, geomIdx, owner);
   dae_w_lit(w, "_input_");
-  dae_w_uint(w, inputIdx);
+  dae_w_uint_fast(w, inputIdx);
 }
 
 static
@@ -451,7 +451,7 @@ dae_w_brep_scalar(DAEExpWriter       * __restrict w,
     case AKT_FLOAT: {
       float v;
       memcpy(&v, ptr, sizeof(v));
-      dae_w_float(w, v);
+      dae_w_float_fast(w, v);
       break;
     }
     case AKT_DOUBLE: {
@@ -474,16 +474,16 @@ dae_w_brep_scalar(DAEExpWriter       * __restrict w,
       memcpy(&v, ptr, sizeof(v));
       if (v < 0) {
         dae_w_ch(w, '-');
-        dae_w_uint(w, (size_t)-(int)v);
+        dae_w_uint_fast(w, (size_t)-(int)v);
       } else {
-        dae_w_uint(w, (uint8_t)v);
+        dae_w_uint_fast(w, (uint8_t)v);
       }
       break;
     }
     case AKT_UBYTE: {
       uint8_t v;
       memcpy(&v, ptr, sizeof(v));
-      dae_w_uint(w, v);
+      dae_w_uint_fast(w, v);
       break;
     }
     case AKT_SHORT: {
@@ -491,16 +491,16 @@ dae_w_brep_scalar(DAEExpWriter       * __restrict w,
       memcpy(&v, ptr, sizeof(v));
       if (v < 0) {
         dae_w_ch(w, '-');
-        dae_w_uint(w, (size_t)-(int)v);
+        dae_w_uint_fast(w, (size_t)-(int)v);
       } else {
-        dae_w_uint(w, (uint16_t)v);
+        dae_w_uint_fast(w, (uint16_t)v);
       }
       break;
     }
     case AKT_USHORT: {
       uint16_t v;
       memcpy(&v, ptr, sizeof(v));
-      dae_w_uint(w, v);
+      dae_w_uint_fast(w, v);
       break;
     }
     case AKT_INT: {
@@ -508,16 +508,16 @@ dae_w_brep_scalar(DAEExpWriter       * __restrict w,
       memcpy(&v, ptr, sizeof(v));
       if (v < 0) {
         dae_w_ch(w, '-');
-        dae_w_uint(w, (size_t)-(int64_t)v);
+        dae_w_uint_fast(w, (size_t)-(int64_t)v);
       } else {
-        dae_w_uint(w, (uint32_t)v);
+        dae_w_uint_fast(w, (uint32_t)v);
       }
       break;
     }
     case AKT_UINT: {
       uint32_t v;
       memcpy(&v, ptr, sizeof(v));
-      dae_w_uint(w, v);
+      dae_w_uint_fast(w, v);
       break;
     }
     case AKT_IDREF:
@@ -561,7 +561,7 @@ dae_write_brep_accessor_source(DAEExpState  * __restrict st,
   dae_w_lit(w, " id=\"");
   dae_w_brep_source_id(w, geomIdx, owner, inputIdx);
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, (size_t)count * acc->componentCount);
+  dae_w_uint_fast(w, (size_t)count * acc->componentCount);
   dae_w_lit(w, "\">");
 
   for (row = 0; row < count; row++) {
@@ -582,9 +582,9 @@ dae_write_brep_accessor_source(DAEExpState  * __restrict st,
   dae_w_lit(w, "><technique_common><accessor source=\"#");
   dae_w_brep_source_id(w, geomIdx, owner, inputIdx);
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, count);
+  dae_w_uint_fast(w, count);
   dae_w_lit(w, "\" stride=\"");
-  dae_w_uint(w, acc->componentCount);
+  dae_w_uint_fast(w, acc->componentCount);
   dae_w_lit(w, "\">");
 
   for (col = 0; col < acc->componentCount; col++) {
@@ -735,7 +735,7 @@ dae_write_brep_sidref_source(DAEExpState  * __restrict st,
   dae_w_lit(w, "\"><SIDREF_array id=\"");
   dae_w_brep_id(w, geomIdx, sourceName);
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, count);
+  dae_w_uint_fast(w, count);
   dae_w_lit(w, "\">");
   for (i = 0; i < count; i++) {
     if (i > 0)
@@ -747,7 +747,7 @@ dae_write_brep_sidref_source(DAEExpState  * __restrict st,
   dae_w_lit(w, "</SIDREF_array><technique_common><accessor source=\"#");
   dae_w_brep_id(w, geomIdx, sourceName);
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, count);
+  dae_w_uint_fast(w, count);
   dae_w_lit(w, "\" stride=\"1\"><param name=\"");
   dae_w_name(w, paramName);
   dae_w_lit(w, "\" type=\"SIDREF\"/></accessor></technique_common></source>");
@@ -757,24 +757,24 @@ static
 void
 dae_write_brep_float3(DAEExpWriter * __restrict w,
                       const float  * __restrict v) {
-  dae_w_float(w, v[0]);
+  dae_w_float_fast(w, v[0]);
   dae_w_ch(w, ' ');
-  dae_w_float(w, v[1]);
+  dae_w_float_fast(w, v[1]);
   dae_w_ch(w, ' ');
-  dae_w_float(w, v[2]);
+  dae_w_float_fast(w, v[2]);
 }
 
 static
 void
 dae_write_brep_float4(DAEExpWriter * __restrict w,
                       const float  * __restrict v) {
-  dae_w_float(w, v[0]);
+  dae_w_float_fast(w, v[0]);
   dae_w_ch(w, ' ');
-  dae_w_float(w, v[1]);
+  dae_w_float_fast(w, v[1]);
   dae_w_ch(w, ' ');
-  dae_w_float(w, v[2]);
+  dae_w_float_fast(w, v[2]);
   dae_w_ch(w, ' ');
-  dae_w_float(w, v[3]);
+  dae_w_float_fast(w, v[3]);
 }
 
 static
@@ -788,7 +788,7 @@ dae_write_brep_orients(DAEExpWriter  * __restrict w,
     for (i = 0; i < orient->count; i++) {
       if (i > 0)
         dae_w_ch(w, ' ');
-      dae_w_float(w, orient->items[i]);
+      dae_w_float_fast(w, orient->items[i]);
     }
     dae_w_lit(w, "</orient>");
   }
@@ -833,7 +833,7 @@ dae_write_brep_curve(DAEExpState  * __restrict st,
 
       circle = ak_objGet(obj);
       dae_w_lit(w, "<circle><radius>");
-      dae_w_float(w, circle->radius);
+      dae_w_float_fast(w, circle->radius);
       dae_w_lit(w, "</radius>");
       dae_write_extra(w, circle->extra);
       dae_w_lit(w, "</circle>");
@@ -844,9 +844,9 @@ dae_write_brep_curve(DAEExpState  * __restrict st,
 
       ellipse = ak_objGet(obj);
       dae_w_lit(w, "<ellipse><radius>");
-      dae_w_float(w, ellipse->radius[0]);
+      dae_w_float_fast(w, ellipse->radius[0]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, ellipse->radius[1]);
+      dae_w_float_fast(w, ellipse->radius[1]);
       dae_w_lit(w, "</radius>");
       dae_write_extra(w, ellipse->extra);
       dae_w_lit(w, "</ellipse>");
@@ -857,7 +857,7 @@ dae_write_brep_curve(DAEExpState  * __restrict st,
 
       parabola = ak_objGet(obj);
       dae_w_lit(w, "<parabola><focal>");
-      dae_w_float(w, parabola->focal);
+      dae_w_float_fast(w, parabola->focal);
       dae_w_lit(w, "</focal>");
       dae_write_extra(w, parabola->extra);
       dae_w_lit(w, "</parabola>");
@@ -868,9 +868,9 @@ dae_write_brep_curve(DAEExpState  * __restrict st,
 
       hyperbola = ak_objGet(obj);
       dae_w_lit(w, "<hyperbola><radius>");
-      dae_w_float(w, hyperbola->radius[0]);
+      dae_w_float_fast(w, hyperbola->radius[0]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, hyperbola->radius[1]);
+      dae_w_float_fast(w, hyperbola->radius[1]);
       dae_w_lit(w, "</radius>");
       dae_write_extra(w, hyperbola->extra);
       dae_w_lit(w, "</hyperbola>");
@@ -957,9 +957,9 @@ dae_write_brep_surface(DAEExpState  * __restrict st,
 
       cone = ak_objGet(obj);
       dae_w_lit(w, "<cone><radius>");
-      dae_w_float(w, cone->radius);
+      dae_w_float_fast(w, cone->radius);
       dae_w_lit(w, "</radius><angle>");
-      dae_w_float(w, cone->angle);
+      dae_w_float_fast(w, cone->angle);
       dae_w_lit(w, "</angle>");
       dae_write_extra(w, cone->extra);
       dae_w_lit(w, "</cone>");
@@ -981,10 +981,10 @@ dae_write_brep_surface(DAEExpState  * __restrict st,
 
       cylinder = ak_objGet(obj);
       dae_w_lit(w, "<cylinder><radius>");
-      dae_w_float(w, cylinder->radius[0]);
+      dae_w_float_fast(w, cylinder->radius[0]);
       if (cylinder->radius[1] != 0.0f) {
         dae_w_ch(w, ' ');
-        dae_w_float(w, cylinder->radius[1]);
+        dae_w_float_fast(w, cylinder->radius[1]);
       }
       dae_w_lit(w, "</radius>");
       dae_write_extra(w, cylinder->extra);
@@ -996,7 +996,7 @@ dae_write_brep_surface(DAEExpState  * __restrict st,
 
       sphere = ak_objGet(obj);
       dae_w_lit(w, "<sphere><radius>");
-      dae_w_float(w, sphere->radius);
+      dae_w_float_fast(w, sphere->radius);
       dae_w_lit(w, "</radius>");
       dae_write_extra(w, sphere->extra);
       dae_w_lit(w, "</sphere>");
@@ -1007,9 +1007,9 @@ dae_write_brep_surface(DAEExpState  * __restrict st,
 
       torus = ak_objGet(obj);
       dae_w_lit(w, "<torus><radius>");
-      dae_w_float(w, torus->radius[0]);
+      dae_w_float_fast(w, torus->radius[0]);
       dae_w_ch(w, ' ');
-      dae_w_float(w, torus->radius[1]);
+      dae_w_float_fast(w, torus->radius[1]);
       dae_w_lit(w, "</radius>");
       dae_write_extra(w, torus->extra);
       dae_w_lit(w, "</torus>");
@@ -1209,7 +1209,7 @@ dae_write_brep_inputs(DAEExpState  * __restrict st,
     if (!dae_brep_input_object_source(&st->w, geomIdx, semantic))
       dae_w_brep_source_id(&st->w, geomIdx, owner, idx);
     dae_w_lit(&st->w, "\" offset=\"");
-    dae_w_uint(&st->w, input->indexOffset);
+    dae_w_uint_fast(&st->w, input->indexOffset);
     dae_w_lit(&st->w, "\"/>");
   }
 }
@@ -1228,7 +1228,7 @@ dae_write_brep_uint_array(DAEExpWriter * __restrict w,
     for (i = 0; i < array->count; i++) {
       if (i > 0)
         dae_w_ch(w, ' ');
-      dae_w_uint(w, array->items[i]);
+      dae_w_uint_fast(w, array->items[i]);
     }
   }
   dae_w_lit(w, "</");
@@ -1263,7 +1263,7 @@ dae_write_brep_topology(DAEExpState  * __restrict st,
     dae_w_xml(w, name, true);
   }
   dae_w_lit(w, "\" count=\"");
-  dae_w_uint(w, count);
+  dae_w_uint_fast(w, count);
   dae_w_lit(w, "\">");
   dae_write_brep_inputs(st, input, geomIdx, idSuffix);
   if (vcount)

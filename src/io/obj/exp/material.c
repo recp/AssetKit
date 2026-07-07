@@ -421,11 +421,11 @@ static
 void
 wobj_w_float3(WOBJExpWriter * __restrict w,
               const float   * __restrict v) {
-  wobj_w_float(w, v[0]);
+  wobj_w_float_fast(w, v[0]);
   wobj_w_ch(w, ' ');
-  wobj_w_float(w, v[1]);
+  wobj_w_float_fast(w, v[1]);
   wobj_w_ch(w, ' ');
-  wobj_w_float(w, v[2]);
+  wobj_w_float_fast(w, v[2]);
 }
 
 static
@@ -597,50 +597,50 @@ wobj_write_material(WOBJExpState    * __restrict st,
   wobj_w_float3(w, ke);
   wobj_w_ch(w, '\n');
   WOBJ_W_LIT(w, "Ns ");
-  wobj_w_float(w, wobj_surface_ns(surface, classic));
+  wobj_w_float_fast(w, wobj_surface_ns(surface, classic));
   wobj_w_ch(w, '\n');
   WOBJ_W_LIT(w, "Pr ");
-  wobj_w_float(w, glm_clamp_zo(ak_materialRoughnessFactor(surface)));
+  wobj_w_float_fast(w, glm_clamp_zo(ak_materialRoughnessFactor(surface)));
   wobj_w_ch(w, '\n');
   WOBJ_W_LIT(w, "Pm ");
-  wobj_w_float(w, glm_clamp_zo(ak_materialMetallicFactor(surface)));
+  wobj_w_float_fast(w, glm_clamp_zo(ak_materialMetallicFactor(surface)));
   wobj_w_ch(w, '\n');
   if (sheen && sheen->color) {
     WOBJ_W_LIT(w, "Ps ");
-    wobj_w_float(w, glm_clamp_zo(wobj_input_scalar_or_avg(sheen->color, 0.0f)));
+    wobj_w_float_fast(w, glm_clamp_zo(wobj_input_scalar_or_avg(sheen->color, 0.0f)));
     wobj_w_ch(w, '\n');
   }
   if (clearcoat && clearcoat->factor) {
     WOBJ_W_LIT(w, "Pc ");
-    wobj_w_float(w, glm_clamp_zo(ak_materialInputScalar(clearcoat->factor, 0.0f))
+    wobj_w_float_fast(w, glm_clamp_zo(ak_materialInputScalar(clearcoat->factor, 0.0f))
                     * 4.0f);
     wobj_w_ch(w, '\n');
   }
   if (clearcoat && clearcoat->roughness) {
     WOBJ_W_LIT(w, "Pcr ");
-    wobj_w_float(w, glm_clamp_zo(ak_materialInputScalar(clearcoat->roughness, 0.0f)));
+    wobj_w_float_fast(w, glm_clamp_zo(ak_materialInputScalar(clearcoat->roughness, 0.0f)));
     wobj_w_ch(w, '\n');
   }
   if (anisotropy && anisotropy->strength) {
     WOBJ_W_LIT(w, "aniso ");
-    wobj_w_float(w, glm_clamp_zo(ak_materialInputScalar(anisotropy->strength, 0.0f)));
+    wobj_w_float_fast(w, glm_clamp_zo(ak_materialInputScalar(anisotropy->strength, 0.0f)));
     wobj_w_ch(w, '\n');
   }
   if (anisotropy && anisotropy->rotation) {
     WOBJ_W_LIT(w, "anisor ");
-    wobj_w_float(w, glm_clamp_zo(ak_materialInputScalar(anisotropy->rotation, 0.0f)));
+    wobj_w_float_fast(w, glm_clamp_zo(ak_materialInputScalar(anisotropy->rotation, 0.0f)));
     wobj_w_ch(w, '\n');
   }
   WOBJ_W_LIT(w, "Ni ");
-  wobj_w_float(w, classic && classic->ior > 0.0f
+  wobj_w_float_fast(w, classic && classic->ior > 0.0f
                   ? classic->ior
                   : ak_materialIor(surface));
   wobj_w_ch(w, '\n');
   WOBJ_W_LIT(w, "d ");
-  wobj_w_float(w, alpha);
+  wobj_w_float_fast(w, alpha);
   wobj_w_ch(w, '\n');
   WOBJ_W_LIT(w, "illum ");
-  wobj_w_uint(w, wobj_surface_illum(surface, classic));
+  wobj_w_uint_fast(w, wobj_surface_illum(surface, classic));
   wobj_w_ch(w, '\n');
 
   wobj_w_map(st, w, "map_Ka", classic ? classic->ambient : NULL);

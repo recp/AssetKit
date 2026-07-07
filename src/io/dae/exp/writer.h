@@ -135,14 +135,6 @@ dae_w_float_fast(DAEExpWriter * __restrict w, float val) {
 
 AK_HIDE
 void
-dae_w_uint(DAEExpWriter * __restrict w, size_t val);
-
-AK_HIDE
-void
-dae_w_float(DAEExpWriter * __restrict w, float val);
-
-AK_HIDE
-void
 dae_w_double(DAEExpWriter * __restrict w, double val);
 
 AK_HIDE
