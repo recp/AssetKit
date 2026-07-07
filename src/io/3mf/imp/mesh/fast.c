@@ -152,6 +152,17 @@ typedef struct AK3MFPaintTriangle {
   uint8_t  state;
 } AK3MFPaintTriangle;
 
+typedef struct AK3MFPaintAnalyzeWorker {
+  AK3MFFastTagChunk           chunk;
+  const AK3MFFastMeshSlices  *slices;
+  AK3MFPaintTriangle         *triangles;
+  size_t                      counts[AK_3MF_PAINT_BUCKET_COUNT];
+  size_t                      outputTriangleCount;
+  size_t                      extraVertexCount;
+  uint32_t                    defaultExtruder;
+  bool                        ok;
+} AK3MFPaintAnalyzeWorker;
+
 typedef struct AK3MFPaintBucketFill {
   void    *items[AK_3MF_PAINT_BUCKET_COUNT];
   size_t   offsets[AK_3MF_PAINT_BUCKET_COUNT];
@@ -3072,6 +3083,171 @@ ak_3mf_fast_parse_triangle_orca_state(const char *p,
 
 static
 bool
+ak_3mf_fast_analyze_paint_tag(AK3MFPaintPlan            * __restrict plan,
+                              const AK3MFFastMeshSlices * __restrict slices,
+                              const char                * __restrict tagBegin,
+                              const char                * __restrict tagEnd,
+                              AK3MFPaintTriangle        * __restrict cached) {
+  AK3MFFastSlice paint;
+  AK3MFPaintKind paintKind;
+  uint32_t        v[3];
+  uint8_t         state;
+
+  if (!plan || !slices || !tagBegin || !tagEnd || !cached)
+    return false;
+
+  paint.begin = NULL;
+  paint.end   = NULL;
+  if (ak_3mf_fast_parse_triangle_orca_state(tagBegin,
+                                            tagEnd,
+                                            (uint32_t)slices->vertexCount,
+                                            v,
+                                            &state)) {
+    if (!ak_3mf_fast_paint_emit_state(plan, NULL, state, v))
+      return false;
+  } else {
+    if (!ak_3mf_fast_parse_triangle_paint(tagBegin,
+                                          tagEnd,
+                                          (uint32_t)slices->vertexCount,
+                                          v,
+                                          &paint,
+                                          &paintKind)
+        || !ak_3mf_fast_paint_analyze(plan,
+                                      paintKind,
+                                      &paint,
+                                      v,
+                                      &state))
+      return false;
+  }
+
+  cached->v[0] = v[0];
+  cached->v[1] = v[1];
+  cached->v[2] = v[2];
+  cached->state = state;
+  cached->paintOffset = 0u;
+  cached->paintSize = 0u;
+  if (state == AK_3MF_PAINT_STATE_SEGMENTED) {
+    size_t paintOffset;
+    size_t paintSize;
+
+    paintOffset = (size_t)(paint.begin - slices->triangles.begin);
+    paintSize   = (size_t)(paint.end - paint.begin);
+    if (paintOffset > UINT32_MAX || paintSize > UINT32_MAX)
+      return false;
+    cached->paintOffset = (uint32_t)paintOffset;
+    cached->paintSize   = (uint32_t)paintSize;
+  }
+
+  return true;
+}
+
+static
+void
+ak_3mf_fast_analyze_paint_worker(void *userdata) {
+  AK3MFPaintAnalyzeWorker *worker;
+  AK3MFPaintPlan           localPlan;
+  const char              *cursor;
+  const char              *tagBegin;
+  const char              *tagEnd;
+  size_t                   parsedCount;
+
+  worker = userdata;
+  if (!worker || !worker->slices || !worker->triangles) {
+    if (worker)
+      worker->ok = false;
+    return;
+  }
+
+  memset(&localPlan, 0, sizeof(localPlan));
+  localPlan.defaultExtruder = worker->defaultExtruder;
+
+  cursor      = worker->chunk.begin;
+  parsedCount = 0u;
+  while (ak_3mf_fast_next_named_tag(&cursor,
+                                    worker->chunk.end,
+                                    _s_ak_triangle_u64_exact,
+                                    _s_ak_triangle_len,
+                                    &tagBegin,
+                                    &tagEnd)) {
+    if (parsedCount >= worker->chunk.count
+        || !ak_3mf_fast_analyze_paint_tag(
+             &localPlan,
+             worker->slices,
+             tagBegin,
+             tagEnd,
+             &worker->triangles[worker->chunk.firstIndex + parsedCount])) {
+      worker->ok = false;
+      return;
+    }
+    parsedCount++;
+  }
+
+  if (parsedCount != worker->chunk.count) {
+    worker->ok = false;
+    return;
+  }
+
+  memcpy(worker->counts, localPlan.counts, sizeof(worker->counts));
+  worker->outputTriangleCount = localPlan.outputTriangleCount;
+  worker->extraVertexCount    = localPlan.extraVertexCount;
+  worker->ok                  = true;
+}
+
+static
+bool
+ak_3mf_fast_analyze_paint_parallel(const AK3MFFastMeshSlices * __restrict slices,
+                                   AK3MFPaintPlan            * __restrict plan) {
+  AK3MFFastTagChunk       chunks[AK_3MF_FAST_PARALLEL_MAX_THREADS];
+  AK3MFPaintAnalyzeWorker workers[AK_3MF_FAST_PARALLEL_MAX_THREADS];
+  AkThreadTask            tasks[AK_3MF_FAST_PARALLEL_MAX_THREADS];
+  uint32_t                threadCount;
+  uint32_t                chunkCount;
+  uint32_t                i;
+  uint32_t                bucket;
+
+  if (!slices || !plan || slices->triangleChunkCount <= 1u)
+    return false;
+
+  threadCount = ak_3mf_fast_parallel_thread_count(slices->triangleCount);
+  if (threadCount <= 1u)
+    return false;
+
+  chunkCount = slices->triangleChunkCount;
+  if (chunkCount > AK_3MF_FAST_PARALLEL_MAX_THREADS)
+    return false;
+  memcpy(chunks, slices->triangleChunks, sizeof(*chunks) * chunkCount);
+  while (chunkCount > threadCount)
+    ak_3mf_fast_merge_tag_chunks(chunks, &chunkCount);
+
+  for (i = 0u; i < chunkCount; i++) {
+    memset(&workers[i], 0, sizeof(workers[i]));
+    workers[i].chunk           = chunks[i];
+    workers[i].slices          = slices;
+    workers[i].triangles       = plan->triangles;
+    workers[i].defaultExtruder = plan->defaultExtruder;
+    tasks[i].func              = ak_3mf_fast_analyze_paint_worker;
+    tasks[i].userdata          = &workers[i];
+  }
+
+  if (!ak_thread_run_tasks(tasks, chunkCount))
+    return false;
+
+  for (i = 0u; i < chunkCount; i++) {
+    if (!workers[i].ok)
+      return false;
+
+    for (bucket = 0u; bucket < AK_3MF_PAINT_BUCKET_COUNT; bucket++)
+      plan->counts[bucket] += workers[i].counts[bucket];
+    plan->outputTriangleCount += workers[i].outputTriangleCount;
+    plan->extraVertexCount    += workers[i].extraVertexCount;
+  }
+
+  return plan->outputTriangleCount > 0u
+         && plan->outputTriangleCount <= UINT32_MAX;
+}
+
+static
+bool
 ak_3mf_fast_analyze_paint(AK3MFImportState          * __restrict st,
                           const AK3MFFastMeshSlices * __restrict slices,
                           AK3MFPaintPlan            * __restrict plan) {
@@ -3086,6 +3262,9 @@ ak_3mf_fast_analyze_paint(AK3MFImportState          * __restrict st,
   if (!plan->triangles)
     return false;
 
+  if (ak_3mf_fast_analyze_paint_parallel(slices, plan))
+    return true;
+
   cursor = slices->triangles.begin;
   triangleIndex = 0u;
   while (ak_3mf_fast_next_named_tag(&cursor,
@@ -3094,57 +3273,16 @@ ak_3mf_fast_analyze_paint(AK3MFImportState          * __restrict st,
                                     _s_ak_triangle_len,
                                     &tagBegin,
                                     &tagEnd)) {
-    AK3MFFastSlice paint;
-    AK3MFPaintKind paintKind;
-    AK3MFPaintTriangle *cached;
-    uint32_t       v[3];
-    uint8_t        state;
-
     if (triangleIndex >= slices->triangleCount)
       return false;
 
-    paint.begin = NULL;
-    paint.end   = NULL;
-    if (ak_3mf_fast_parse_triangle_orca_state(tagBegin,
-                                              tagEnd,
-                                              (uint32_t)slices->vertexCount,
-                                              v,
-                                              &state)) {
-      if (!ak_3mf_fast_paint_emit_state(plan, NULL, state, v))
-        return false;
-    } else {
-      if (!ak_3mf_fast_parse_triangle_paint(tagBegin,
-                                            tagEnd,
-                                            (uint32_t)slices->vertexCount,
-                                            v,
-                                            &paint,
-                                            &paintKind)
-          || !ak_3mf_fast_paint_analyze(plan,
-                                        paintKind,
-                                        &paint,
-                                        v,
-                                        &state))
-        return false;
-    }
-
-    cached = &plan->triangles[triangleIndex++];
-    cached->v[0] = v[0];
-    cached->v[1] = v[1];
-    cached->v[2] = v[2];
-    cached->state = state;
-    cached->paintOffset = 0u;
-    cached->paintSize = 0u;
-    if (state == AK_3MF_PAINT_STATE_SEGMENTED) {
-      size_t paintOffset;
-      size_t paintSize;
-
-      paintOffset = (size_t)(paint.begin - slices->triangles.begin);
-      paintSize   = (size_t)(paint.end - paint.begin);
-      if (paintOffset > UINT32_MAX || paintSize > UINT32_MAX)
-        return false;
-      cached->paintOffset = (uint32_t)paintOffset;
-      cached->paintSize   = (uint32_t)paintSize;
-    }
+    if (!ak_3mf_fast_analyze_paint_tag(plan,
+                                       slices,
+                                       tagBegin,
+                                       tagEnd,
+                                       &plan->triangles[triangleIndex]))
+      return false;
+    triangleIndex++;
   }
 
   return triangleIndex == slices->triangleCount
