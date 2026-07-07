@@ -1620,6 +1620,81 @@ ak_3mf_fast_add_production_object(AK3MFImportState       * __restrict st,
 
 AK_INLINE
 bool
+ak_3mf_fast_parse_simple_float_quoted(const char  * __restrict p,
+                                      const char  * __restrict tagEnd,
+                                      char                       quote,
+                                      float       * __restrict out,
+                                      const char ** __restrict afterQuote) {
+  static const float invPow10[] = {
+    1.0f,
+    1.0e-1f,
+    1.0e-2f,
+    1.0e-3f,
+    1.0e-4f,
+    1.0e-5f,
+    1.0e-6f,
+    1.0e-7f,
+    1.0e-8f,
+    1.0e-9f,
+    1.0e-10f,
+    1.0e-11f,
+    1.0e-12f,
+    1.0e-13f,
+    1.0e-14f,
+    1.0e-15f,
+    1.0e-16f,
+    1.0e-17f,
+    1.0e-18f
+  };
+  uint64_t intValue;
+  uint64_t fracValue;
+  uint32_t fracDigits;
+  bool     neg;
+  bool     found;
+  float    value;
+
+  if (!p || !tagEnd || !out || !afterQuote || p >= tagEnd)
+    return false;
+
+  neg = false;
+  if (*p == '-' || *p == '+')
+    neg = *p++ == '-';
+
+  intValue = 0u;
+  found    = false;
+  while (p < tagEnd && *p >= '0' && *p <= '9') {
+    if (intValue > (UINT64_MAX - (uint64_t)(*p - '0')) / 10u)
+      return false;
+    intValue = intValue * 10u + (uint64_t)(*p++ - '0');
+    found = true;
+  }
+
+  fracValue  = 0u;
+  fracDigits = 0u;
+  if (p < tagEnd && *p == '.') {
+    p++;
+    while (p < tagEnd && *p >= '0' && *p <= '9') {
+      if (fracDigits + 1u >= AK_ARRAY_LEN(invPow10))
+        return false;
+      fracValue = fracValue * 10u + (uint64_t)(*p++ - '0');
+      fracDigits++;
+      found = true;
+    }
+  }
+
+  if (!found || p >= tagEnd || *p != quote)
+    return false;
+
+  value = (float)intValue;
+  if (fracDigits > 0u)
+    value += (float)fracValue * invPow10[fracDigits];
+  *out        = neg ? -value : value;
+  *afterQuote = p + 1u;
+  return true;
+}
+
+AK_INLINE
+bool
 ak_3mf_fast_expected_u32_attr(const char ** __restrict cursor,
                               const char  * __restrict tagEnd,
                               char                      c0,
@@ -1733,6 +1808,8 @@ ak_3mf_fast_expected_float_attr_parse(const char ** __restrict cursor,
                                       char                      name,
                                       float       * __restrict out) {
   const char *p;
+  const char *valueBegin;
+  const char *afterQuote;
   float       value;
   float       fracMul;
   int         exp;
@@ -1752,6 +1829,22 @@ ak_3mf_fast_expected_float_attr_parse(const char ** __restrict cursor,
   if (quote != '"' && quote != '\'')
     return false;
 
+  valueBegin = p;
+  if (ak_3mf_fast_parse_simple_float_quoted(valueBegin,
+                                            tagEnd,
+                                            quote,
+                                            &value,
+                                            &afterQuote)) {
+    p = afterQuote;
+    while (p < tagEnd && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
+      p++;
+
+    *out    = value;
+    *cursor = p;
+    return true;
+  }
+
+  p = valueBegin;
   neg = false;
   if (p < tagEnd && (*p == '-' || *p == '+'))
     neg = *p++ == '-';
