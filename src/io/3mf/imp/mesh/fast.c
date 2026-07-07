@@ -3604,7 +3604,8 @@ ak_3mf_fast_commit_mesh_slices(AK3MFImportState     * __restrict st,
 AK_HIDE
 AK3MFFastPreparedModel*
 ak_3mf_fast_prepare_model_part(const char * __restrict modelData,
-                               size_t                  modelSize) {
+                               size_t                  modelSize,
+                               bool                    preferVendorPaint) {
   AK3MFFastMeshSlices stackSlices[8];
   AK3MFFastMeshSlices *slices;
   AK3MFFastPreparedModel *prepared;
@@ -3612,6 +3613,7 @@ ak_3mf_fast_prepare_model_part(const char * __restrict modelData,
   const char          *end;
   size_t               sliceCount;
   size_t               sliceCapacity;
+  AK3MFTriangleInspectMode inspectMode;
 
   if (!modelData || modelSize == 0u)
     return NULL;
@@ -3621,6 +3623,9 @@ ak_3mf_fast_prepare_model_part(const char * __restrict modelData,
   slices        = stackSlices;
   sliceCount    = 0u;
   sliceCapacity = AK_ARRAY_LEN(stackSlices);
+  inspectMode   = preferVendorPaint
+                  ? AK_3MF_TRIANGLE_INSPECT_MATERIAL_QUICK
+                  : AK_3MF_TRIANGLE_INSPECT_MATERIAL_AND_PAINT;
 
   for (;;) {
     AK3MFFastSlice objectTag;
@@ -3634,7 +3639,7 @@ ak_3mf_fast_prepare_model_part(const char * __restrict modelData,
                                              &objectTag,
                                              end,
                                              &nextSlice,
-                                             AK_3MF_TRIANGLE_INSPECT_MATERIAL_AND_PAINT,
+                                             inspectMode,
                                              &afterObject)) {
       if (slices != stackSlices)
         free(slices);

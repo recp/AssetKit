@@ -74,6 +74,7 @@ typedef struct AK3MFPackageInflateJob {
   size_t    entryIndex;
   AkResult  result;
   bool      prepareModel;
+  bool      preferVendorPaint;
 } AK3MFPackageInflateJob;
 
 typedef struct AK3MFPackageImportState {
@@ -1366,6 +1367,9 @@ ak_3mf_package_add_inflate_job(AK3MFPackageImportState * __restrict st,
   job->entryIndex   = entryIndex;
   job->result       = AK_OK;
   job->prepareModel = prepareModel;
+  job->preferVendorPaint = prepareModel
+                           && st->importState
+                           && st->importState->bambuColorCount > 0u;
   if (prepareModel)
     st->modelJobCount++;
   st->totalInflateBytes += expectedSize;
@@ -1401,7 +1405,8 @@ ak_3mf_package_inflate_jobs_serial(AkZipArchive           * __restrict package,
     if (job->prepareModel)
       job->preparedModel =
         ak_3mf_fast_prepare_model_part((const char *)job->data,
-                                       job->writtenSize);
+                                       job->writtenSize,
+                                       job->preferVendorPaint);
   }
 
   return AK_OK;
@@ -1451,7 +1456,8 @@ ak_3mf_package_inflate_worker(void *userdata) {
     if (job->prepareModel)
       job->preparedModel =
         ak_3mf_fast_prepare_model_part((const char *)job->data,
-                                       job->writtenSize);
+                                       job->writtenSize,
+                                       job->preferVendorPaint);
   }
 
   ak_zip_decompressor_free(decompressor);
@@ -4415,6 +4421,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   st.currentModelPath = modelPath;
   (void)ak_3mf_mark_model_part_loaded(&st, modelPath);
   st.print = ak_printDocumentEnsure(doc);
+  ak_3mf_bambu_orca_parse_metadata(&st);
   if (st.print) {
     st.print->features |= AK_PRINT_FEATURE_CORE;
     ak_3mf_mark_model_extensions(st.print, root);
@@ -4435,8 +4442,6 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
     if (result != AK_OK)
       goto cleanup;
   }
-
-  ak_3mf_bambu_orca_parse_metadata(&st);
 
   scene = ak_3mf_scene_new(doc);
   if (!scene) {

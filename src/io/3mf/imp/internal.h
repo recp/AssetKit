@@ -130,7 +130,8 @@ ak_3mf_fast_load_mesh_model_part(AK3MFImportState * __restrict st,
 AK_HIDE
 AK3MFFastPreparedModel*
 ak_3mf_fast_prepare_model_part(const char * __restrict modelData,
-                               size_t                  modelSize);
+                               size_t                  modelSize,
+                               bool                    preferVendorPaint);
 
 AK_HIDE
 void
