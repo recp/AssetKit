@@ -3608,7 +3608,7 @@ ak_3mf_fast_prepare_model_part(const char * __restrict modelData,
                                              &objectTag,
                                              end,
                                              &nextSlice,
-                                             AK_3MF_TRIANGLE_INSPECT_NONE,
+                                             AK_3MF_TRIANGLE_INSPECT_MATERIAL_AND_PAINT,
                                              &afterObject)) {
       if (slices != stackSlices)
         free(slices);
@@ -3694,7 +3694,7 @@ ak_3mf_fast_commit_prepared_model_part(AK3MFImportState        * __restrict st,
                                         modelPath,
                                         prepared->slices,
                                         prepared->sliceCount,
-                                        true);
+                                        false);
 }
 
 AK_HIDE
