@@ -1317,7 +1317,7 @@ ak_3mf_mark_package_part_features(AkPrintDocument       * __restrict print,
 #define AK_3MF_PACKAGE_INFLATE_PARALLEL_MIN_JOBS  2u
 #define AK_3MF_PACKAGE_INFLATE_PARALLEL_MIN_BYTES (8u * 1024u * 1024u)
 #define AK_3MF_PACKAGE_INFLATE_MAX_THREADS        8u
-#define AK_3MF_PACKAGE_PREPARE_MIN_MODEL_JOBS     4u
+#define AK_3MF_PACKAGE_PREPARE_MIN_MODEL_JOBS     1u
 
 typedef struct AK3MFPackageInflateWorker {
   AkZipArchive           *package;
