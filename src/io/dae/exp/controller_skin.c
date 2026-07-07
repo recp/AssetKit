@@ -156,7 +156,7 @@ dae_write_skin_joint_source(DAEExpState    * __restrict st,
   dae_w_lit(w, "\"><IDREF_array id=\"");
   dae_w_skin_source_id(w, skinIdx, DAE_EXP_NAME_LIT("joints_array"));
   dae_w_lit(w, "\" count=\"");
-  dae_w_uint(w, jointCount);
+  dae_w_uint_fast(w, jointCount);
   dae_w_lit(w, "\">");
 
   for (i = 0; i < jointCount; i++) {
@@ -169,7 +169,7 @@ dae_write_skin_joint_source(DAEExpState    * __restrict st,
   dae_w_lit(w, "</IDREF_array><technique_common><accessor source=\"#");
   dae_w_skin_source_id(w, skinIdx, DAE_EXP_NAME_LIT("joints_array"));
   dae_w_lit(w, "\" count=\"");
-  dae_w_uint(w, jointCount);
+  dae_w_uint_fast(w, jointCount);
   dae_w_lit(w, "\" stride=\"1\"><param name=\"JOINT\" type=\"IDREF\"/>"
                "</accessor></technique_common></source>");
 
@@ -196,7 +196,7 @@ dae_write_skin_bind_source(DAEExpState * __restrict st,
   dae_w_lit(w, "\"><float_array id=\"");
   dae_w_skin_source_id(w, skinIdx, DAE_EXP_NAME_LIT("bind_poses_array"));
   dae_w_lit(w, "\" count=\"");
-  dae_w_uint(w, jointCount * 16u);
+  dae_w_uint_fast(w, jointCount * 16u);
   dae_w_lit(w, "\">");
 
   for (i = 0; i < jointCount; i++) {
@@ -213,7 +213,7 @@ dae_write_skin_bind_source(DAEExpState * __restrict st,
   dae_w_lit(w, "</float_array><technique_common><accessor source=\"#");
   dae_w_skin_source_id(w, skinIdx, DAE_EXP_NAME_LIT("bind_poses_array"));
   dae_w_lit(w, "\" count=\"");
-  dae_w_uint(w, jointCount);
+  dae_w_uint_fast(w, jointCount);
   dae_w_lit(w, "\" stride=\"16\"><param name=\"TRANSFORM\" type=\"float4x4\"/>"
                "</accessor></technique_common></source>");
 
@@ -251,7 +251,7 @@ dae_write_skin_weight_source_csr(DAEExpState   * __restrict st,
   dae_w_lit(w, "\"><float_array id=\"");
   dae_w_skin_source_id(w, skinIdx, DAE_EXP_NAME_LIT("weights_array"));
   dae_w_lit(w, "\" count=\"");
-  dae_w_uint(w, totalWeights);
+  dae_w_uint_fast(w, totalWeights);
   dae_w_lit(w, "\">");
 
   totalWeights = 0;
@@ -262,14 +262,14 @@ dae_write_skin_weight_source_csr(DAEExpState   * __restrict st,
     for (i = 0; i < weights->nWeights; i++, totalWeights++) {
       if (totalWeights > 0)
         dae_w_ch(w, ' ');
-      dae_w_float(w, weights->weights[i].weight);
+      dae_w_float_fast(w, weights->weights[i].weight);
     }
   }
 
   dae_w_lit(w, "</float_array><technique_common><accessor source=\"#");
   dae_w_skin_source_id(w, skinIdx, DAE_EXP_NAME_LIT("weights_array"));
   dae_w_lit(w, "\" count=\"");
-  dae_w_uint(w, totalWeights);
+  dae_w_uint_fast(w, totalWeights);
   dae_w_lit(w, "\" stride=\"1\"><param name=\"WEIGHT\" type=\"float\"/>"
                "</accessor></technique_common></source>");
 
@@ -295,21 +295,21 @@ dae_write_skin_weight_source_flat(DAEExpState * __restrict st,
   dae_w_lit(w, "\"><float_array id=\"");
   dae_w_skin_source_id(w, skinIdx, DAE_EXP_NAME_LIT("weights_array"));
   dae_w_lit(w, "\" count=\"");
-  dae_w_uint(w, vertexCount * 4u);
+  dae_w_uint_fast(w, vertexCount * 4u);
   dae_w_lit(w, "\">");
 
   for (i = 0; i < vertexCount; i++) {
     for (c = 0; c < 4u; c++) {
       if (i > 0 || c > 0)
         dae_w_ch(w, ' ');
-      dae_w_float(w, flatWeights[i * 4u + c]);
+      dae_w_float_fast(w, flatWeights[i * 4u + c]);
     }
   }
 
   dae_w_lit(w, "</float_array><technique_common><accessor source=\"#");
   dae_w_skin_source_id(w, skinIdx, DAE_EXP_NAME_LIT("weights_array"));
   dae_w_lit(w, "\" count=\"");
-  dae_w_uint(w, vertexCount * 4u);
+  dae_w_uint_fast(w, vertexCount * 4u);
   dae_w_lit(w, "\" stride=\"1\"><param name=\"WEIGHT\" type=\"float\"/>"
                "</accessor></technique_common></source>");
 
@@ -325,7 +325,7 @@ dae_write_skin_vertex_weights_header(DAEExpState * __restrict st,
 
   w = &st->w;
   dae_w_lit(w, "<vertex_weights count=\"");
-  dae_w_uint(w, vertexCount);
+  dae_w_uint_fast(w, vertexCount);
   dae_w_lit(w, "\"><input semantic=\"JOINT\" source=\"#");
   dae_w_skin_source_id(w, skinIdx, DAE_EXP_NAME(joints));
   dae_w_lit(w, "\" offset=\"0\"/><input semantic=\"WEIGHT\" source=\"#");
@@ -353,7 +353,7 @@ dae_write_skin_vertex_weights_csr(DAEExpState   * __restrict st,
     for (i = 0; i < weights->nVertex; i++, weightIdx++) {
       if (weightIdx > 0)
         dae_w_ch(w, ' ');
-      dae_w_uint(w, weights->counts[i]);
+      dae_w_uint_fast(w, weights->counts[i]);
     }
   }
   dae_w_lit(w, "</vcount><v>");
@@ -372,9 +372,9 @@ dae_write_skin_vertex_weights_csr(DAEExpState   * __restrict st,
       for (k = 0; k < count; k++, weightIdx++) {
         if (primIdx > 0 || i > 0 || k > 0)
           dae_w_ch(w, ' ');
-        dae_w_uint(w, items[k].joint);
+        dae_w_uint_fast(w, items[k].joint);
         dae_w_ch(w, ' ');
-        dae_w_uint(w, weightIdx);
+        dae_w_uint_fast(w, weightIdx);
       }
     }
   }
@@ -396,7 +396,7 @@ dae_write_skin_vertex_weights_flat(DAEExpState    * __restrict st,
   for (i = 0; i < vertexCount; i++) {
     if (i > 0)
       dae_w_ch(w, ' ');
-    dae_w_uint(w, 4u);
+    dae_w_uint_fast(w, 4u);
   }
   dae_w_lit(w, "</vcount><v>");
 
@@ -404,9 +404,9 @@ dae_write_skin_vertex_weights_flat(DAEExpState    * __restrict st,
     for (c = 0; c < 4u; c++) {
       if (i > 0 || c > 0)
         dae_w_ch(w, ' ');
-      dae_w_uint(w, flatJoints[i * 4u + c]);
+      dae_w_uint_fast(w, flatJoints[i * 4u + c]);
       dae_w_ch(w, ' ');
-      dae_w_uint(w, i * 4u + c);
+      dae_w_uint_fast(w, i * 4u + c);
     }
   }
 

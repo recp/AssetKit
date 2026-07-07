@@ -149,24 +149,24 @@ wobj_write_positions(WOBJExpState * __restrict st,
     }
 
     WOBJ_W_LIT(&st->w, "v ");
-    wobj_w_float(&st->w, out[0]);
+    wobj_w_float_fast(&st->w, out[0]);
     wobj_w_ch(&st->w, ' ');
-    wobj_w_float(&st->w, out[1]);
+    wobj_w_float_fast(&st->w, out[1]);
     wobj_w_ch(&st->w, ' ');
-    wobj_w_float(&st->w, out[2]);
+    wobj_w_float_fast(&st->w, out[2]);
 
     if (colorRows) {
       row = wobj_rows_get(colorRows, i);
       wobj_w_ch(&st->w, ' ');
-      wobj_w_float(&st->w, wobj_color_component(colorRows, row, 0, 1.0f));
+      wobj_w_float_fast(&st->w, wobj_color_component(colorRows, row, 0, 1.0f));
       wobj_w_ch(&st->w, ' ');
-      wobj_w_float(&st->w, wobj_color_component(colorRows, row, 1, 1.0f));
+      wobj_w_float_fast(&st->w, wobj_color_component(colorRows, row, 1, 1.0f));
       wobj_w_ch(&st->w, ' ');
-      wobj_w_float(&st->w, wobj_color_component(colorRows, row, 2, 1.0f));
+      wobj_w_float_fast(&st->w, wobj_color_component(colorRows, row, 2, 1.0f));
 
       if (colorRows->componentCount > 3u) {
         wobj_w_ch(&st->w, ' ');
-        wobj_w_float(&st->w, wobj_color_component(colorRows, row, 3, 1.0f));
+        wobj_w_float_fast(&st->w, wobj_color_component(colorRows, row, 3, 1.0f));
       }
 
       wobj_w_ch(&st->w, '\n');
@@ -192,12 +192,12 @@ wobj_write_texcoords(WOBJExpState * __restrict st,
 
     row = wobj_rows_get(rows, i);
     WOBJ_W_LIT(&st->w, "vt ");
-    wobj_w_float(&st->w, wobj_row_component(row, rows->componentCount, 0, 0.0f));
+    wobj_w_float_fast(&st->w, wobj_row_component(row, rows->componentCount, 0, 0.0f));
     wobj_w_ch(&st->w, ' ');
-    wobj_w_float(&st->w, wobj_row_component(row, rows->componentCount, 1, 0.0f));
+    wobj_w_float_fast(&st->w, wobj_row_component(row, rows->componentCount, 1, 0.0f));
     if (rows->componentCount > 2u) {
       wobj_w_ch(&st->w, ' ');
-      wobj_w_float(&st->w, row[2]);
+      wobj_w_float_fast(&st->w, row[2]);
     }
     wobj_w_ch(&st->w, '\n');
   }
@@ -231,11 +231,11 @@ wobj_write_normals(WOBJExpState * __restrict st,
     glm_mat4_mulv3(normalMatrix, in, 0.0f, out);
     glm_vec3_normalize(out);
     WOBJ_W_LIT(&st->w, "vn ");
-    wobj_w_float(&st->w, out[0]);
+    wobj_w_float_fast(&st->w, out[0]);
     wobj_w_ch(&st->w, ' ');
-    wobj_w_float(&st->w, out[1]);
+    wobj_w_float_fast(&st->w, out[1]);
     wobj_w_ch(&st->w, ' ');
-    wobj_w_float(&st->w, out[2]);
+    wobj_w_float_fast(&st->w, out[2]);
     wobj_w_ch(&st->w, '\n');
   }
 
@@ -455,15 +455,15 @@ wobj_write_ref(WOBJExpState * __restrict st,
                uint32_t                  vn,
                bool                      hasTexcoord,
                bool                      hasNormal) {
-  wobj_w_uint(&st->w, v);
+  wobj_w_uint_fast(&st->w, v);
   if (hasTexcoord || hasNormal) {
     wobj_w_ch(&st->w, '/');
     if (hasTexcoord)
-      wobj_w_uint(&st->w, vt);
+      wobj_w_uint_fast(&st->w, vt);
 
     if (hasNormal) {
       wobj_w_ch(&st->w, '/');
-      wobj_w_uint(&st->w, vn);
+      wobj_w_uint_fast(&st->w, vn);
     }
   }
 }
@@ -495,11 +495,11 @@ wobj_write_tuple_ref_fast(WOBJExpState         * __restrict st,
                                 vCount,
                                 indices,
                                 stride);
-  wobj_w_uint(&st->w, v);
+  wobj_w_uint_fast(&st->w, v);
   if (hasTexcoord || hasNormal) {
     wobj_w_ch(&st->w, '/');
     if (hasTexcoord) {
-      wobj_w_uint(&st->w,
+      wobj_w_uint_fast(&st->w,
                   wobj_tuple_obj_index_fast(prim,
                                             texInput,
                                             tupleIndex,
@@ -511,7 +511,7 @@ wobj_write_tuple_ref_fast(WOBJExpState         * __restrict st,
 
     if (hasNormal) {
       wobj_w_ch(&st->w, '/');
-      wobj_w_uint(&st->w,
+      wobj_w_uint_fast(&st->w,
                   wobj_tuple_obj_index_fast(prim,
                                             normInput,
                                             tupleIndex,
@@ -587,15 +587,15 @@ wobj_write_shared_accessor_ref(WOBJExpState * __restrict st,
   if (index >= vCount)
     index = 0u;
 
-  wobj_w_uint(&st->w, vBase + index + 1u);
+  wobj_w_uint_fast(&st->w, vBase + index + 1u);
   if (hasTexcoord || hasNormal) {
     wobj_w_ch(&st->w, '/');
     if (hasTexcoord)
-      wobj_w_uint(&st->w, vtBase + index + 1u);
+      wobj_w_uint_fast(&st->w, vtBase + index + 1u);
 
     if (hasNormal) {
       wobj_w_ch(&st->w, '/');
-      wobj_w_uint(&st->w, vnBase + index + 1u);
+      wobj_w_uint_fast(&st->w, vnBase + index + 1u);
     }
   }
 }
@@ -917,12 +917,12 @@ wobj_write_lines(WOBJExpState    * __restrict st,
     WOBJ_W_LIT(&st->w, "l");
     for (i = 0; i < vertexCount; i++) {
       wobj_w_ch(&st->w, ' ');
-      wobj_w_uint(&st->w,
+      wobj_w_uint_fast(&st->w,
                   wobj_input_obj_index(prim, posInput, i, vBase, vCount));
     }
     if (mode == AK_LINE_LOOP && vertexCount > 0) {
       wobj_w_ch(&st->w, ' ');
-      wobj_w_uint(&st->w,
+      wobj_w_uint_fast(&st->w,
                   wobj_input_obj_index(prim, posInput, 0u, vBase, vCount));
     }
     wobj_w_ch(&st->w, '\n');
@@ -931,10 +931,10 @@ wobj_write_lines(WOBJExpState    * __restrict st,
 
   for (i = 0; i + 1u < vertexCount; i += 2u) {
     WOBJ_W_LIT(&st->w, "l ");
-    wobj_w_uint(&st->w,
+    wobj_w_uint_fast(&st->w,
                 wobj_input_obj_index(prim, posInput, i, vBase, vCount));
     wobj_w_ch(&st->w, ' ');
-    wobj_w_uint(&st->w,
+    wobj_w_uint_fast(&st->w,
                 wobj_input_obj_index(prim, posInput, i + 1u, vBase, vCount));
     wobj_w_ch(&st->w, '\n');
   }
@@ -957,7 +957,7 @@ wobj_write_points(WOBJExpState    * __restrict st,
   WOBJ_W_LIT(&st->w, "p");
   for (i = 0; i < vertexCount; i++) {
     wobj_w_ch(&st->w, ' ');
-    wobj_w_uint(&st->w,
+    wobj_w_uint_fast(&st->w,
                 wobj_input_obj_index(prim, posInput, i, vBase, vCount));
   }
   wobj_w_ch(&st->w, '\n');
@@ -1167,7 +1167,7 @@ wobj_write_object_name(WOBJExpState      * __restrict st,
     wobj_w_name(&st->w, name);
   } else {
     WOBJ_W_LIT(&st->w, "object_");
-    wobj_w_uint(&st->w, st->objectCount);
+    wobj_w_uint_fast(&st->w, st->objectCount);
   }
   wobj_w_ch(&st->w, '\n');
   st->objectCount++;

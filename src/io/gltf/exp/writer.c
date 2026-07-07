@@ -276,15 +276,23 @@ gltf_w_key_bool(GLTFExpWriter * __restrict w,
 
 void
 gltf_w_float(GLTFExpWriter * __restrict w, float val) {
-  char   buf[48];
+  char  *dst;
+  size_t avail;
   size_t outLen;
 
-  if (!ak_io_text_format_float9(buf, sizeof(buf), val, &outLen)) {
+  avail = GLTF_EXP_WRITER_CAP - w->len;
+  if (avail < 48u) {
+    gltf_w_flush(w);
+    avail = GLTF_EXP_WRITER_CAP - w->len;
+  }
+
+  dst = (char *)w->buffer + w->len;
+  if (!ak_io_text_format_float9(dst, avail, val, &outLen)) {
     w->result = AK_ERR;
     return;
   }
 
-  gltf_w_raw(w, buf, outLen);
+  w->len += outLen;
 }
 
 void

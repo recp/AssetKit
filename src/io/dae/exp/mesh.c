@@ -86,7 +86,7 @@ dae_write_p_single_input_fast(DAEExpWriter    * __restrict w,
         for (i = 0; i < vertexCount; i++) {
           if (i > 0)
             dae_w_ch(w, ' ');
-          dae_w_uint(w, items[i]);
+          dae_w_uint_fast(w, items[i]);
         }
         return true;
       }
@@ -97,7 +97,7 @@ dae_write_p_single_input_fast(DAEExpWriter    * __restrict w,
         for (i = 0; i < vertexCount; i++) {
           if (i > 0)
             dae_w_ch(w, ' ');
-          dae_w_uint(w, items[i]);
+          dae_w_uint_fast(w, items[i]);
         }
         return true;
       }
@@ -108,7 +108,7 @@ dae_write_p_single_input_fast(DAEExpWriter    * __restrict w,
         for (i = 0; i < vertexCount; i++) {
           if (i > 0)
             dae_w_ch(w, ' ');
-          dae_w_uint(w, items[i]);
+          dae_w_uint_fast(w, items[i]);
         }
         return true;
       }
@@ -126,7 +126,7 @@ dae_write_p_single_input_fast(DAEExpWriter    * __restrict w,
     for (i = 0; i < vertexCount; i++) {
       if (i > 0)
         dae_w_ch(w, ' ');
-      dae_w_uint(w, io_index_rows_get_unchecked(&rows, i));
+      dae_w_uint_fast(w, io_index_rows_get_unchecked(&rows, i));
     }
     return true;
   }
@@ -134,7 +134,7 @@ dae_write_p_single_input_fast(DAEExpWriter    * __restrict w,
   for (i = 0; i < vertexCount; i++) {
     if (i > 0)
       dae_w_ch(w, ' ');
-    dae_w_uint(w, i);
+    dae_w_uint_fast(w, i);
   }
 
   return true;
@@ -179,7 +179,7 @@ dae_write_vertices(DAEExpState * __restrict st,
     dae_w_lit(w, "\" source=\"#");
     dae_w_geom_prim_id(w, geomIdx, primIdx, semanticName);
     dae_w_ch(w, '_');
-    dae_w_uint(w, i);
+    dae_w_uint_fast(w, i);
     dae_w_lit(w, "\"/>");
   }
 
@@ -301,15 +301,15 @@ dae_write_primitive(DAEExpState      * __restrict st,
     dae_w_lit(w, "\" source=\"#");
     dae_w_geom_prim_id(w, geomIdx, primIdx, semanticName);
     dae_w_ch(w, '_');
-    dae_w_uint(w, i);
+    dae_w_uint_fast(w, i);
     dae_w_lit(w, "\" offset=\"");
-    dae_w_uint(w, outOffset);
+    dae_w_uint_fast(w, outOffset);
     dae_w_ch(w, '"');
     if ((srcInput->semantic == AK_INPUT_TEXCOORD
          || srcInput->semantic == AK_INPUT_UV
          || srcInput->semantic == AK_INPUT_COLOR)) {
       dae_w_lit(w, " set=\"");
-      dae_w_uint(w, srcInput->set);
+      dae_w_uint_fast(w, srcInput->set);
       dae_w_ch(w, '"');
     }
     dae_w_lit(w, "/>");
@@ -324,7 +324,7 @@ dae_write_primitive(DAEExpState      * __restrict st,
     for (vc = 0; poly->vcount && vc < poly->vcount->count; vc++) {
       if (vc > 0)
         dae_w_ch(w, ' ');
-      dae_w_uint(w, poly->vcount->items[vc]);
+      dae_w_uint_fast(w, poly->vcount->items[vc]);
     }
     dae_w_lit(w, "</vcount>");
   }
@@ -353,7 +353,7 @@ dae_write_primitive(DAEExpState      * __restrict st,
           if (!firstIndex)
             dae_w_ch(w, ' ');
           firstIndex = false;
-          dae_w_uint(w,
+          dae_w_uint_fast(w,
                      io_primitive_input_index(prim,
                                                pInputs[k],
                                                edgeVerts[edgeVertIdx]));
@@ -367,7 +367,7 @@ dae_write_primitive(DAEExpState      * __restrict st,
       for (k = 0; k < pInputCount; k++) {
         if (i > 0 || k > 0)
           dae_w_ch(w, ' ');
-        dae_w_uint(w,
+        dae_w_uint_fast(w,
                    io_primitive_input_index(prim,
                                              pInputs[k],
                                              i));

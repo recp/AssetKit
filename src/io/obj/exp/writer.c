@@ -97,38 +97,11 @@ wobj_w_name(WOBJExpWriter * __restrict w,
 AK_HIDE
 void
 wobj_w_uint(WOBJExpWriter * __restrict w, uint32_t val) {
-  char     buf[16];
-  uint32_t n;
-  uint32_t i;
-
-  i = sizeof(buf);
-  do {
-    buf[--i] = (char)('0' + (val % 10u));
-    val /= 10u;
-  } while (val);
-
-  n = (uint32_t)(sizeof(buf) - i);
-  if (sizeof(w->buffer) - w->len < n)
-    wobj_w_flush(w);
-
-  memcpy(w->buffer + w->len, buf + i, n);
-  w->len += n;
+  wobj_w_uint_fast(w, val);
 }
 
 AK_HIDE
 void
 wobj_w_float(WOBJExpWriter * __restrict w, float val) {
-  char   buf[48];
-  size_t outLen;
-
-  if (!ak_io_text_format_float6(buf, sizeof(buf), val, &outLen)) {
-    w->result = AK_ERR;
-    return;
-  }
-
-  if (sizeof(w->buffer) - w->len < outLen)
-    wobj_w_flush(w);
-
-  memcpy(w->buffer + w->len, buf, outLen);
-  w->len += outLen;
+  wobj_w_float_fast(w, val);
 }

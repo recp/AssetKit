@@ -121,15 +121,23 @@ stl_w_ch(STLExpWriter * __restrict w, char ch) {
 static
 void
 stl_w_float(STLExpWriter * __restrict w, float val) {
-  char   buf[48];
+  char  *dst;
+  size_t avail;
   size_t outLen;
 
-  if (!ak_io_text_format_float6(buf, sizeof(buf), val, &outLen)) {
+  avail = sizeof(w->buffer) - w->len;
+  if (avail < 48u) {
+    stl_w_flush(w);
+    avail = sizeof(w->buffer) - w->len;
+  }
+
+  dst = (char *)w->buffer + w->len;
+  if (!ak_io_text_format_float6(dst, avail, val, &outLen)) {
     w->result = AK_ERR;
     return;
   }
 
-  stl_w_raw(w, buf, outLen);
+  w->len += outLen;
 }
 
 static

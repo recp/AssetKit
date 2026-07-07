@@ -71,15 +71,20 @@ ak_3mf_buf_u32(AK3MFBuffer * __restrict buf, uint32_t value) {
 AK_HIDE
 void
 ak_3mf_buf_float(AK3MFBuffer * __restrict buf, float value) {
-  char   tmp[48];
   size_t outLen;
 
-  if (!ak_io_text_format_float6(tmp, sizeof(tmp), value, &outLen)) {
+  if (!ak_3mf_buf_reserve(buf, 48u))
+    return;
+
+  if (!ak_io_text_format_float6(buf->data + buf->len,
+                                buf->cap - buf->len,
+                                value,
+                                &outLen)) {
     buf->result = AK_ERR;
     return;
   }
 
-  ak_3mf_buf_raw(buf, tmp, outLen);
+  buf->len += outLen;
 }
 AK_HIDE
 void

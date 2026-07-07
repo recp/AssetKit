@@ -159,15 +159,23 @@ ply_w_ch(PLYExpWriter * __restrict w, char ch) {
 static
 void
 ply_w_float_ascii(PLYExpWriter * __restrict w, float value) {
-  char   buf[48];
+  char  *dst;
+  size_t avail;
   size_t outLen;
 
-  if (!ak_io_text_format_float6(buf, sizeof(buf), value, &outLen)) {
+  avail = sizeof(w->buffer) - w->len;
+  if (avail < 48u) {
+    ply_w_flush(w);
+    avail = sizeof(w->buffer) - w->len;
+  }
+
+  dst = (char *)w->buffer + w->len;
+  if (!ak_io_text_format_float6(dst, avail, value, &outLen)) {
     w->result = AK_ERR;
     return;
   }
 
-  ply_w_raw(w, buf, outLen);
+  w->len += outLen;
 }
 
 static

@@ -19,6 +19,7 @@
 
 #include "dae.h"
 #include "../strpool.h"
+#include "../../common/text_number.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -88,6 +89,49 @@ void
 dae_w_cstr(DAEExpWriter * __restrict w, const char * __restrict str);
 
 #define dae_w_lit(W, LIT) dae_w_raw((W), "" LIT, sizeof("" LIT) - 1u)
+
+AK_INLINE
+void
+dae_w_uint_fast(DAEExpWriter * __restrict w, size_t val) {
+  char   buf[32];
+  size_t i;
+  size_t len;
+
+  i = sizeof(buf);
+  do {
+    buf[--i] = (char)('0' + (val % 10u));
+    val /= 10u;
+  } while (val > 0 && i > 0);
+
+  len = sizeof(buf) - i;
+  if (DAE_EXP_WRITER_CAP - w->len < len)
+    dae_w_flush(w);
+
+  memcpy(w->buffer + w->len, buf + i, len);
+  w->len += len;
+}
+
+AK_INLINE
+void
+dae_w_float_fast(DAEExpWriter * __restrict w, float val) {
+  char  *dst;
+  size_t avail;
+  size_t outLen;
+
+  avail = DAE_EXP_WRITER_CAP - w->len;
+  if (avail < 48u) {
+    dae_w_flush(w);
+    avail = DAE_EXP_WRITER_CAP - w->len;
+  }
+
+  dst = (char *)w->buffer + w->len;
+  if (!ak_io_text_format_float9(dst, avail, val, &outLen)) {
+    w->result = AK_ERR;
+    return;
+  }
+
+  w->len += outLen;
+}
 
 AK_HIDE
 void

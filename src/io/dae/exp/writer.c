@@ -81,38 +81,13 @@ dae_w_cstr(DAEExpWriter * __restrict w, const char * __restrict str) {
 AK_HIDE
 void
 dae_w_uint(DAEExpWriter * __restrict w, size_t val) {
-  char   buf[32];
-  size_t i;
-
-  i = sizeof(buf);
-  do {
-    buf[--i] = (char)('0' + (val % 10u));
-    val /= 10u;
-  } while (val > 0 && i > 0);
-
-  if (DAE_EXP_WRITER_CAP - w->len < sizeof(buf) - i)
-    dae_w_flush(w);
-
-  memcpy(w->buffer + w->len, buf + i, sizeof(buf) - i);
-  w->len += sizeof(buf) - i;
+  dae_w_uint_fast(w, val);
 }
 
 AK_HIDE
 void
 dae_w_float(DAEExpWriter * __restrict w, float val) {
-  char   buf[48];
-  size_t outLen;
-
-  if (!ak_io_text_format_float9(buf, sizeof(buf), val, &outLen)) {
-    w->result = AK_ERR;
-    return;
-  }
-
-  if (DAE_EXP_WRITER_CAP - w->len < outLen)
-    dae_w_flush(w);
-
-  memcpy(w->buffer + w->len, buf, outLen);
-  w->len += outLen;
+  dae_w_float_fast(w, val);
 }
 
 AK_HIDE

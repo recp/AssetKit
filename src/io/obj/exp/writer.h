@@ -18,6 +18,7 @@
 #define assetkit_obj_exp_writer_h
 
 #include "common.h"
+#include "../../common/text_number.h"
 
 AK_HIDE
 void
@@ -55,6 +56,49 @@ void
 wobj_w_lit(WOBJExpWriter * __restrict w,
            const char    * __restrict lit) {
   wobj_w_raw(w, lit, strlen(lit));
+}
+
+AK_INLINE
+void
+wobj_w_uint_fast(WOBJExpWriter * __restrict w, uint32_t val) {
+  char     buf[16];
+  uint32_t n;
+  uint32_t i;
+
+  i = sizeof(buf);
+  do {
+    buf[--i] = (char)('0' + (val % 10u));
+    val /= 10u;
+  } while (val);
+
+  n = (uint32_t)(sizeof(buf) - i);
+  if (sizeof(w->buffer) - w->len < n)
+    wobj_w_flush(w);
+
+  memcpy(w->buffer + w->len, buf + i, n);
+  w->len += n;
+}
+
+AK_INLINE
+void
+wobj_w_float_fast(WOBJExpWriter * __restrict w, float val) {
+  char  *dst;
+  size_t avail;
+  size_t outLen;
+
+  avail = sizeof(w->buffer) - w->len;
+  if (avail < 48u) {
+    wobj_w_flush(w);
+    avail = sizeof(w->buffer) - w->len;
+  }
+
+  dst = (char *)w->buffer + w->len;
+  if (!ak_io_text_format_float6(dst, avail, val, &outLen)) {
+    w->result = AK_ERR;
+    return;
+  }
+
+  w->len += outLen;
 }
 
 AK_HIDE

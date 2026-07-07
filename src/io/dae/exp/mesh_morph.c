@@ -252,9 +252,9 @@ dae_w_morph_target_geom_id(DAEExpWriter * __restrict w,
                            uint32_t                  morphIdx,
                            uint32_t                  targetIdx) {
   dae_w_lit(w, "morph_");
-  dae_w_uint(w, morphIdx);
+  dae_w_uint_fast(w, morphIdx);
   dae_w_lit(w, "_target_");
-  dae_w_uint(w, targetIdx);
+  dae_w_uint_fast(w, targetIdx);
 }
 
 static
@@ -266,7 +266,7 @@ dae_w_morph_target_prim_id(DAEExpWriter * __restrict w,
                            DAEExpName                suffix) {
   dae_w_morph_target_geom_id(w, morphIdx, targetIdx);
   dae_w_lit(w, "_prim_");
-  dae_w_uint(w, primIdx);
+  dae_w_uint_fast(w, primIdx);
   if (suffix.ptr && suffix.len > 0) {
     dae_w_ch(w, '_');
     dae_w_name(w, suffix);
@@ -283,7 +283,7 @@ dae_w_morph_target_source_id(DAEExpWriter * __restrict w,
                              uint32_t                  inputIdx) {
   dae_w_morph_target_prim_id(w, morphIdx, targetIdx, primIdx, semantic);
   dae_w_ch(w, '_');
-  dae_w_uint(w, inputIdx);
+  dae_w_uint_fast(w, inputIdx);
 }
 
 static
@@ -343,7 +343,7 @@ dae_write_morphable_source(DAEExpState * __restrict st,
                                semanticName,
                                inputIdx);
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, (size_t)acc->count * componentCount);
+  dae_w_uint_fast(w, (size_t)acc->count * componentCount);
   dae_w_lit(w, "\">");
 
   for (i = 0; i < acc->count; i++) {
@@ -356,7 +356,7 @@ dae_write_morphable_source(DAEExpState * __restrict st,
     for (c = 0; c < componentCount; c++) {
       if (i > 0 || c > 0)
         dae_w_ch(w, ' ');
-      dae_w_float(w, row[c]);
+      dae_w_float_fast(w, row[c]);
     }
   }
 
@@ -368,9 +368,9 @@ dae_write_morphable_source(DAEExpState * __restrict st,
                                semanticName,
                                inputIdx);
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, acc->count);
+  dae_w_uint_fast(w, acc->count);
   dae_w_lit(w, "\" stride=\"");
-  dae_w_uint(w, componentCount);
+  dae_w_uint_fast(w, componentCount);
   dae_w_lit(w, "\">");
 
   for (c = 0; c < componentCount; c++) {
@@ -521,7 +521,7 @@ dae_write_morphable_primitive(DAEExpState     * __restrict st,
     for (vc = 0; poly->vcount && vc < poly->vcount->count; vc++) {
       if (vc > 0)
         dae_w_ch(w, ' ');
-      dae_w_uint(w, poly->vcount->items[vc]);
+      dae_w_uint_fast(w, poly->vcount->items[vc]);
     }
     dae_w_lit(w, "</vcount>");
   }
@@ -544,7 +544,7 @@ dae_write_morphable_primitive(DAEExpState     * __restrict st,
         if (!firstIndex)
           dae_w_ch(w, ' ');
         firstIndex = false;
-        dae_w_uint(w,
+        dae_w_uint_fast(w,
                    io_primitive_input_index(prim,
                                              prim->pos,
                                              edgeVerts[edgeVertIdx]));
@@ -554,7 +554,7 @@ dae_write_morphable_primitive(DAEExpState     * __restrict st,
     for (i = 0; i < vertexCount; i++) {
       if (i > 0)
         dae_w_ch(w, ' ');
-      dae_w_uint(w, io_primitive_input_index(prim, prim->pos, i));
+      dae_w_uint_fast(w, io_primitive_input_index(prim, prim->pos, i));
     }
   }
   dae_w_lit(w, "</p>");

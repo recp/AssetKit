@@ -112,13 +112,13 @@ dae_write_source(DAEExpState  * __restrict st,
   dae_w_lit(w, "<source id=\"");
   dae_w_geom_prim_id(w, geomIdx, primIdx, semanticName);
   dae_w_ch(w, '_');
-  dae_w_uint(w, inputIdx);
+  dae_w_uint_fast(w, inputIdx);
   dae_w_lit(w, "\"><float_array id=\"");
   dae_w_geom_prim_id(w, geomIdx, primIdx, semanticName);
   dae_w_ch(w, '_');
-  dae_w_uint(w, inputIdx);
+  dae_w_uint_fast(w, inputIdx);
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, (size_t)acc->count * componentCount);
+  dae_w_uint_fast(w, (size_t)acc->count * componentCount);
   dae_w_lit(w, "\">");
 
   for (i = 0; i < acc->count; i++) {
@@ -131,18 +131,18 @@ dae_write_source(DAEExpState  * __restrict st,
     for (c = 0; c < componentCount; c++) {
       if (i > 0 || c > 0)
         dae_w_ch(w, ' ');
-      dae_w_float(w, row[c]);
+      dae_w_float_fast(w, row[c]);
     }
   }
 
   dae_w_lit(w, "</float_array><technique_common><accessor source=\"#");
   dae_w_geom_prim_id(w, geomIdx, primIdx, semanticName);
   dae_w_ch(w, '_');
-  dae_w_uint(w, inputIdx);
+  dae_w_uint_fast(w, inputIdx);
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint(w, acc->count);
+  dae_w_uint_fast(w, acc->count);
   dae_w_lit(w, "\" stride=\"");
-  dae_w_uint(w, componentCount);
+  dae_w_uint_fast(w, componentCount);
   dae_w_lit(w, "\">");
 
   for (c = 0; c < componentCount; c++) {
