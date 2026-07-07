@@ -229,6 +229,32 @@ ak_3mf_fast_skip_tag_name(const char *p, const char *end) {
 }
 
 AK_INLINE
+const char*
+ak_3mf_fast_skip_vertex_tag_name_fast(const char * __restrict p,
+                                      const char * __restrict end) {
+  if (p && end && (size_t)(end - p) > 8u
+      && ak_str_load8_fast(p)
+         == AK_STR_PACK8_CHARS('<', 'v', 'e', 'r', 't', 'e', 'x', ' '))
+    return p + 8u;
+
+  return ak_3mf_fast_skip_tag_name(p, end);
+}
+
+AK_INLINE
+const char*
+ak_3mf_fast_skip_triangle_tag_name_fast(const char * __restrict p,
+                                        const char * __restrict end) {
+  if (p && end && (size_t)(end - p) > 10u
+      && ak_str_load8_fast(p)
+         == AK_STR_PACK8_CHARS('<', 't', 'r', 'i', 'a', 'n', 'g', 'l')
+      && p[8] == 'e'
+      && p[9] == ' ')
+    return p + 10u;
+
+  return ak_3mf_fast_skip_tag_name(p, end);
+}
+
+AK_INLINE
 bool
 ak_3mf_fast_slice_eq_packed(const AK3MFFastSlice * __restrict slice,
                             uint64_t                          packed,
@@ -1799,7 +1825,7 @@ ak_3mf_fast_parse_vertex_tag(const char *p,
   bool           hasY;
   bool           hasZ;
 
-  p    = ak_3mf_fast_skip_tag_name(p, tagEnd);
+  p    = ak_3mf_fast_skip_vertex_tag_name_fast(p, tagEnd);
   hasX = false;
   hasY = false;
   hasZ = false;
@@ -1984,7 +2010,7 @@ ak_3mf_fast_parse_triangle(const char *p,
   bool           hasV2;
   bool           hasV3;
 
-  p     = ak_3mf_fast_skip_tag_name(p, tagEnd);
+  p     = ak_3mf_fast_skip_triangle_tag_name_fast(p, tagEnd);
   hasV1 = false;
   hasV2 = false;
   hasV3 = false;
@@ -2046,7 +2072,7 @@ ak_3mf_fast_parse_triangle_paint(const char       *p,
   bool           hasV2;
   bool           hasV3;
 
-  p = ak_3mf_fast_skip_tag_name(p, tagEnd);
+  p = ak_3mf_fast_skip_triangle_tag_name_fast(p, tagEnd);
   hasV1 = false;
   hasV2 = false;
   hasV3 = false;
@@ -3081,7 +3107,7 @@ ak_3mf_fast_parse_triangle_orca_state(const char *p,
   if (!stateOut)
     return false;
 
-  p = ak_3mf_fast_skip_tag_name(p, tagEnd);
+  p = ak_3mf_fast_skip_triangle_tag_name_fast(p, tagEnd);
   if (!ak_3mf_fast_expected_u32_attr(&p, tagEnd, 'v', '1', &v[0])
       || !ak_3mf_fast_expected_u32_attr(&p, tagEnd, 'v', '2', &v[1])
       || !ak_3mf_fast_expected_u32_attr(&p, tagEnd, 'v', '3', &v[2]))
