@@ -96,6 +96,15 @@ typedef struct AK3MFPackageImportState {
 
 typedef IOBuffer AK3MFXMLBuffer;
 
+typedef struct AK3MFBlendMethods {
+  const xml_attr_t *attr;
+  uint64_t          stackBits[4];
+  uint64_t         *bits;
+  size_t            bitCount;
+  size_t            wordCount;
+  bool              cached;
+} AK3MFBlendMethods;
+
 static
 bool
 ak_3mf_slice_eq_cstr(const char * __restrict slice,
@@ -108,6 +117,12 @@ ak_3mf_slice_eq_cstr(const char * __restrict slice,
 
   len = strlen(str);
   return len == sliceLen && memcmp(slice, str, len) == 0;
+}
+
+AK_INLINE
+bool
+ak_3mf_space(char c) {
+  return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
 bool
@@ -892,8 +907,14 @@ ak_3mf_xmlns_for_prefix(const xml_t * __restrict xml,
   for (attr = xml->attr; attr; attr = attr->next) {
     if (!attr->name || attr->namesize != prefixLen + 6u)
       continue;
-    if (memcmp(attr->name, "xmlns:", 6u) == 0
-        && memcmp(attr->name + 6u, prefix, prefixLen) == 0)
+    if (ak_str_eq_fast(attr->name,
+                       6u,
+                       "xmlns:",
+                       sizeof("xmlns:") - 1u)
+        && ak_str_eq_fast(attr->name + 6u,
+                          prefixLen,
+                          prefix,
+                          prefixLen))
       return attr;
   }
 
@@ -917,9 +938,16 @@ ak_3mf_mark_model_extensions(AkPrintDocument * __restrict print,
 
     if (!attr->name || !attr->val || attr->namesize < 5u)
       continue;
-    if (attr->namesize == 5u && memcmp(attr->name, "xmlns", 5u) == 0)
+    if (ak_str_eq_fast(attr->name,
+                       attr->namesize,
+                       "xmlns",
+                       sizeof("xmlns") - 1u))
       continue;
-    if (attr->namesize <= 6u || memcmp(attr->name, "xmlns:", 6u) != 0)
+    if (attr->namesize <= 6u
+        || !ak_str_eq_fast(attr->name,
+                           6u,
+                           "xmlns:",
+                           sizeof("xmlns:") - 1u))
       continue;
 
     feature = ak_3mf_feature_from_text(attr->val, attr->valsize);
@@ -938,10 +966,10 @@ ak_3mf_mark_model_extensions(AkPrintDocument * __restrict print,
     size_t            tokenLen;
     const xml_attr_t *xmlnsAttr;
 
-    while (it < end && (*it == ' ' || *it == '\t' || *it == '\n' || *it == '\r'))
+    while (it < end && ak_3mf_space(*it))
       it++;
     token = it;
-    while (it < end && *it != ' ' && *it != '\t' && *it != '\n' && *it != '\r')
+    while (it < end && !ak_3mf_space(*it))
       it++;
     tokenLen = (size_t)(it - token);
     if (tokenLen == 0u)
@@ -966,29 +994,57 @@ ak_3mf_unit_scale(const xml_attr_t * __restrict unitAttr,
     return 0.001;
   }
 
-  if (unitAttr->valsize == 6 && memcmp(unitAttr->val, "micron", 6) == 0) {
-    *unitName = "micron";
-    return 0.000001;
-  }
-  if (unitAttr->valsize == 10 && memcmp(unitAttr->val, "millimeter", 10) == 0) {
-    *unitName = "millimeter";
-    return 0.001;
-  }
-  if (unitAttr->valsize == 10 && memcmp(unitAttr->val, "centimeter", 10) == 0) {
-    *unitName = "centimeter";
-    return 0.01;
-  }
-  if (unitAttr->valsize == 4 && memcmp(unitAttr->val, "inch", 4) == 0) {
-    *unitName = "inch";
-    return 0.0254;
-  }
-  if (unitAttr->valsize == 4 && memcmp(unitAttr->val, "foot", 4) == 0) {
-    *unitName = "foot";
-    return 0.3048;
-  }
-  if (unitAttr->valsize == 5 && memcmp(unitAttr->val, "meter", 5) == 0) {
-    *unitName = "meter";
-    return 1.0;
+  switch (unitAttr->valsize) {
+    case 4u:
+      switch (ak_str_pack4_fast(unitAttr->val, 4u)) {
+        case AK_STR_PACK4_CHARS('i', 'n', 'c', 'h'):
+          *unitName = "inch";
+          return 0.0254;
+        case AK_STR_PACK4_CHARS('f', 'o', 'o', 't'):
+          *unitName = "foot";
+          return 0.3048;
+        default:
+          break;
+      }
+      break;
+    case 5u:
+      if (ak_str_eq_packed_fast(unitAttr->val,
+                                unitAttr->valsize,
+                                AK_STR_PACK8_CHARS('m', 'e', 't', 'e',
+                                                   'r', '\0', '\0', '\0'),
+                                5u)) {
+        *unitName = "meter";
+        return 1.0;
+      }
+      break;
+    case 6u:
+      if (ak_str_eq_packed_fast(unitAttr->val,
+                                unitAttr->valsize,
+                                AK_STR_PACK8_CHARS('m', 'i', 'c', 'r',
+                                                   'o', 'n', '\0', '\0'),
+                                6u)) {
+        *unitName = "micron";
+        return 0.000001;
+      }
+      break;
+    case 10u:
+      if (ak_str_eq_fast(unitAttr->val,
+                         unitAttr->valsize,
+                         "millimeter",
+                         sizeof("millimeter") - 1u)) {
+        *unitName = "millimeter";
+        return 0.001;
+      }
+      if (ak_str_eq_fast(unitAttr->val,
+                         unitAttr->valsize,
+                         "centimeter",
+                         sizeof("centimeter") - 1u)) {
+        *unitName = "centimeter";
+        return 0.01;
+      }
+      break;
+    default:
+      break;
   }
 
   *unitName = "millimeter";
@@ -2327,7 +2383,7 @@ ak_3mf_attr_u32_list_count(const xml_attr_t * __restrict attr) {
   while (it < end) {
     const char *tok;
 
-    while (it < end && (*it == ' ' || *it == '\t' || *it == '\n' || *it == '\r'))
+    while (it < end && ak_3mf_space(*it))
       it++;
     tok = it;
     while (it < end && *it >= '0' && *it <= '9')
@@ -2359,7 +2415,7 @@ ak_3mf_attr_u32_list(const xml_attr_t * __restrict attr,
   while (it < end && count < cap) {
     const char *tok;
 
-    while (it < end && (*it == ' ' || *it == '\t' || *it == '\n' || *it == '\r'))
+    while (it < end && ak_3mf_space(*it))
       it++;
     tok = it;
     while (it < end && *it >= '0' && *it <= '9')
@@ -2393,7 +2449,7 @@ ak_3mf_attr_float_list_count(const xml_attr_t * __restrict attr) {
     const char *next;
     float       ignored;
 
-    while (it < end && (*it == ' ' || *it == '\t' || *it == '\n' || *it == '\r'))
+    while (it < end && ak_3mf_space(*it))
       it++;
     if (!ak_str_parse_float_token_fast(it, end, &ignored, &next))
       break;
@@ -2425,7 +2481,7 @@ ak_3mf_attr_float_list(const xml_attr_t * __restrict attr,
   while (it < end && count < cap) {
     const char *next;
 
-    while (it < end && (*it == ' ' || *it == '\t' || *it == '\n' || *it == '\r'))
+    while (it < end && ak_3mf_space(*it))
       it++;
     if (!ak_str_parse_float_token_fast(it, end, out + count, &next))
       break;
@@ -2529,6 +2585,36 @@ ak_3mf_blend_layer_color(uint8_t accum[4],
 
 static
 bool
+ak_3mf_blend_token_is_multiply(const char * __restrict tok, size_t len) {
+  return ak_str_eq_packed_fast(tok,
+                               len,
+                               AK_STR_PACK8_CHARS('m', 'u', 'l', 't',
+                                                  'i', 'p', 'l', 'y'),
+                               8u);
+}
+
+static
+void
+ak_3mf_blend_methods_init(AK3MFBlendMethods * __restrict methods) {
+  if (!methods)
+    return;
+
+  memset(methods, 0, sizeof(*methods));
+}
+
+static
+void
+ak_3mf_blend_methods_free(AK3MFBlendMethods * __restrict methods) {
+  if (!methods)
+    return;
+
+  if (methods->bits && methods->bits != methods->stackBits)
+    free(methods->bits);
+  ak_3mf_blend_methods_init(methods);
+}
+
+static
+bool
 ak_3mf_blend_method_is_multiply(const xml_attr_t * __restrict attr,
                                 size_t                         methodIndex) {
   const char *it;
@@ -2545,20 +2631,96 @@ ak_3mf_blend_method_is_multiply(const xml_attr_t * __restrict attr,
     const char *tok;
     size_t      len;
 
-    while (it < end && (*it == ' ' || *it == '\t' || *it == '\n' || *it == '\r'))
+    while (it < end && ak_3mf_space(*it))
       it++;
     tok = it;
-    while (it < end && *it != ' ' && *it != '\t' && *it != '\n' && *it != '\r')
+    while (it < end && !ak_3mf_space(*it))
       it++;
     len = (size_t)(it - tok);
     if (len > 0u) {
       if (index == methodIndex)
-        return len == 8u && memcmp(tok, "multiply", 8u) == 0;
+        return ak_3mf_blend_token_is_multiply(tok, len);
       index++;
     }
   }
 
   return false;
+}
+
+static
+bool
+ak_3mf_blend_methods_prepare(const xml_attr_t     * __restrict attr,
+                             size_t                             bitCount,
+                             AK3MFBlendMethods    * __restrict methods) {
+  const char *it;
+  const char *end;
+  size_t      wordCount;
+  size_t      index;
+
+  if (!methods)
+    return false;
+
+  ak_3mf_blend_methods_init(methods);
+  methods->attr     = attr;
+  methods->bitCount = bitCount;
+
+  if (!attr || !attr->val || attr->valsize == 0u || bitCount == 0u) {
+    methods->cached = true;
+    return true;
+  }
+
+  wordCount = (bitCount + 63u) / 64u;
+  if (wordCount <= AK_ARRAY_LEN(methods->stackBits)) {
+    methods->bits = methods->stackBits;
+  } else {
+    methods->bits = calloc(wordCount, sizeof(*methods->bits));
+    if (!methods->bits)
+      return false;
+  }
+  methods->wordCount = wordCount;
+
+  if (methods->bits == methods->stackBits)
+    memset(methods->stackBits, 0, sizeof(methods->stackBits));
+
+  it    = attr->val;
+  end   = attr->val + attr->valsize;
+  index = 0u;
+  while (it < end && index < bitCount) {
+    const char *tok;
+    size_t      len;
+
+    while (it < end && ak_3mf_space(*it))
+      it++;
+    tok = it;
+    while (it < end && !ak_3mf_space(*it))
+      it++;
+    len = (size_t)(it - tok);
+    if (len > 0u) {
+      if (ak_3mf_blend_token_is_multiply(tok, len))
+        methods->bits[index >> 6u] |= (uint64_t)1u << (index & 63u);
+      index++;
+    }
+  }
+
+  methods->cached = true;
+  return true;
+}
+
+static
+bool
+ak_3mf_blend_methods_is_multiply(const AK3MFBlendMethods * __restrict methods,
+                                 size_t                                methodIndex) {
+  if (!methods)
+    return false;
+
+  if (!methods->cached)
+    return ak_3mf_blend_method_is_multiply(methods->attr, methodIndex);
+
+  if (!methods->bits || methodIndex >= methods->bitCount)
+    return false;
+
+  return (methods->bits[methodIndex >> 6u]
+          & ((uint64_t)1u << (methodIndex & 63u))) != 0u;
 }
 
 static
@@ -2590,6 +2752,7 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
     size_t              valueCount;
     AK3MFPropertyGroup *baseGroup;
     xml_attr_t         *blendMethodsAttr;
+    AK3MFBlendMethods   blendMethods;
     bool                groupHasColor;
 
     if (!ak_3mf_property_group_kind(xml, &kind, &setType))
@@ -2644,6 +2807,7 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
     valueCount       = 0u;
     baseGroup        = NULL;
     blendMethodsAttr = NULL;
+    ak_3mf_blend_methods_init(&blendMethods);
 
     if (kind == AK_3MF_PROPERTY_GROUP_COMPOSITE) {
       xml_attr_t *matIndicesAttr;
@@ -2671,6 +2835,9 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
           indexCount = ak_3mf_attr_u32_list(pidsAttr, indices, indexCount);
       }
       group->hasColors = indices != NULL && indexCount > 0u;
+      (void)ak_3mf_blend_methods_prepare(blendMethodsAttr,
+                                         indexCount > 0u ? indexCount - 1u : 0u,
+                                         &blendMethods);
     }
 
     groupHasColor = false;
@@ -2769,6 +2936,8 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
           pindices = malloc(sizeof(*pindices) * pindexCount);
         if (pindices && pindexCount > 0u)
           pindexCount = ak_3mf_attr_u32_list(pindicesAttr, pindices, pindexCount);
+        else if (!pindices)
+          pindexCount = 0u;
 
         firstLayer = true;
         for (layer = 0u; indices && layer < indexCount; layer++) {
@@ -2796,7 +2965,7 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
             ak_3mf_blend_layer_color(
               rgba,
               layerColor,
-              ak_3mf_blend_method_is_multiply(blendMethodsAttr, layer - 1u));
+              ak_3mf_blend_methods_is_multiply(&blendMethods, layer - 1u));
           }
           previewColor = true;
         }
@@ -2822,6 +2991,7 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
     }
     free(indices);
     free(values);
+    ak_3mf_blend_methods_free(&blendMethods);
     group->hasColors = groupHasColor;
     st->propertyCount++;
     added++;
@@ -2852,12 +3022,29 @@ ak_3mf_attr_bool(const xml_attr_t * __restrict attr, bool fallback) {
   if (!attr || !attr->val || attr->valsize == 0u)
     return fallback;
 
-  if ((attr->valsize == 4u && memcmp(attr->val, "true", 4u) == 0)
-      || (attr->valsize == 1u && attr->val[0] == '1'))
-    return true;
-  if ((attr->valsize == 5u && memcmp(attr->val, "false", 5u) == 0)
-      || (attr->valsize == 1u && attr->val[0] == '0'))
-    return false;
+  switch (attr->valsize) {
+    case 1u:
+      if (attr->val[0] == '1')
+        return true;
+      if (attr->val[0] == '0')
+        return false;
+      break;
+    case 4u:
+      if (ak_str_pack4_fast(attr->val, 4u)
+          == AK_STR_PACK4_CHARS('t', 'r', 'u', 'e'))
+        return true;
+      break;
+    case 5u:
+      if (ak_str_eq_packed_fast(attr->val,
+                                attr->valsize,
+                                AK_STR_PACK8_CHARS('f', 'a', 'l', 's',
+                                                   'e', '\0', '\0', '\0'),
+                                5u))
+        return false;
+      break;
+    default:
+      break;
+  }
 
   return fallback;
 }

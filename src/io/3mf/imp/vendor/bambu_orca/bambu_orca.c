@@ -18,6 +18,7 @@
 #include "../../../../common/zip.h"
 #include "../../../../common/text_number.h"
 #include "../../../../../json.h"
+#include "../../../../../string_fast.h"
 #include "../../../../../strpool.h"
 #include "../../../../../id.h"
 #include "../../../../../mat/internal.h"
@@ -49,7 +50,7 @@ ak_3mf_bambu_orca_tag_sz(const xml_t * __restrict xml,
     xmlTag      = colon + 1u;
   }
 
-  return xmlTagSize == tagSize && memcmp(xmlTag, tag, tagSize) == 0;
+  return ak_str_eq_fast(xmlTag, xmlTagSize, tag, tagSize);
 }
 
 static
@@ -81,7 +82,7 @@ ak_3mf_bambu_orca_xmla_local_sz(const xml_t * __restrict xml,
       attrName     = colon + 1u;
     }
 
-    if (attrNameLen == nameLen && memcmp(attrName, name, nameLen) == 0)
+    if (ak_str_eq_fast(attrName, attrNameLen, name, nameLen))
       return attr;
   }
 
@@ -162,8 +163,7 @@ ak_3mf_bambu_orca_metadata_key_eq(xml_t       * __restrict metadata,
   attr = ak_3mf_bambu_orca_xmla_local_sz(metadata, _s_ak_key, _s_ak_key_len);
   return attr
          && attr->val
-         && attr->valsize == keyLen
-         && memcmp(attr->val, key, keyLen) == 0;
+         && ak_str_eq_fast(attr->val, attr->valsize, key, keyLen);
 }
 
 static
