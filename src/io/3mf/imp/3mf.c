@@ -1264,6 +1264,9 @@ ak_3mf_package_part_type(const char * __restrict entryName,
     return AK_PRINT_PACKAGE_PART_THUMBNAIL;
   if (ak_3mf_entry_is_2d_part(entryName))
     return AK_PRINT_PACKAGE_PART_SLICE;
+  if (ak_3mf_cstr_ends_lit(entryName, ".gcode", sizeof(".gcode") - 1u)
+      || AK_3MF_TEXT_HAS_TOKEN(contentType, contentTypeLen, "gcode"))
+    return AK_PRINT_PACKAGE_PART_GCODE;
   if (AK_3MF_TEXT_HAS_TOKEN(contentType, contentTypeLen, "printticket")
       || ak_3mf_cstr_starts_lit(entryName, "Metadata/", sizeof("Metadata/") - 1u))
     return AK_PRINT_PACKAGE_PART_METADATA;
@@ -1305,6 +1308,7 @@ ak_3mf_mark_package_part_features(AkPrintDocument       * __restrict print,
       features |= AK_PRINT_FEATURE_TEXTURES;
       break;
     case AK_PRINT_PACKAGE_PART_SLICE:
+    case AK_PRINT_PACKAGE_PART_GCODE:
       features |= AK_PRINT_FEATURE_SLICE;
       break;
     default:
@@ -2073,19 +2077,86 @@ ak_3mf_material_scalar_input(AkHeap      * __restrict heap,
   return input;
 }
 
+typedef enum AK3MFPropertyGroupKind {
+  AK_3MF_PROPERTY_GROUP_UNSUPPORTED = 0,
+  AK_3MF_PROPERTY_GROUP_BASE,
+  AK_3MF_PROPERTY_GROUP_COLOR,
+  AK_3MF_PROPERTY_GROUP_TEXTURE2D,
+  AK_3MF_PROPERTY_GROUP_COMPOSITE,
+  AK_3MF_PROPERTY_GROUP_MULTI
+} AK3MFPropertyGroupKind;
+
+static
+bool
+ak_3mf_property_group_kind(xml_t                          * __restrict xml,
+                           AK3MFPropertyGroupKind         * __restrict kind,
+                           AkMaterialPropertySetType      * __restrict setType) {
+  if (!xml || !kind || !setType)
+    return false;
+
+  if (AK_3MF_TAG(xml, basematerials)) {
+    *kind    = AK_3MF_PROPERTY_GROUP_BASE;
+    *setType = AK_MATERIAL_PROPERTY_BASE;
+    return true;
+  }
+  if (AK_3MF_TAG(xml, colorgroup)) {
+    *kind    = AK_3MF_PROPERTY_GROUP_COLOR;
+    *setType = AK_MATERIAL_PROPERTY_COLOR;
+    return true;
+  }
+  if (AK_3MF_TAG(xml, texture2dgroup)) {
+    *kind    = AK_3MF_PROPERTY_GROUP_TEXTURE2D;
+    *setType = AK_MATERIAL_PROPERTY_TEXTURE2D;
+    return true;
+  }
+  if (AK_3MF_TAG(xml, compositematerials)) {
+    *kind    = AK_3MF_PROPERTY_GROUP_COMPOSITE;
+    *setType = AK_MATERIAL_PROPERTY_COMPOSITE;
+    return true;
+  }
+  if (AK_3MF_TAG(xml, multiproperties)) {
+    *kind    = AK_3MF_PROPERTY_GROUP_MULTI;
+    *setType = AK_MATERIAL_PROPERTY_MULTI;
+    return true;
+  }
+
+  return false;
+}
+
+static
+size_t
+ak_3mf_count_property_group_children(xml_t                  * __restrict xml,
+                                     AK3MFPropertyGroupKind              kind) {
+  switch (kind) {
+    case AK_3MF_PROPERTY_GROUP_BASE:
+      return AK_3MF_COUNT_CHILDREN(xml, base);
+    case AK_3MF_PROPERTY_GROUP_COLOR:
+      return AK_3MF_COUNT_CHILDREN8(xml, color);
+    case AK_3MF_PROPERTY_GROUP_TEXTURE2D:
+      return AK_3MF_COUNT_CHILDREN(xml, tex2coord);
+    case AK_3MF_PROPERTY_GROUP_COMPOSITE:
+      return AK_3MF_COUNT_CHILDREN(xml, composite);
+    case AK_3MF_PROPERTY_GROUP_MULTI:
+      return AK_3MF_COUNT_CHILDREN8(xml, multi);
+    default:
+      return 0u;
+  }
+}
+
 static
 size_t
 ak_3mf_count_property_groups(xml_t * __restrict resourcesXml) {
   xml_t *xml;
   size_t count;
+  AK3MFPropertyGroupKind kind;
+  AkMaterialPropertySetType setType;
 
   count = 0;
   if (!resourcesXml)
     return 0;
 
   for (xml = resourcesXml->val; xml; xml = xml->next) {
-    if (AK_3MF_TAG(xml, basematerials)
-        || AK_3MF_TAG(xml, colorgroup))
+    if (ak_3mf_property_group_kind(xml, &kind, &setType))
       count++;
   }
 
@@ -2112,6 +2183,33 @@ ak_3mf_find_property_group(AK3MFImportState * __restrict st,
 }
 
 static
+void
+ak_3mf_property_set_color(AkHeap             * __restrict heap,
+                          AkMaterialProperty * __restrict prop,
+                          void               * __restrict parent,
+                          const uint8_t                    rgba[4]) {
+  uint8_t color[4];
+
+  if (!prop || !rgba)
+    return;
+
+  memcpy(color, rgba, sizeof(color));
+  prop->displayColor.rgba.R = color[0] / 255.0f;
+  prop->displayColor.rgba.G = color[1] / 255.0f;
+  prop->displayColor.rgba.B = color[2] / 255.0f;
+  prop->displayColor.rgba.A = color[3] / 255.0f;
+  prop->baseColor           = ak_3mf_material_color_input(heap, parent, color);
+  prop->metallic            = ak_3mf_material_scalar_input(heap,
+                                                           parent,
+                                                           _s_ak_metallic,
+                                                           0.0f);
+  prop->roughness           = ak_3mf_material_scalar_input(heap,
+                                                           parent,
+                                                           _s_ak_roughness,
+                                                           1.0f);
+}
+
+static
 bool
 ak_3mf_property_color(AK3MFImportState * __restrict st,
                       const char       * __restrict path,
@@ -2122,13 +2220,310 @@ ak_3mf_property_color(AK3MFImportState * __restrict st,
   AK3MFPropertyGroup *group;
 
   group = ak_3mf_find_property_group(st, path, id);
-  if (!group || index >= group->count)
+  if (!group || !group->hasColors || !group->colors || index >= group->count)
     return false;
 
   memcpy(rgba, group->colors + (size_t)index * 4u, 4u);
   if (hasAlpha && rgba[3] < 255u)
     *hasAlpha = true;
   return true;
+}
+
+static
+bool
+ak_3mf_property_has_color(AK3MFImportState * __restrict st,
+                          const char       * __restrict path,
+                          uint32_t                      id,
+                          uint32_t                      index) {
+  AK3MFPropertyGroup *group;
+
+  group = ak_3mf_find_property_group(st, path, id);
+  return group
+         && group->hasColors
+         && group->colors
+         && index < group->count;
+}
+
+static
+bool
+ak_3mf_property_texcoord(AK3MFImportState * __restrict st,
+                         const char       * __restrict path,
+                         uint32_t                      id,
+                         uint32_t                      index,
+                         float                         uv[2]) {
+  AK3MFPropertyGroup *group;
+
+  group = ak_3mf_find_property_group(st, path, id);
+  if (!group || !group->hasTexcoords || !group->texcoords || index >= group->count)
+    return false;
+
+  memcpy(uv, group->texcoords + (size_t)index * 2u, sizeof(float) * 2u);
+  return true;
+}
+
+static
+bool
+ak_3mf_property_has_texcoord(AK3MFImportState * __restrict st,
+                             const char       * __restrict path,
+                             uint32_t                      id,
+                             uint32_t                      index) {
+  AK3MFPropertyGroup *group;
+
+  group = ak_3mf_find_property_group(st, path, id);
+  return group
+         && group->hasTexcoords
+         && group->texcoords
+         && index < group->count;
+}
+
+static
+size_t
+ak_3mf_attr_u32_list_count(const xml_attr_t * __restrict attr) {
+  const char *it;
+  const char *end;
+  size_t      count;
+
+  if (!attr || !attr->val || attr->valsize == 0u)
+    return 0u;
+
+  it    = attr->val;
+  end   = attr->val + attr->valsize;
+  count = 0u;
+  while (it < end) {
+    const char *tok;
+
+    while (it < end && (*it == ' ' || *it == '\t' || *it == '\n' || *it == '\r'))
+      it++;
+    tok = it;
+    while (it < end && *it >= '0' && *it <= '9')
+      it++;
+    if (it > tok)
+      count++;
+    while (it < end && !(*it >= '0' && *it <= '9'))
+      it++;
+  }
+
+  return count;
+}
+
+static
+size_t
+ak_3mf_attr_u32_list(const xml_attr_t * __restrict attr,
+                     uint32_t         * __restrict out,
+                     size_t                         cap) {
+  const char *it;
+  const char *end;
+  size_t      count;
+
+  if (!attr || !attr->val || !out || cap == 0u)
+    return 0u;
+
+  it    = attr->val;
+  end   = attr->val + attr->valsize;
+  count = 0u;
+  while (it < end && count < cap) {
+    const char *tok;
+
+    while (it < end && (*it == ' ' || *it == '\t' || *it == '\n' || *it == '\r'))
+      it++;
+    tok = it;
+    while (it < end && *it >= '0' && *it <= '9')
+      it++;
+    if (it > tok) {
+      if (!ak_str_parse_u32_slice_fast(tok, it, out + count))
+        out[count] = 0u;
+      count++;
+    }
+    while (it < end && !(*it >= '0' && *it <= '9'))
+      it++;
+  }
+
+  return count;
+}
+
+static
+size_t
+ak_3mf_attr_float_list_count(const xml_attr_t * __restrict attr) {
+  const char *it;
+  const char *end;
+  size_t      count;
+
+  if (!attr || !attr->val || attr->valsize == 0u)
+    return 0u;
+
+  it    = attr->val;
+  end   = attr->val + attr->valsize;
+  count = 0u;
+  while (it < end) {
+    const char *next;
+    float       ignored;
+
+    while (it < end && (*it == ' ' || *it == '\t' || *it == '\n' || *it == '\r'))
+      it++;
+    if (!ak_str_parse_float_token_fast(it, end, &ignored, &next))
+      break;
+    count++;
+    it = next;
+    while (it < end && !((*it >= '0' && *it <= '9') || *it == '-' || *it == '+'
+                         || *it == '.'))
+      it++;
+  }
+
+  return count;
+}
+
+static
+size_t
+ak_3mf_attr_float_list(const xml_attr_t * __restrict attr,
+                       float            * __restrict out,
+                       size_t                         cap) {
+  const char *it;
+  const char *end;
+  size_t      count;
+
+  if (!attr || !attr->val || !out || cap == 0u)
+    return 0u;
+
+  it    = attr->val;
+  end   = attr->val + attr->valsize;
+  count = 0u;
+  while (it < end && count < cap) {
+    const char *next;
+
+    while (it < end && (*it == ' ' || *it == '\t' || *it == '\n' || *it == '\r'))
+      it++;
+    if (!ak_str_parse_float_token_fast(it, end, out + count, &next))
+      break;
+    count++;
+    it = next;
+    while (it < end && !((*it >= '0' && *it <= '9') || *it == '-' || *it == '+'
+                         || *it == '.'))
+      it++;
+  }
+
+  return count;
+}
+
+static
+void
+ak_3mf_mix_property_colors(AK3MFPropertyGroup * __restrict baseGroup,
+                           const uint32_t     * __restrict indices,
+                           size_t                          indexCount,
+                           const float        * __restrict values,
+                           size_t                          valueCount,
+                           uint8_t                         rgba[4],
+                           bool               * __restrict hasColor) {
+  double accum[4] = {0.0, 0.0, 0.0, 0.0};
+  double sum;
+  bool   equalWeights;
+  size_t i;
+
+  rgba[0] = rgba[1] = rgba[2] = rgba[3] = 255u;
+  if (hasColor)
+    *hasColor = false;
+  if (!baseGroup || !baseGroup->hasColors || !baseGroup->colors
+      || !indices || indexCount == 0u)
+    return;
+
+  sum = 0.0;
+  for (i = 0u; i < indexCount; i++) {
+    if (i < valueCount && values[i] > 0.0f)
+      sum += values[i];
+  }
+  equalWeights = sum <= 0.0;
+  if (equalWeights)
+    sum = (double)indexCount;
+
+  for (i = 0u; i < indexCount; i++) {
+    const uint8_t *src;
+    double weight;
+
+    if (indices[i] >= baseGroup->count)
+      continue;
+    weight = i < valueCount ? values[i] : 0.0f;
+    if (weight < 0.0)
+      weight = 0.0;
+    if (equalWeights)
+      weight = 1.0;
+    weight /= sum;
+
+    src = baseGroup->colors + (size_t)indices[i] * 4u;
+    accum[0] += (double)src[0] * weight;
+    accum[1] += (double)src[1] * weight;
+    accum[2] += (double)src[2] * weight;
+    accum[3] += (double)src[3] * weight;
+    if (hasColor)
+      *hasColor = true;
+  }
+
+  rgba[0] = (uint8_t)(accum[0] < 0.0 ? 0.0 : accum[0] > 255.0 ? 255.0 : accum[0] + 0.5);
+  rgba[1] = (uint8_t)(accum[1] < 0.0 ? 0.0 : accum[1] > 255.0 ? 255.0 : accum[1] + 0.5);
+  rgba[2] = (uint8_t)(accum[2] < 0.0 ? 0.0 : accum[2] > 255.0 ? 255.0 : accum[2] + 0.5);
+  rgba[3] = (uint8_t)(accum[3] < 0.0 ? 0.0 : accum[3] > 255.0 ? 255.0 : accum[3] + 0.5);
+}
+
+static
+void
+ak_3mf_blend_layer_color(uint8_t accum[4],
+                         const uint8_t layer[4],
+                         bool multiply) {
+  uint32_t a;
+  uint32_t invA;
+  uint32_t r;
+  uint32_t g;
+  uint32_t b;
+
+  a    = layer[3];
+  invA = 255u - a;
+  if (multiply) {
+    r = ((uint32_t)accum[0] * layer[0] + 127u) / 255u;
+    g = ((uint32_t)accum[1] * layer[1] + 127u) / 255u;
+    b = ((uint32_t)accum[2] * layer[2] + 127u) / 255u;
+  } else {
+    r = layer[0];
+    g = layer[1];
+    b = layer[2];
+  }
+
+  accum[0] = (uint8_t)((r * a + (uint32_t)accum[0] * invA + 127u) / 255u);
+  accum[1] = (uint8_t)((g * a + (uint32_t)accum[1] * invA + 127u) / 255u);
+  accum[2] = (uint8_t)((b * a + (uint32_t)accum[2] * invA + 127u) / 255u);
+  if (a > accum[3])
+    accum[3] = (uint8_t)a;
+}
+
+static
+bool
+ak_3mf_blend_method_is_multiply(const xml_attr_t * __restrict attr,
+                                size_t                         methodIndex) {
+  const char *it;
+  const char *end;
+  size_t      index;
+
+  if (!attr || !attr->val || attr->valsize == 0u)
+    return false;
+
+  it    = attr->val;
+  end   = attr->val + attr->valsize;
+  index = 0u;
+  while (it < end) {
+    const char *tok;
+    size_t      len;
+
+    while (it < end && (*it == ' ' || *it == '\t' || *it == '\n' || *it == '\r'))
+      it++;
+    tok = it;
+    while (it < end && *it != ' ' && *it != '\t' && *it != '\n' && *it != '\r')
+      it++;
+    len = (size_t)(it - tok);
+    if (len > 0u) {
+      if (index == methodIndex)
+        return len == 8u && memcmp(tok, "multiply", 8u) == 0;
+      index++;
+    }
+  }
+
+  return false;
 }
 
 static
@@ -2149,108 +2544,250 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
     AK3MFPropertyGroup *group;
     AkMaterialPropertySet *set;
     AkHeap              *heap;
-    const char         *childTag;
-    size_t              childTagLen;
+    AK3MFPropertyGroupKind kind;
+    AkMaterialPropertySetType setType;
     xml_t              *child;
-    size_t              colorCount;
+    size_t              propertyCount;
     size_t              i;
-    bool                baseMaterials;
+    uint32_t           *indices;
+    float              *values;
+    size_t              indexCount;
+    size_t              valueCount;
+    AK3MFPropertyGroup *baseGroup;
+    xml_attr_t         *blendMethodsAttr;
+    bool                groupHasColor;
 
-    baseMaterials = AK_3MF_TAG(xml, basematerials);
-    if (baseMaterials) {
-      childTag    = "base";
-      childTagLen = sizeof("base") - 1u;
-    } else if (AK_3MF_TAG(xml, colorgroup)) {
-      childTag    = "color";
-      childTagLen = sizeof("color") - 1u;
-    } else {
+    if (!ak_3mf_property_group_kind(xml, &kind, &setType))
       continue;
-    }
 
-    colorCount = ak_3mf_count_children_sz(xml, childTag, childTagLen);
-    if (colorCount == 0 || colorCount > UINT32_MAX)
+    propertyCount = ak_3mf_count_property_group_children(xml, kind);
+    if (propertyCount == 0 || propertyCount > UINT32_MAX)
       continue;
 
     group         = &st->properties[st->propertyCount];
     group->path   = st->currentModelPath;
     group->id     = xmla_u32(AK_3MF_XMLA(xml, id), (uint32_t)(st->propertyCount + 1u));
-    group->count  = (uint32_t)colorCount;
-    group->colors = calloc(colorCount, 4u);
-    if (!group->colors)
-      continue;
+    group->count  = (uint32_t)propertyCount;
 
     heap            = ak_heap_getheap(st->doc);
     set             = ak_heap_calloc(heap, st->doc, sizeof(*set));
-    if (!set) {
-      free(group->colors);
-      group->colors = NULL;
+    if (!set)
       continue;
-    }
     set->id         = group->id;
     set->count      = group->count;
-    set->type       = baseMaterials ? AK_MATERIAL_PROPERTY_BASE : AK_MATERIAL_PROPERTY_COLOR;
+    set->type       = setType;
     set->properties = ak_heap_calloc(heap,
                                      set,
-                                     sizeof(*set->properties) * colorCount);
-    if (!set->properties) {
-      free(group->colors);
-      group->colors = NULL;
+                                     sizeof(*set->properties) * propertyCount);
+    if (!set->properties)
       continue;
+    if (kind != AK_3MF_PROPERTY_GROUP_TEXTURE2D) {
+      group->colors = calloc(propertyCount, 4u);
+      if (!group->colors)
+        continue;
+    } else {
+      group->texcoords = calloc(propertyCount, sizeof(float) * 2u);
+      if (!group->texcoords)
+        continue;
     }
     set->next       = st->doc->materialProperties.sets;
     st->doc->materialProperties.sets = set;
     st->doc->materialProperties.count++;
     group->set      = set;
+    group->hasColors = false;
     if (st->print) {
       st->print->features |= AK_PRINT_FEATURE_MATERIALS;
+      if (kind == AK_3MF_PROPERTY_GROUP_TEXTURE2D)
+        st->print->features |= AK_PRINT_FEATURE_TEXTURES;
       st->print->materialGroupCount++;
-      st->print->materialPropertyCount += (uint32_t)colorCount;
+      st->print->materialPropertyCount += (uint32_t)propertyCount;
     }
 
+    indices          = NULL;
+    values           = NULL;
+    indexCount       = 0u;
+    valueCount       = 0u;
+    baseGroup        = NULL;
+    blendMethodsAttr = NULL;
+
+    if (kind == AK_3MF_PROPERTY_GROUP_COMPOSITE) {
+      xml_attr_t *matIndicesAttr;
+
+      matIndicesAttr = AK_3MF_XMLA(xml, matindices);
+      indexCount     = ak_3mf_attr_u32_list_count(matIndicesAttr);
+      if (indexCount > 0u) {
+        indices = malloc(sizeof(*indices) * indexCount);
+        if (indices)
+          indexCount = ak_3mf_attr_u32_list(matIndicesAttr, indices, indexCount);
+      }
+      baseGroup = ak_3mf_find_property_group(st,
+                                             st->currentModelPath,
+                                             xmla_u32(AK_3MF_XMLA(xml, matid), 0u));
+      group->hasColors = baseGroup && baseGroup->hasColors && baseGroup->colors && indices;
+    } else if (kind == AK_3MF_PROPERTY_GROUP_MULTI) {
+      xml_attr_t *pidsAttr;
+
+      pidsAttr         = AK_3MF_XMLA(xml, pids);
+      indexCount       = ak_3mf_attr_u32_list_count(pidsAttr);
+      blendMethodsAttr = AK_3MF_XMLA(xml, blendmethods);
+      if (indexCount > 0u) {
+        indices = malloc(sizeof(*indices) * indexCount);
+        if (indices)
+          indexCount = ak_3mf_attr_u32_list(pidsAttr, indices, indexCount);
+      }
+      group->hasColors = indices != NULL && indexCount > 0u;
+    }
+
+    groupHasColor = false;
     i = 0;
     for (child = xml->val; child; child = child->next) {
-      uint8_t rgba[4];
+      AkMaterialProperty *prop;
+      uint8_t             rgba[4];
+      bool                previewColor;
 
-      if (!ak_3mf_tag_sz(child, childTag, childTagLen))
-        continue;
-
-      if (!ak_3mf_parse_color_attr(baseMaterials
-                                     ? AK_3MF_XMLA(child, displaycolor)
-                                     : AK_3MF_XMLA(child, color),
-                                   rgba)) {
-        rgba[0] = 255u;
-        rgba[1] = 255u;
-        rgba[2] = 255u;
-        rgba[3] = 255u;
+      switch (kind) {
+        case AK_3MF_PROPERTY_GROUP_BASE:
+          if (!AK_3MF_TAG8(child, base))
+            continue;
+          break;
+        case AK_3MF_PROPERTY_GROUP_COLOR:
+          if (!AK_3MF_TAG8(child, color))
+            continue;
+          break;
+        case AK_3MF_PROPERTY_GROUP_TEXTURE2D:
+          if (!AK_3MF_TAG(child, tex2coord))
+            continue;
+          break;
+        case AK_3MF_PROPERTY_GROUP_COMPOSITE:
+          if (!AK_3MF_TAG(child, composite))
+            continue;
+          break;
+        case AK_3MF_PROPERTY_GROUP_MULTI:
+          if (!AK_3MF_TAG8(child, multi))
+            continue;
+          break;
+        default:
+          continue;
       }
 
+      prop = &set->properties[i];
+      prop->materialIndex = (uint32_t)i;
+      if (kind == AK_3MF_PROPERTY_GROUP_TEXTURE2D) {
+        group->texcoords[i * 2u + 0u] = xmla_float(AK_3MF_XMLA_LOCAL(child, u), 0.0f);
+        group->texcoords[i * 2u + 1u] = xmla_float(AK_3MF_XMLA_LOCAL(child, v), 0.0f);
+        group->hasTexcoords = true;
+        i++;
+        continue;
+      }
+
+      rgba[0]      = 255u;
+      rgba[1]      = 255u;
+      rgba[2]      = 255u;
+      rgba[3]      = 255u;
+      previewColor = false;
+
+      if (kind == AK_3MF_PROPERTY_GROUP_BASE
+          || kind == AK_3MF_PROPERTY_GROUP_COLOR) {
+        previewColor = ak_3mf_parse_color_attr(
+          kind == AK_3MF_PROPERTY_GROUP_BASE
+            ? AK_3MF_XMLA(child, displaycolor)
+            : AK_3MF_XMLA(child, color),
+          rgba);
+        if (!previewColor) {
+          rgba[0] = 255u;
+          rgba[1] = 255u;
+          rgba[2] = 255u;
+          rgba[3] = 255u;
+          previewColor = true;
+        }
+      } else if (kind == AK_3MF_PROPERTY_GROUP_COMPOSITE) {
+        xml_attr_t *valuesAttr;
+
+        valuesAttr = AK_3MF_XMLA(child, values);
+        valueCount = ak_3mf_attr_float_list_count(valuesAttr);
+        free(values);
+        values = NULL;
+        if (valueCount > 0u) {
+          values = malloc(sizeof(*values) * valueCount);
+          if (values)
+            valueCount = ak_3mf_attr_float_list(valuesAttr, values, valueCount);
+        }
+        ak_3mf_mix_property_colors(baseGroup,
+                                   indices,
+                                   indexCount,
+                                   values,
+                                   valueCount,
+                                   rgba,
+                                   &previewColor);
+      } else if (kind == AK_3MF_PROPERTY_GROUP_MULTI) {
+        xml_attr_t *pindicesAttr;
+        uint32_t   stackIndices[16];
+        uint32_t  *pindices;
+        size_t     pindexCount;
+        size_t     layer;
+        bool       firstLayer;
+
+        pindicesAttr = AK_3MF_XMLA(child, pindices);
+        pindexCount  = ak_3mf_attr_u32_list_count(pindicesAttr);
+        pindices     = stackIndices;
+        if (pindexCount > AK_ARRAY_LEN(stackIndices))
+          pindices = malloc(sizeof(*pindices) * pindexCount);
+        if (pindices && pindexCount > 0u)
+          pindexCount = ak_3mf_attr_u32_list(pindicesAttr, pindices, pindexCount);
+
+        firstLayer = true;
+        for (layer = 0u; indices && layer < indexCount; layer++) {
+          AK3MFPropertyGroup *layerGroup;
+          uint8_t             layerColor[4];
+          uint32_t            propertyIndex;
+
+          layerGroup = ak_3mf_find_property_group(st,
+                                                  st->currentModelPath,
+                                                  indices[layer]);
+          propertyIndex = layer < pindexCount ? pindices[layer] : 0u;
+          if (!layerGroup
+              || !layerGroup->hasColors
+              || !layerGroup->colors
+              || propertyIndex >= layerGroup->count)
+            continue;
+
+          memcpy(layerColor,
+                 layerGroup->colors + (size_t)propertyIndex * 4u,
+                 sizeof(layerColor));
+          if (firstLayer) {
+            memcpy(rgba, layerColor, sizeof(rgba));
+            firstLayer = false;
+          } else {
+            ak_3mf_blend_layer_color(
+              rgba,
+              layerColor,
+              ak_3mf_blend_method_is_multiply(blendMethodsAttr, layer - 1u));
+          }
+          previewColor = true;
+        }
+
+        if (pindices != stackIndices)
+          free(pindices);
+      }
+
+      if (!previewColor) {
+        i++;
+        continue;
+      }
+
+      groupHasColor = true;
       if (rgba[3] < 255u)
         group->hasAlpha = true;
 
       memcpy(group->colors + i * 4u, rgba, 4u);
-      if (set && set->properties) {
-        AkMaterialProperty *prop;
-
-        prop = &set->properties[i];
-        prop->displayColor.rgba.R = rgba[0] / 255.0f;
-        prop->displayColor.rgba.G = rgba[1] / 255.0f;
-        prop->displayColor.rgba.B = rgba[2] / 255.0f;
-        prop->displayColor.rgba.A = rgba[3] / 255.0f;
-        prop->materialIndex       = (uint32_t)i;
-        prop->baseColor           = ak_3mf_material_color_input(heap, set, rgba);
-        prop->metallic            = ak_3mf_material_scalar_input(heap,
-                                                                 set,
-                                                                 _s_ak_metallic,
-                                                                 0.0f);
-        prop->roughness           = ak_3mf_material_scalar_input(heap,
-                                                                 set,
-                                                                 _s_ak_roughness,
-                                                                 1.0f);
-        if (baseMaterials)
-          prop->name = xmla_strdup(AK_3MF_XMLA(child, name), heap, set);
-      }
+      ak_3mf_property_set_color(heap, prop, set, rgba);
+      if (kind == AK_3MF_PROPERTY_GROUP_BASE)
+        prop->name = xmla_strdup(AK_3MF_XMLA(child, name), heap, set);
       i++;
     }
+    free(indices);
+    free(values);
+    group->hasColors = groupHasColor;
     st->propertyCount++;
     added++;
   }
@@ -2892,6 +3429,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   AkAccessor      *posAcc;
   AkIndexArray    *indices;
   uint8_t         *colors;
+  float           *texcoords;
   float           *srcPositions;
   float           *positions;
   size_t           vertexCount;
@@ -2903,7 +3441,9 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   uint32_t         defaultPid;
   uint32_t         defaultPIndex;
   bool             hasColor;
+  bool             hasTexcoord;
   bool             hasAlpha;
+  bool             expandVertices;
 
   if (!st || !st->doc || !meshXml)
     return NULL;
@@ -2940,6 +3480,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   defaultPid    = xmla_u32(AK_3MF_XMLA(objXml, pid), 0u);
   defaultPIndex = xmla_u32(AK_3MF_XMLA(objXml, pindex), UINT32_MAX);
   hasColor      = false;
+  hasTexcoord   = false;
   hasAlpha      = false;
   if (st->propertyCount > 0u) {
     for (triangleXml = trianglesXml ? trianglesXml->val : NULL;
@@ -2954,17 +3495,31 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
       pid = xmla_u32(AK_3MF_XMLA(triangleXml, pid), defaultPid);
       p1  = xmla_u32(AK_3MF_XMLA(triangleXml, p1), defaultPIndex);
       if (pid != 0u
-          && p1 != UINT32_MAX
-          && ak_3mf_find_property_group(st, st->currentModelPath, pid)) {
-        hasColor = true;
-        break;
+          && p1 != UINT32_MAX) {
+        if (ak_3mf_property_has_color(st, st->currentModelPath, pid, p1))
+          hasColor = true;
+        if (ak_3mf_property_has_texcoord(st, st->currentModelPath, pid, p1))
+          hasTexcoord = true;
+        if (hasColor && hasTexcoord)
+          break;
       }
     }
     if (!hasColor
         && defaultPid != 0u
         && defaultPIndex != UINT32_MAX
-        && ak_3mf_find_property_group(st, st->currentModelPath, defaultPid))
+        && ak_3mf_property_has_color(st,
+                                     st->currentModelPath,
+                                     defaultPid,
+                                     defaultPIndex))
       hasColor = true;
+    if (!hasTexcoord
+        && defaultPid != 0u
+        && defaultPIndex != UINT32_MAX
+        && ak_3mf_property_has_texcoord(st,
+                                        st->currentModelPath,
+                                        defaultPid,
+                                        defaultPIndex))
+      hasTexcoord = true;
   }
 
   heap = ak_heap_getheap(doc);
@@ -2974,7 +3529,8 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
     return NULL;
   }
 
-  outputVertexCount = hasColor ? triangleCount * 3u : vertexCount;
+  expandVertices    = hasColor || hasTexcoord;
+  outputVertexCount = expandVertices ? triangleCount * 3u : vertexCount;
 
   posBuff         = ak_heap_calloc(heap, doc, sizeof(*posBuff));
   if (!posBuff) {
@@ -2997,7 +3553,16 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
       free(srcPositions);
       return NULL;
     }
-  } else {
+  }
+  texcoords = NULL;
+  if (hasTexcoord) {
+    texcoords = ak_heap_alloc(heap, posBuff, outputVertexCount * sizeof(float) * 2u);
+    if (!texcoords) {
+      free(srcPositions);
+      return NULL;
+    }
+  }
+  if (!expandVertices) {
     memcpy(positions, srcPositions, posBuff->length);
   }
 
@@ -3032,7 +3597,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
 
   maxIndex = (AkUInt)(outputVertexCount - 1u);
   indices  = NULL;
-  if (!hasColor) {
+  if (!expandVertices) {
     indices = ak_indexArrayAlloc(heap,
                                  prim,
                                  triangleCount * 3u,
@@ -3046,7 +3611,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   }
 
   i = 0;
-  if (hasColor) {
+  if (expandVertices) {
     for (triangleXml = trianglesXml ? trianglesXml->val : NULL;
          triangleXml;
          triangleXml = triangleXml->next) {
@@ -3069,14 +3634,31 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
 
       for (j = 0; j < 3u; j++) {
         uint8_t rgba[4] = {255u, 255u, 255u, 255u};
+        float   uv[2] = {0.0f, 0.0f};
 
         memcpy(positions + i * 3u,
                srcPositions + (size_t)v[j] * 3u,
                sizeof(float) * 3u);
 
-        if (pid != 0u && p[j] != UINT32_MAX)
-          (void)ak_3mf_property_color(st, st->currentModelPath, pid, p[j], rgba, &hasAlpha);
-        memcpy(colors + i * 4u, rgba, 4u);
+        if (pid != 0u && p[j] != UINT32_MAX) {
+          if (colors)
+            (void)ak_3mf_property_color(st,
+                                        st->currentModelPath,
+                                        pid,
+                                        p[j],
+                                        rgba,
+                                        &hasAlpha);
+          if (texcoords)
+            (void)ak_3mf_property_texcoord(st,
+                                           st->currentModelPath,
+                                           pid,
+                                           p[j],
+                                           uv);
+        }
+        if (colors)
+          memcpy(colors + i * 4u, rgba, 4u);
+        if (texcoords)
+          memcpy(texcoords + i * 2u, uv, sizeof(uv));
         i++;
       }
     }
@@ -3180,8 +3762,33 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
 
     io_input(heap, prim, colorAcc, AK_INPUT_COLOR, _s_COLOR, 0u);
     prim->material = ak_materialDefaultVertexColorAlpha(doc, hasAlpha);
-  } else {
+  }
+
+  if (hasTexcoord) {
+    AkBuffer   *texBuff;
+    AkAccessor *texAcc;
+
+    texBuff         = ak_heap_calloc(heap, doc, sizeof(*texBuff));
+    texBuff->length = outputVertexCount * sizeof(float) * 2u;
+    texBuff->data   = texcoords;
+    AK_LIB_PREPEND(doc->lib.buffers, texBuff, next);
+
+    texAcc = io_acc(heap,
+                    doc,
+                    AK_COMPONENT_SIZE_VEC2,
+                    AKT_FLOAT,
+                    (uint32_t)outputVertexCount,
+                    texBuff);
+    if (!texAcc)
+      return NULL;
+    AK_LIB_PREPEND(doc->lib.accessors, texAcc, next);
+    io_input(heap, prim, texAcc, AK_INPUT_TEXCOORD, _s_TEXCOORD, 0u);
+  }
+
+  if (!hasColor) {
     prim->material = ak_3mf_bambu_orca_material_for_object(st, objectId);
+  }
+  if (!expandVertices) {
     prim->indices = indices;
   }
 
@@ -4461,8 +5068,10 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
 
 cleanup:
   if (st.properties) {
-    for (i = 0; i < st.propertyCount; i++)
+    for (i = 0; i < st.propertyCount; i++) {
       free(st.properties[i].colors);
+      free(st.properties[i].texcoords);
+    }
   }
   free(st.properties);
   free(st.objects);

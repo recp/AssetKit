@@ -516,6 +516,21 @@ ak_cli_print_validation_names(FILE *out, AkPrintValidationFlags flags) {
     fputs("none", out);
 }
 
+static uint32_t
+ak_cli_count_package_parts(const AkPrintDocument *print,
+                           AkPrintPackagePartType type) {
+  const AkPrintPackagePart *part;
+  uint32_t                  count;
+
+  count = 0u;
+  for (part = print ? print->parts : NULL; part; part = part->next) {
+    if (part->type == type)
+      count++;
+  }
+
+  return count;
+}
+
 static void
 ak_cli_inspect_text(FILE *out, const char *path, const AkDoc *doc) {
   const AkPrintDocument *print;
@@ -558,6 +573,22 @@ ak_cli_inspect_text(FILE *out, const char *path, const AkDoc *doc) {
     ak_cli_print_validation_names(out, print->validationFlags);
     fputc('\n', out);
     fprintf(out, "print_package_parts: %u\n", print->packagePartCount);
+    fprintf(out, "print_package_model_parts: %u\n",
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_MODEL));
+    fprintf(out, "print_package_relationship_parts: %u\n",
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_RELATIONSHIPS));
+    fprintf(out, "print_package_metadata_parts: %u\n",
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_METADATA));
+    fprintf(out, "print_package_thumbnail_parts: %u\n",
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_THUMBNAIL));
+    fprintf(out, "print_package_texture_parts: %u\n",
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_TEXTURE));
+    fprintf(out, "print_package_slice_parts: %u\n",
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_SLICE));
+    fprintf(out, "print_package_gcode_parts: %u\n",
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_GCODE));
+    fprintf(out, "print_package_other_parts: %u\n",
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_OTHER));
     fprintf(out, "print_build_items: %u\n", print->buildItemCount);
     fprintf(out, "print_objects: %u\n", print->objectCount);
     fprintf(out, "print_mesh_objects: %u\n", print->meshObjectCount);
@@ -627,6 +658,16 @@ ak_cli_inspect_json(FILE *out, const char *path, const AkDoc *doc) {
             "    \"unsupported_features\": %u,\n"
             "    \"validation_flags\": %u,\n"
             "    \"package_parts\": %u,\n"
+            "    \"package_part_types\": {\n"
+            "      \"model\": %u,\n"
+            "      \"relationships\": %u,\n"
+            "      \"metadata\": %u,\n"
+            "      \"thumbnail\": %u,\n"
+            "      \"texture\": %u,\n"
+            "      \"slice\": %u,\n"
+            "      \"gcode\": %u,\n"
+            "      \"other\": %u\n"
+            "    },\n"
             "    \"build_items\": %u,\n"
             "    \"objects\": %u,\n"
             "    \"mesh_objects\": %u,\n"
@@ -642,6 +683,14 @@ ak_cli_inspect_json(FILE *out, const char *path, const AkDoc *doc) {
             print->unsupportedFeatures,
             print->validationFlags,
             print->packagePartCount,
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_MODEL),
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_RELATIONSHIPS),
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_METADATA),
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_THUMBNAIL),
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_TEXTURE),
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_SLICE),
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_GCODE),
+            ak_cli_count_package_parts(print, AK_PRINT_PACKAGE_PART_OTHER),
             print->buildItemCount,
             print->objectCount,
             print->meshObjectCount,

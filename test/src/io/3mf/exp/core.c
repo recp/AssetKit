@@ -27,6 +27,8 @@ typedef struct AkTest3MFZipStored {
   uint32_t localOffset;
 } AkTest3MFZipStored;
 
+static const char AK_TEST_3MF_GCODE_PART[] = "G1 X0 Y0 E0\n";
+
 static uint32_t
 ak_test_3mf_crc32(const void *data, size_t size) {
   const unsigned char *bytes;
@@ -479,6 +481,91 @@ ak_test_write_3mf_bambu_paint_materials_model(const char *path) {
   entries[5].name = "Metadata/model_settings.config";
   entries[5].data = modelSettings;
   entries[5].size = sizeof(modelSettings) - 1u;
+
+  return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
+}
+
+static bool
+ak_test_write_3mf_materials_extension_model(const char *path) {
+  static const char contentTypes[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
+    "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
+    "<Default Extension=\"png\" ContentType=\"image/png\"/>"
+    "<Override PartName=\"/3D/3dmodel.model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>"
+    "</Types>";
+  static const char rels[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    "<Relationship Id=\"rel0\" "
+    "Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\" "
+    "Target=\"/3D/3dmodel.model\"/>"
+    "</Relationships>";
+  static const char model[] =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    "<model unit=\"millimeter\" requiredextensions=\"m\" "
+    "xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+    "xmlns:m=\"http://schemas.microsoft.com/3dmanufacturing/material/2015/02\">"
+    "<resources>"
+    "<basematerials id=\"1\">"
+    "<base name=\"red\" displaycolor=\"#FF0000FF\"/>"
+    "<base name=\"blue\" displaycolor=\"#0000FFFF\"/>"
+    "</basematerials>"
+    "<m:colorgroup id=\"2\">"
+    "<m:color color=\"#00FF0080\"/>"
+    "</m:colorgroup>"
+    "<m:compositematerials id=\"3\" matid=\"1\" matindices=\"0 1\">"
+    "<m:composite values=\"0.25 0.75\"/>"
+    "</m:compositematerials>"
+    "<m:multiproperties id=\"4\" pids=\"3 2\" blendmethods=\"mix\">"
+    "<m:multi pindices=\"0 0\"/>"
+    "</m:multiproperties>"
+    "<m:texture2d id=\"5\" path=\"/3D/Textures/diffuse.png\" contenttype=\"image/png\"/>"
+    "<m:texture2dgroup id=\"6\" texid=\"5\">"
+    "<m:tex2coord u=\"0\" v=\"0\"/>"
+    "<m:tex2coord u=\"1\" v=\"0\"/>"
+    "<m:tex2coord u=\"0\" v=\"1\"/>"
+    "</m:texture2dgroup>"
+    "<object id=\"10\" type=\"model\" name=\"multi\" pid=\"4\" pindex=\"0\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"1\" y=\"0\" z=\"0\"/>"
+    "<vertex x=\"0\" y=\"1\" z=\"0\"/>"
+    "</vertices>"
+    "<triangles><triangle v1=\"0\" v2=\"1\" v3=\"2\"/></triangles>"
+    "</mesh>"
+    "</object>"
+    "<object id=\"11\" type=\"model\" name=\"textured\" pid=\"6\" pindex=\"0\">"
+    "<mesh>"
+    "<vertices>"
+    "<vertex x=\"0\" y=\"0\" z=\"1\"/>"
+    "<vertex x=\"1\" y=\"0\" z=\"1\"/>"
+    "<vertex x=\"0\" y=\"1\" z=\"1\"/>"
+    "</vertices>"
+    "<triangles><triangle v1=\"0\" v2=\"1\" v3=\"2\" p1=\"0\" p2=\"1\" p3=\"2\"/></triangles>"
+    "</mesh>"
+    "</object>"
+    "</resources>"
+    "<build><item objectid=\"10\"/><item objectid=\"11\"/></build>"
+    "</model>";
+  static const unsigned char texture[] = {
+    0x89u, 'P', 'N', 'G', '\r', '\n', 0x1au, '\n'
+  };
+  AkTest3MFZipEntry entries[4];
+
+  entries[0].name = "[Content_Types].xml";
+  entries[0].data = contentTypes;
+  entries[0].size = sizeof(contentTypes) - 1u;
+  entries[1].name = "_rels/.rels";
+  entries[1].data = rels;
+  entries[1].size = sizeof(rels) - 1u;
+  entries[2].name = "3D/3dmodel.model";
+  entries[2].data = model;
+  entries[2].size = sizeof(model) - 1u;
+  entries[3].name = "3D/Textures/diffuse.png";
+  entries[3].data = texture;
+  entries[3].size = sizeof(texture);
 
   return ak_test_3mf_zip_write_stored(path, entries, AK_ARRAY_LEN(entries));
 }
@@ -1017,6 +1104,15 @@ ak_test_make_3mf_package_triangle_doc(void) {
     return NULL;
   if (!ak_printSetPackagePartRelationship(doc, part, "thumb-rel", "Internal"))
     return NULL;
+  part = ak_printAddPackagePartData(doc,
+                                    AK_PRINT_PACKAGE_PART_GCODE,
+                                    "Metadata/plate_1.gcode",
+                                    "text/x.gcode",
+                                    NULL,
+                                    AK_TEST_3MF_GCODE_PART,
+                                    sizeof(AK_TEST_3MF_GCODE_PART) - 1u);
+  if (!part)
+    return NULL;
 
   return doc;
 }
@@ -1130,6 +1226,50 @@ ak_test_3mf_count_primitives_with_material(AkDoc *doc,
     for (prim = mesh ? mesh->primitive : NULL; prim; prim = prim->next) {
       if (prim->material == material)
         count++;
+    }
+  }
+
+  return count;
+}
+
+static AkMaterialPropertySet*
+ak_test_3mf_find_property_set(AkDoc *doc, uint32_t id) {
+  AkMaterialPropertySet *set;
+
+  if (!doc)
+    return NULL;
+
+  for (set = doc->materialProperties.sets; set; set = set->next) {
+    if (set->id == id)
+      return set;
+  }
+
+  return NULL;
+}
+
+static uint32_t
+ak_test_3mf_count_primitive_inputs(AkDoc *doc, AkInputSemantic semantic) {
+  AkGeometry *geom;
+  uint32_t    count;
+
+  count = 0u;
+  if (!doc)
+    return 0u;
+
+  for (geom = doc->lib.geometries.first; geom; geom = geom->next) {
+    AkMesh          *mesh;
+    AkMeshPrimitive *prim;
+
+    mesh = geom->gdata ? ak_objGet(geom->gdata) : NULL;
+    for (prim = mesh ? mesh->primitive : NULL; prim; prim = prim->next) {
+      AkInput *input;
+
+      for (input = prim->input; input; input = input->next) {
+        if (input->semantic == semantic) {
+          count++;
+          break;
+        }
+      }
     }
   }
 
@@ -1363,6 +1503,7 @@ TEST_IMPL(three_mf_export_package_parts_roundtrip) {
   AkPrintDocument     *print;
   AkPrintPackagePart  *part;
   AkPrintPackagePart  *thumbnailPart;
+  AkPrintPackagePart  *gcodePart;
   const char          *outDir = "./assetkit_export_3mf_package_parts_roundtrip";
   const char          *mfPath = "./assetkit_export_3mf_package_parts_roundtrip/model.3mf";
 
@@ -1380,13 +1521,16 @@ TEST_IMPL(three_mf_export_package_parts_roundtrip) {
   ASSERT(print != NULL);
   ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_PACKAGE));
   ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_THUMBNAIL));
-  ASSERT(print->packagePartCount == 2);
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_SLICE));
+  ASSERT(print->packagePartCount == 3);
 
   thumbnailPart = NULL;
+  gcodePart     = NULL;
   for (part = print->parts; part; part = part->next) {
     if (part->type == AK_PRINT_PACKAGE_PART_THUMBNAIL) {
       thumbnailPart = part;
-      break;
+    } else if (part->type == AK_PRINT_PACKAGE_PART_GCODE) {
+      gcodePart = part;
     }
   }
   ASSERT(thumbnailPart != NULL);
@@ -1403,6 +1547,16 @@ TEST_IMPL(three_mf_export_package_parts_roundtrip) {
   ASSERT(thumbnailPart->size == sizeof(thumbnail));
   ASSERT(thumbnailPart->data != NULL);
   ASSERT(memcmp(thumbnailPart->data, thumbnail, sizeof(thumbnail)) == 0);
+  ASSERT(gcodePart != NULL);
+  ASSERT(gcodePart->name != NULL);
+  ASSERT(strcmp(gcodePart->name, "Metadata/plate_1.gcode") == 0);
+  ASSERT(gcodePart->contentType != NULL);
+  ASSERT(strcmp(gcodePart->contentType, "text/x.gcode") == 0);
+  ASSERT(gcodePart->size == sizeof(AK_TEST_3MF_GCODE_PART) - 1u);
+  ASSERT(gcodePart->data != NULL);
+  ASSERT(memcmp(gcodePart->data,
+                AK_TEST_3MF_GCODE_PART,
+                sizeof(AK_TEST_3MF_GCODE_PART) - 1u) == 0);
 
   ak_test_export_cleanup(outDir);
   TEST_SUCCESS
@@ -1622,6 +1776,82 @@ TEST_IMPL(three_mf_import_bambu_paint_materials) {
                                          85.0f / 255.0f,
                                          85.0f / 255.0f));
   ASSERT(ak_test_3mf_count_primitives_with_material(doc, fifthMaterial) == 1);
+
+  ak_test_export_cleanup(outDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_import_materials_extension_groups) {
+  AkDoc                 *doc;
+  AkPrintDocument       *print;
+  AkPrintPackagePart    *part;
+  AkMaterialPropertySet *baseSet;
+  AkMaterialPropertySet *colorSet;
+  AkMaterialPropertySet *compositeSet;
+  AkMaterialPropertySet *multiSet;
+  AkMaterialPropertySet *textureSet;
+  bool                   hasTexturePart;
+  const char            *outDir = "./assetkit_import_3mf_materials_extension";
+  const char            *mfPath = "./assetkit_import_3mf_materials_extension/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  ASSERT(mkdir(outDir, 0777) == 0);
+  ASSERT(ak_test_write_3mf_materials_extension_model(mfPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(doc != NULL);
+  ASSERT(doc->lib.geometries.count == 2);
+  ASSERT(doc->materialProperties.count == 5);
+
+  baseSet      = ak_test_3mf_find_property_set(doc, 1u);
+  colorSet     = ak_test_3mf_find_property_set(doc, 2u);
+  compositeSet = ak_test_3mf_find_property_set(doc, 3u);
+  multiSet     = ak_test_3mf_find_property_set(doc, 4u);
+  textureSet   = ak_test_3mf_find_property_set(doc, 6u);
+  ASSERT(baseSet != NULL);
+  ASSERT(colorSet != NULL);
+  ASSERT(compositeSet != NULL);
+  ASSERT(multiSet != NULL);
+  ASSERT(textureSet != NULL);
+  ASSERT(baseSet->type == AK_MATERIAL_PROPERTY_BASE);
+  ASSERT(colorSet->type == AK_MATERIAL_PROPERTY_COLOR);
+  ASSERT(compositeSet->type == AK_MATERIAL_PROPERTY_COMPOSITE);
+  ASSERT(multiSet->type == AK_MATERIAL_PROPERTY_MULTI);
+  ASSERT(textureSet->type == AK_MATERIAL_PROPERTY_TEXTURE2D);
+  ASSERT(baseSet->count == 2);
+  ASSERT(colorSet->count == 1);
+  ASSERT(compositeSet->count == 1);
+  ASSERT(multiSet->count == 1);
+  ASSERT(textureSet->count == 3);
+  ASSERT(baseSet->properties[0].baseColor != NULL);
+  ASSERT(colorSet->properties[0].baseColor != NULL);
+  ASSERT(compositeSet->properties[0].baseColor != NULL);
+  ASSERT(multiSet->properties[0].baseColor != NULL);
+  ASSERT(textureSet->properties[0].baseColor == NULL);
+  ASSERT(fabs(compositeSet->properties[0].displayColor.rgba.R - (64.0f / 255.0f)) < 0.01f);
+  ASSERT(fabs(compositeSet->properties[0].displayColor.rgba.B - (191.0f / 255.0f)) < 0.01f);
+  ASSERT(fabs(multiSet->properties[0].displayColor.rgba.G - (128.0f / 255.0f)) < 0.01f);
+  ASSERT(ak_test_3mf_count_primitive_inputs(doc, AK_INPUT_COLOR) == 1);
+  ASSERT(ak_test_3mf_count_primitive_inputs(doc, AK_INPUT_TEXCOORD) == 1);
+
+  print = ak_printDocument(doc);
+  ASSERT(print != NULL);
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_MATERIALS));
+  ASSERT(ak_printHasFeature(print, AK_PRINT_FEATURE_TEXTURES));
+  ASSERT((print->requiredFeatures & AK_PRINT_FEATURE_MATERIALS) != 0u);
+  ASSERT((print->unsupportedFeatures & AK_PRINT_FEATURE_MATERIALS) == 0u);
+
+  hasTexturePart = false;
+  for (part = print->parts; part; part = part->next) {
+    if (part->type == AK_PRINT_PACKAGE_PART_TEXTURE
+        && part->name
+        && strcmp(part->name, "3D/Textures/diffuse.png") == 0) {
+      hasTexturePart = true;
+      break;
+    }
+  }
+  ASSERT(hasTexturePart);
 
   ak_test_export_cleanup(outDir);
   TEST_SUCCESS

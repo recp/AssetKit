@@ -46,9 +46,12 @@ typedef struct AK3MFPropertyGroup {
   AkMaterialPropertySet *set;
   const char            *path;
   uint8_t               *colors;
+  float                 *texcoords;
   uint32_t               id;
   uint32_t               count;
   bool                   hasAlpha;
+  bool                   hasColors;
+  bool                   hasTexcoords;
 } AK3MFPropertyGroup;
 
 typedef struct AK3MFObject {
