@@ -15,6 +15,8 @@
  */
 
 #include "common.h"
+#include "../package_source.h"
+#include "../../../../include/ak/path.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -140,6 +142,27 @@ ak_3mf_build_rels_xml(const AkPrintDocument * __restrict print,
   return rels->result == AK_OK;
 }
 
+static
+bool
+ak_3mf_try_clone_source_package(AkDoc      * __restrict doc,
+                                const char * __restrict filepath) {
+  AkPrintDocument    *print;
+  AK3MFPackageSource *source;
+
+  if (!doc || !filepath || !doc->inf || doc->inf->ftype != AK_FILE_TYPE_3MF)
+    return false;
+
+  print = ak_printDocument(doc);
+  if (!print || ak_3mf_package_source_has_mutated_parts(print))
+    return false;
+
+  source = ak_3mf_package_source_get(print);
+  if (!source || !source->path)
+    return false;
+
+  return ak_copyfile(source->path, filepath);
+}
+
 AK_HIDE
 AkResult
 ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
@@ -157,6 +180,9 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
 
   if (!doc || !filepath)
     return AK_ERR;
+
+  if (ak_3mf_try_clone_source_package(doc, filepath))
+    return AK_OK;
 
   memset(&st, 0, sizeof(st));
   io_buffer_init(&st.resources);

@@ -645,6 +645,7 @@ ak_printSetPackagePartData(AkDoc              * __restrict doc,
 
   part->data = NULL;
   part->size = 0u;
+  part->flags |= AK_PRINT_PACKAGE_PART_DATA_MUTATED;
   if (size == 0u)
     return true;
 

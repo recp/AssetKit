@@ -65,6 +65,10 @@ typedef enum AkPrintPackagePartType {
   AK_PRINT_PACKAGE_PART_GCODE
 } AkPrintPackagePartType;
 
+typedef enum AkPrintPackagePartFlag {
+  AK_PRINT_PACKAGE_PART_DATA_MUTATED = 1u << 0
+} AkPrintPackagePartFlag;
+
 typedef enum AkPrintProductionItemType {
   AK_PRINT_PRODUCTION_BUILD = 1,
   AK_PRINT_PRODUCTION_ITEM,

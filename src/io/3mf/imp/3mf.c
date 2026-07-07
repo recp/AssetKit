@@ -16,6 +16,7 @@
 
 #include "3mf.h"
 #include "internal.h"
+#include "../package_source.h"
 #include "vendor/bambu_orca/bambu_orca.h"
 #include "../../common/buffer.h"
 #include "../../common/text_number.h"
@@ -5016,6 +5017,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
   st.currentModelPath = modelPath;
   (void)ak_3mf_mark_model_part_loaded(&st, modelPath);
   st.print = ak_printDocumentEnsure(doc);
+  (void)ak_3mf_package_source_set(doc, st.print, filepath);
   ak_3mf_bambu_orca_parse_metadata(&st);
   if (st.print) {
     st.print->features |= AK_PRINT_FEATURE_CORE;
