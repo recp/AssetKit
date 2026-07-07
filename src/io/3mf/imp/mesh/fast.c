@@ -2840,6 +2840,138 @@ ak_3mf_fast_fill_indices(const AK3MFFastSlice * __restrict triangles,
 
 static
 bool
+ak_3mf_fast_orca_paint_state_chars(const char * __restrict begin,
+                                   const char * __restrict end,
+                                   uint8_t    * __restrict stateOut) {
+  size_t  len;
+  uint8_t first;
+  size_t  i;
+
+  if (!begin || !end || end < begin || !stateOut)
+    return false;
+
+  len = (size_t)(end - begin);
+  if (len == 0u) {
+    *stateOut = 0u;
+    return true;
+  }
+
+  if (len == 1u) {
+    if (begin[0] == '4') {
+      *stateOut = 1u;
+      return true;
+    }
+    if (begin[0] == '8') {
+      *stateOut = 2u;
+      return true;
+    }
+    return false;
+  }
+
+  if (len < 2u || len > 5u)
+    return false;
+  if ((begin[len - 1u] | 0x20) != 'c')
+    return false;
+  if (begin[0] >= '0' && begin[0] <= '9') {
+    first = (uint8_t)(begin[0] - '0');
+  } else {
+    char c;
+
+    c = (char)(begin[0] | 0x20);
+    if (c < 'a' || c > 'f')
+      return false;
+    first = (uint8_t)(c - 'a' + 10);
+  }
+  if (first > 14u)
+    return false;
+
+  for (i = 1u; i + 1u < len; i++) {
+    if ((begin[i] | 0x20) != 'f')
+      return false;
+  }
+
+  *stateOut = (uint8_t)(3u + (uint32_t)first + (uint32_t)(len - 2u) * 15u);
+  return *stateOut < AK_3MF_PAINT_BUCKET_COUNT;
+}
+
+AK_INLINE
+bool
+ak_3mf_fast_expected_orca_paint_state_attr(const char ** __restrict cursor,
+                                           const char  * __restrict tagEnd,
+                                           uint8_t     * __restrict stateOut) {
+  const char *p;
+  const char *valueBegin;
+  const char *valueEnd;
+  char        quote;
+
+  if (!cursor || !*cursor || !tagEnd || !stateOut)
+    return false;
+
+  p = ak_3mf_fast_skip_space(*cursor, tagEnd);
+  if ((size_t)(tagEnd - p) <= _s_ak_paint_color_len
+      || ak_str_load8_fast(p) != _s_ak_paint_color_u64_prefix
+      || p[8] != 'l'
+      || p[9] != 'o'
+      || p[10] != 'r'
+      || p[_s_ak_paint_color_len] != '=')
+    return false;
+
+  p += _s_ak_paint_color_len + 1u;
+  if (p >= tagEnd)
+    return false;
+
+  quote = *p++;
+  if (quote != '"' && quote != '\'')
+    return false;
+
+  valueBegin = p;
+  while (p < tagEnd && *p != quote)
+    p++;
+  if (p >= tagEnd)
+    return false;
+  valueEnd = p++;
+
+  if (!ak_3mf_fast_orca_paint_state_chars(valueBegin, valueEnd, stateOut))
+    return false;
+
+  while (p < tagEnd && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
+    p++;
+
+  *cursor = p;
+  return true;
+}
+
+AK_INLINE
+bool
+ak_3mf_fast_parse_triangle_orca_state(const char *p,
+                                      const char * __restrict tagEnd,
+                                      uint32_t                 vertexCount,
+                                      uint32_t                 v[3],
+                                      uint8_t    * __restrict stateOut) {
+  uint8_t state;
+
+  if (!stateOut)
+    return false;
+
+  p = ak_3mf_fast_skip_tag_name(p, tagEnd);
+  if (!ak_3mf_fast_expected_u32_attr(&p, tagEnd, 'v', '1', &v[0])
+      || !ak_3mf_fast_expected_u32_attr(&p, tagEnd, 'v', '2', &v[1])
+      || !ak_3mf_fast_expected_u32_attr(&p, tagEnd, 'v', '3', &v[2]))
+    return false;
+
+  state = 0u;
+  (void)ak_3mf_fast_expected_orca_paint_state_attr(&p, tagEnd, &state);
+  if (p < tagEnd && *p != '/' && *p != '>')
+    return false;
+
+  *stateOut = state;
+  return v[0] < vertexCount
+         && v[1] < vertexCount
+         && v[2] < vertexCount;
+}
+
+static
+bool
 ak_3mf_fast_analyze_paint(AK3MFImportState          * __restrict st,
                           const AK3MFFastMeshSlices * __restrict slices,
                           AK3MFPaintPlan            * __restrict plan) {
@@ -2871,18 +3003,29 @@ ak_3mf_fast_analyze_paint(AK3MFImportState          * __restrict st,
     if (triangleIndex >= slices->triangleCount)
       return false;
 
-    if (!ak_3mf_fast_parse_triangle_paint(tagBegin,
-                                          tagEnd,
-                                          (uint32_t)slices->vertexCount,
-                                          v,
-                                          &paint,
-                                          &paintKind)
-        || !ak_3mf_fast_paint_analyze(plan,
-                                      paintKind,
-                                      &paint,
-                                      v,
-                                      &state))
-      return false;
+    paint.begin = NULL;
+    paint.end   = NULL;
+    if (ak_3mf_fast_parse_triangle_orca_state(tagBegin,
+                                              tagEnd,
+                                              (uint32_t)slices->vertexCount,
+                                              v,
+                                              &state)) {
+      if (!ak_3mf_fast_paint_emit_state(plan, NULL, state, v))
+        return false;
+    } else {
+      if (!ak_3mf_fast_parse_triangle_paint(tagBegin,
+                                            tagEnd,
+                                            (uint32_t)slices->vertexCount,
+                                            v,
+                                            &paint,
+                                            &paintKind)
+          || !ak_3mf_fast_paint_analyze(plan,
+                                        paintKind,
+                                        &paint,
+                                        v,
+                                        &state))
+        return false;
+    }
 
     cached = &plan->triangles[triangleIndex++];
     cached->v[0] = v[0];
