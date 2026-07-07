@@ -99,15 +99,38 @@ wobj_count_add(uint32_t * __restrict value, uint32_t add) {
 
 static
 bool
+wobj_mat4_is_identity(mat4 m) {
+  return m[0][0] == 1.0f
+         && m[0][1] == 0.0f
+         && m[0][2] == 0.0f
+         && m[0][3] == 0.0f
+         && m[1][0] == 0.0f
+         && m[1][1] == 1.0f
+         && m[1][2] == 0.0f
+         && m[1][3] == 0.0f
+         && m[2][0] == 0.0f
+         && m[2][1] == 0.0f
+         && m[2][2] == 1.0f
+         && m[2][3] == 0.0f
+         && m[3][0] == 0.0f
+         && m[3][1] == 0.0f
+         && m[3][2] == 0.0f
+         && m[3][3] == 1.0f;
+}
+
+static
+bool
 wobj_write_positions(WOBJExpState * __restrict st,
                      WOBJExpRows  * __restrict rows,
                      WOBJExpRows  * __restrict colorRows,
                      mat4                       world) {
   uint32_t i;
+  bool     identity;
 
   if (!wobj_count_add(&st->vCount, rows->accessor->count))
     return false;
 
+  identity = wobj_mat4_is_identity(world);
   for (i = 0; i < rows->accessor->count; i++) {
     const float *row;
     vec3         in;
@@ -117,7 +140,13 @@ wobj_write_positions(WOBJExpState * __restrict st,
     in[0] = wobj_row_component(row, rows->componentCount, 0, 0.0f);
     in[1] = wobj_row_component(row, rows->componentCount, 1, 0.0f);
     in[2] = wobj_row_component(row, rows->componentCount, 2, 0.0f);
-    glm_mat4_mulv3(world, in, 1.0f, out);
+    if (identity) {
+      out[0] = in[0];
+      out[1] = in[1];
+      out[2] = in[2];
+    } else {
+      glm_mat4_mulv3(world, in, 1.0f, out);
+    }
 
     WOBJ_W_LIT(&st->w, "v ");
     wobj_w_float(&st->w, out[0]);
