@@ -181,21 +181,29 @@ ply_w_float_ascii(PLYExpWriter * __restrict w, float value) {
 static
 void
 ply_w_u32_ascii(PLYExpWriter * __restrict w, uint32_t value) {
+  char *dst;
   char *end;
-  char  buf[16];
 
-  end = ak_io_text_format_uint64(buf, value);
-  ply_w_raw(w, buf, (size_t)(end - buf));
+  if (sizeof(w->buffer) - w->len < 16u)
+    ply_w_flush(w);
+
+  dst = (char *)w->buffer + w->len;
+  end = ak_io_text_format_uint32(dst, value);
+  w->len += (size_t)(end - dst);
 }
 
 static
 void
 ply_w_u8_ascii(PLYExpWriter * __restrict w, uint8_t value) {
+  char *dst;
   char *end;
-  char  buf[4];
 
-  end = ak_io_text_format_uint64(buf, value);
-  ply_w_raw(w, buf, (size_t)(end - buf));
+  if (sizeof(w->buffer) - w->len < 4u)
+    ply_w_flush(w);
+
+  dst = (char *)w->buffer + w->len;
+  end = ak_io_text_format_uint32(dst, value);
+  w->len += (size_t)(end - dst);
 }
 
 static

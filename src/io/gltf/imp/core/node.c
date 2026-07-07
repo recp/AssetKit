@@ -17,6 +17,7 @@
 #include "node.h"
 #include "ext.h"
 #include "../extra.h"
+#include "../../../common/text_number.h"
 #include "../../../../id.h"
 
 #include <ds/hash.h>
@@ -104,23 +105,10 @@ gltf_nodeProps(json_t          * __restrict jnode,
 static inline
 void
 gltf_nodeId(char * __restrict dst, unsigned int index) {
-  char         tmp[16];
-  char        *p;
-  unsigned int n;
+  char *p;
 
   memcpy(dst, _s_gltf_node, 4);
-  p = dst + 4;
-  n = 0;
-
-  do {
-    tmp[n++] = (char)('0' + index % 10);
-    index /= 10;
-  } while (index);
-
-  do {
-    *p++ = tmp[--n];
-  } while (n);
-
+  p  = ak_io_text_format_uint32(dst + 4, (uint32_t)index);
   *p = '\0';
 }
 
