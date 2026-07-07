@@ -61,22 +61,15 @@ wobj_w_lit(WOBJExpWriter * __restrict w,
 AK_INLINE
 void
 wobj_w_uint_fast(WOBJExpWriter * __restrict w, uint32_t val) {
-  char     buf[16];
-  uint32_t n;
-  uint32_t i;
+  char *dst;
+  char *end;
 
-  i = sizeof(buf);
-  do {
-    buf[--i] = (char)('0' + (val % 10u));
-    val /= 10u;
-  } while (val);
-
-  n = (uint32_t)(sizeof(buf) - i);
-  if (sizeof(w->buffer) - w->len < n)
+  if (sizeof(w->buffer) - w->len < 16u)
     wobj_w_flush(w);
 
-  memcpy(w->buffer + w->len, buf + i, n);
-  w->len += n;
+  dst     = (char *)w->buffer + w->len;
+  end     = ak_io_text_format_uint32(dst, val);
+  w->len += (size_t)(end - dst);
 }
 
 AK_INLINE

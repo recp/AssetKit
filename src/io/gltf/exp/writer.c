@@ -242,18 +242,15 @@ gltf_w_key_str(GLTFExpWriter * __restrict w,
 
 void
 gltf_w_uint(GLTFExpWriter * __restrict w, size_t val) {
-  char   buf[32];
-  size_t i;
-  size_t start;
+  char *dst;
+  char *end;
 
-  i = sizeof(buf);
-  do {
-    buf[--i] = (char)('0' + (val % 10u));
-    val /= 10u;
-  } while (val > 0 && i > 0);
+  if (GLTF_EXP_WRITER_CAP - w->len < 24u)
+    gltf_w_flush(w);
 
-  start = i;
-  gltf_w_raw(w, buf + start, sizeof(buf) - start);
+  dst     = (char *)w->buffer + w->len;
+  end     = ak_io_text_format_uint64(dst, (uint64_t)val);
+  w->len += (size_t)(end - dst);
 }
 
 void

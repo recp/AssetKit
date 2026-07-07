@@ -93,22 +93,15 @@ dae_w_cstr(DAEExpWriter * __restrict w, const char * __restrict str);
 AK_INLINE
 void
 dae_w_uint_fast(DAEExpWriter * __restrict w, size_t val) {
-  char   buf[32];
-  size_t i;
-  size_t len;
+  char *dst;
+  char *end;
 
-  i = sizeof(buf);
-  do {
-    buf[--i] = (char)('0' + (val % 10u));
-    val /= 10u;
-  } while (val > 0 && i > 0);
-
-  len = sizeof(buf) - i;
-  if (DAE_EXP_WRITER_CAP - w->len < len)
+  if (DAE_EXP_WRITER_CAP - w->len < 24u)
     dae_w_flush(w);
 
-  memcpy(w->buffer + w->len, buf + i, len);
-  w->len += len;
+  dst     = (char *)w->buffer + w->len;
+  end     = ak_io_text_format_uint64(dst, (uint64_t)val);
+  w->len += (size_t)(end - dst);
 }
 
 AK_INLINE
