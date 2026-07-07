@@ -694,6 +694,7 @@ bool
 ak_3mf_fast_triangle_inspect_attrs(const AK3MFFastTag * __restrict tag,
                                    bool               * __restrict hasPaint) {
   const char *p;
+  bool        needPaint;
 
   if (!memchr(tag->full.begin,
               'p',
@@ -703,7 +704,8 @@ ak_3mf_fast_triangle_inspect_attrs(const AK3MFFastTag * __restrict tag,
                  (size_t)(tag->full.end - tag->full.begin)))
     return false;
 
-  p = ak_3mf_fast_skip_tag_name(tag->full.begin, tag->full.end);
+  p         = ak_3mf_fast_skip_tag_name(tag->full.begin, tag->full.end);
+  needPaint = hasPaint && !*hasPaint;
   while (p < tag->full.end) {
     AK3MFFastSlice attrName;
     AK3MFFastSlice attrValue;
@@ -712,8 +714,10 @@ ak_3mf_fast_triangle_inspect_attrs(const AK3MFFastTag * __restrict tag,
       return false;
     if (ak_3mf_fast_attr_is_triangle_material(&attrName))
       return true;
-    if (ak_3mf_fast_attr_paint_kind(&attrName, NULL) && hasPaint)
+    if (needPaint && ak_3mf_fast_attr_paint_kind(&attrName, NULL)) {
       *hasPaint = true;
+      needPaint = false;
+    }
   }
 
   return false;
@@ -737,19 +741,19 @@ ak_3mf_fast_triangle_inspect_attrs_quick(const char * __restrict tagBegin,
                                          const char * __restrict tagEnd,
                                          bool       * __restrict hasPaint) {
   const char *p;
+  bool        needPaint;
 
   if (!tagBegin || !tagEnd || tagEnd <= tagBegin)
     return false;
 
-  p = tagBegin;
+  p         = tagBegin;
+  needPaint = hasPaint && !*hasPaint;
   while (p < tagEnd) {
     const char *paintOrMaterial;
     const char *segmentation;
 
     paintOrMaterial = memchr(p, 'p', (size_t)(tagEnd - p));
-    segmentation    = hasPaint && *hasPaint
-                      ? NULL
-                      : memchr(p, 'm', (size_t)(tagEnd - p));
+    segmentation    = needPaint ? memchr(p, 'm', (size_t)(tagEnd - p)) : NULL;
     if (!paintOrMaterial && !segmentation)
       return false;
     if (!paintOrMaterial
@@ -769,15 +773,17 @@ ak_3mf_fast_triangle_inspect_attrs_quick(const char * __restrict tagBegin,
             && p[2] == 'd'
             && ak_3mf_fast_attr_name_end(p[3]))
           return true;
-        if (hasPaint
+        if (needPaint
             && p + _s_ak_paint_color_len < tagEnd
             && ak_str_load8_fast(p) == _s_ak_paint_color_u64_prefix
             && p[8] == 'l'
             && p[9] == 'o'
             && p[10] == 'r'
-            && ak_3mf_fast_attr_name_end(p[_s_ak_paint_color_len]))
+            && ak_3mf_fast_attr_name_end(p[_s_ak_paint_color_len])) {
           *hasPaint = true;
-      } else if (hasPaint
+          needPaint = false;
+        }
+      } else if (needPaint
                  && p + _s_ak_mmu_segmentation_len < tagEnd
                  && ak_str_load8_fast(p) == _s_ak_mmu_segmentation_u64_prefix
                  && p[8] == 'e'
@@ -790,6 +796,7 @@ ak_3mf_fast_triangle_inspect_attrs_quick(const char * __restrict tagBegin,
                  && p[15] == 'n'
                  && ak_3mf_fast_attr_name_end(p[_s_ak_mmu_segmentation_len])) {
         *hasPaint = true;
+        needPaint = false;
       }
     }
 
@@ -1210,12 +1217,13 @@ ak_3mf_fast_count_tags_packed_until(const char * __restrict p,
       return false;
     next = tagEnd + 1u;
 
-    if (inspectMode == AK_3MF_TRIANGLE_INSPECT_MATERIAL_QUICK) {
-      if (ak_3mf_fast_triangle_inspect_attrs_quick(p,
-                                                   tagEnd,
-                                                   hasPaintAttrs))
-        return false;
-    } else {
+    if (ak_3mf_fast_triangle_inspect_attrs_quick(p,
+                                                 tagEnd,
+                                                 hasPaintAttrs))
+      return false;
+    if (inspectMode != AK_3MF_TRIANGLE_INSPECT_MATERIAL_QUICK
+        && hasPaintAttrs
+        && !*hasPaintAttrs) {
       AK3MFFastTag tag;
 
       tag.full.begin = p;
