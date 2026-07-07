@@ -97,6 +97,7 @@ typedef enum AK3MFFastAttrId {
   AK_3MF_FAST_ATTR_P2,
   AK_3MF_FAST_ATTR_P3,
   AK_3MF_FAST_ATTR_PID,
+  AK_3MF_FAST_ATTR_PINDEX,
   AK_3MF_FAST_ATTR_PAINT_COLOR,
   AK_3MF_FAST_ATTR_MMU_SEGMENTATION
 } AK3MFFastAttrId;
@@ -538,6 +539,13 @@ ak_3mf_fast_attr_id_from_local(const char * __restrict name,
       if (name[0] == 'p' && name[1] == 'i' && name[2] == 'd')
         return AK_3MF_FAST_ATTR_PID;
       break;
+    case _s_ak_pindex_len:
+      if (ak_str_eq_packed_fast(name,
+                                _s_ak_pindex_len,
+                                _s_ak_pindex_u64_exact,
+                                _s_ak_pindex_len))
+        return AK_3MF_FAST_ATTR_PINDEX;
+      break;
     case _s_ak_paint_color_len:
       if (ak_str_load8_fast(name) == _s_ak_paint_color_u64_prefix
           && name[8] == 'l'
@@ -625,6 +633,26 @@ ak_3mf_fast_next_attr_id(const char       ** __restrict cursor,
                                            (size_t)(attrNameEnd - localName));
   *cursor = p;
   return true;
+}
+
+static
+bool
+ak_3mf_fast_object_has_material_ref(const AK3MFFastSlice * __restrict objectTag) {
+  const char       *p;
+  AK3MFFastAttrId  attrId;
+  AK3MFFastSlice   attrValue;
+
+  if (!objectTag || !objectTag->begin || !objectTag->end)
+    return false;
+
+  p = ak_3mf_fast_skip_tag_name(objectTag->begin, objectTag->end);
+  while (ak_3mf_fast_next_attr_id(&p, objectTag->end, &attrId, &attrValue)) {
+    (void)attrValue;
+    if (attrId == AK_3MF_FAST_ATTR_PID || attrId == AK_3MF_FAST_ATTR_PINDEX)
+      return true;
+  }
+
+  return false;
 }
 
 static
@@ -1334,6 +1362,9 @@ ak_3mf_fast_read_object_slices_mode(AK3MFImportState      * __restrict st,
   memset(slices, 0, sizeof(*slices));
   slices->objectTag = *objectTag;
   (void)st;
+
+  if (ak_3mf_fast_object_has_material_ref(objectTag))
+    return false;
 
   if (!ak_3mf_fast_attr_u32_local(objectTag->begin,
                                   objectTag->end,

@@ -44,6 +44,7 @@ typedef struct AkThreadPool {
 } AkThreadPool;
 
 static AkThreadPool ak_thread_pool;
+static uint32_t     ak_thread_cached_cpu_count;
 
 #if defined(AK_WINAPI)
 static
@@ -256,21 +257,30 @@ ak_thread_join(AkThread * __restrict thread) {
 AK_HIDE
 uint32_t
 ak_thread_cpu_count(void) {
+  uint32_t cached;
+  uint32_t detected;
+
+  cached = ak_thread_cached_cpu_count;
+  if (cached > 0u)
+    return cached;
+
 #if defined(AK_WINAPI)
   SYSTEM_INFO info;
 
   GetSystemInfo(&info);
-  return info.dwNumberOfProcessors > 0u
-         ? (uint32_t)info.dwNumberOfProcessors
-         : 1u;
+  detected = info.dwNumberOfProcessors > 0u
+             ? (uint32_t)info.dwNumberOfProcessors
+             : 1u;
 #elif defined(_SC_NPROCESSORS_ONLN)
   long count;
 
   count = sysconf(_SC_NPROCESSORS_ONLN);
-  return count > 0 ? (uint32_t)count : 1u;
+  detected = count > 0 ? (uint32_t)count : 1u;
 #else
-  return 1u;
+  detected = 1u;
 #endif
+  ak_thread_cached_cpu_count = detected;
+  return detected;
 }
 
 #if defined(AK_WINAPI)
