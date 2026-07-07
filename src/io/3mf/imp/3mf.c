@@ -16,7 +16,7 @@
 
 #include "3mf.h"
 #include "internal.h"
-#include "vendor/bambu/bambu.h"
+#include "vendor/bambu_orca/bambu_orca.h"
 #include "../../common/buffer.h"
 #include "../../common/text_number.h"
 #include "../../common/util.h"
@@ -1372,7 +1372,7 @@ ak_3mf_package_add_inflate_job(AK3MFPackageImportState * __restrict st,
   job->prepareModel = prepareModel;
   job->preferVendorPaint = prepareModel
                            && st->importState
-                           && st->importState->bambuColorCount > 0u;
+                           && st->importState->bambuOrcaColorCount > 0u;
   if (prepareModel)
     st->modelJobCount++;
   st->totalInflateBytes += expectedSize;
@@ -5081,9 +5081,9 @@ cleanup:
       ak_3mf_fast_prepared_model_free(st.preparedModels[i].model);
   }
   free(st.preparedModels);
-  free(st.bambuParts);
-  free(st.bambuColors);
-  free(st.bambuMaterials);
+  free(st.bambuOrcaParts);
+  free(st.bambuOrcaColors);
+  free(st.bambuOrcaMaterials);
   if (xdoc)
     xml_free(xdoc);
   if (contentTypesDoc)

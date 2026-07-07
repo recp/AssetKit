@@ -5,4 +5,4 @@ target_sources(${PROJECT_NAME}
 )
 
 add_subdirectory(mesh)
-add_subdirectory(vendor/bambu)
+add_subdirectory(vendor/bambu_orca)

@@ -15,7 +15,7 @@
  */
 
 #include "../internal.h"
-#include "../vendor/bambu/bambu.h"
+#include "../vendor/bambu_orca/bambu_orca.h"
 #include "../../../common/util.h"
 #include "../../../../string_fast.h"
 #include "../../../../strpool.h"
@@ -1460,7 +1460,7 @@ ak_3mf_fast_finalize_prepared_slices(AK3MFImportState     * __restrict st,
   if (!slices)
     return false;
 
-  preferVendorPaint = st && st->bambuColorCount > 0u;
+  preferVendorPaint = st && st->bambuOrcaColorCount > 0u;
   slices->hasPaint  = false;
   triangleCount     = 0u;
   if (!ak_3mf_fast_count_tags_packed(
@@ -3710,7 +3710,7 @@ ak_3mf_fast_load_mesh_model_part(AK3MFImportState * __restrict st,
           &objectTag,
           end,
           &nextSlice,
-          (st && st->bambuColorCount > 0u)
+          (st && st->bambuOrcaColorCount > 0u)
             ? AK_3MF_TRIANGLE_INSPECT_MATERIAL_QUICK
             : AK_3MF_TRIANGLE_INSPECT_MATERIAL_AND_PAINT,
           &afterObject)) {

@@ -66,36 +66,36 @@ typedef struct AK3MFObject {
   AK3MFObjectKind kind;
 } AK3MFObject;
 
-typedef struct AK3MFBambuPartMaterial {
+typedef struct AK3MFBambuOrcaPartMaterial {
   uint32_t objectId;
   uint32_t extruder;
-} AK3MFBambuPartMaterial;
+} AK3MFBambuOrcaPartMaterial;
 
 typedef struct AK3MFImportState {
-  AkDoc                  *doc;
-  AkPrintDocument        *print;
-  AK3MFObject            *objects;
-  AK3MFPropertyGroup     *properties;
-  AK3MFBambuPartMaterial *bambuParts;
-  AkMaterial            **bambuMaterials;
-  uint8_t               (*bambuColors)[4];
-  AK3MFPreparedModelEntry *preparedModels;
-  AkZipArchive           *package;
-  const char             *packagePath;
-  const char             *rootModelPath;
-  const char             *currentModelPath;
-  const char            **loadedModelPaths;
-  size_t                  objectCount;
-  size_t                  objectCapacity;
-  size_t                  propertyCount;
-  size_t                  propertyCapacity;
-  size_t                  loadedModelCount;
-  size_t                  loadedModelCapacity;
-  size_t                  bambuPartCount;
-  size_t                  bambuPartCapacity;
-  size_t                  bambuColorCount;
-  size_t                  preparedModelCount;
-  size_t                  preparedModelCapacity;
+  AkDoc                       *doc;
+  AkPrintDocument             *print;
+  AK3MFObject                 *objects;
+  AK3MFPropertyGroup          *properties;
+  AK3MFBambuOrcaPartMaterial  *bambuOrcaParts;
+  AkMaterial                 **bambuOrcaMaterials;
+  uint8_t                    (*bambuOrcaColors)[4];
+  AK3MFPreparedModelEntry     *preparedModels;
+  AkZipArchive                *package;
+  const char                  *packagePath;
+  const char                  *rootModelPath;
+  const char                  *currentModelPath;
+  const char                 **loadedModelPaths;
+  size_t                       objectCount;
+  size_t                       objectCapacity;
+  size_t                       propertyCount;
+  size_t                       propertyCapacity;
+  size_t                       loadedModelCount;
+  size_t                       loadedModelCapacity;
+  size_t                       bambuOrcaPartCount;
+  size_t                       bambuOrcaPartCapacity;
+  size_t                       bambuOrcaColorCount;
+  size_t                       preparedModelCount;
+  size_t                       preparedModelCapacity;
 } AK3MFImportState;
 
 typedef enum AK3MFFastLoadResult {

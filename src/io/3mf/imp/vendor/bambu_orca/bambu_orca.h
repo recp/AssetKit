@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ak_3mf_vendor_bambu_h
-#define ak_3mf_vendor_bambu_h
+#ifndef ak_3mf_vendor_bambu_orca_h
+#define ak_3mf_vendor_bambu_orca_h
 
 #include "../../internal.h"
 
@@ -38,4 +38,4 @@ AkMaterial*
 ak_3mf_bambu_orca_material_for_extruder(AK3MFImportState * __restrict st,
                                         uint32_t                      extruder);
 
-#endif /* ak_3mf_vendor_bambu_h */
+#endif /* ak_3mf_vendor_bambu_orca_h */

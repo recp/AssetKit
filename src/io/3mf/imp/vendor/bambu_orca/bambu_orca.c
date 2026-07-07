@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "bambu.h"
+#include "bambu_orca.h"
 #include "../../../../common/zip.h"
 #include "../../../../common/text_number.h"
 #include "../../../../../json.h"
@@ -92,7 +92,7 @@ static
 bool
 ak_3mf_bambu_orca_reserve_parts(AK3MFImportState * __restrict st,
                                 size_t                         extra) {
-  AK3MFBambuPartMaterial *parts;
+  AK3MFBambuOrcaPartMaterial *parts;
   size_t                  needed;
   size_t                  newCapacity;
 
@@ -100,29 +100,29 @@ ak_3mf_bambu_orca_reserve_parts(AK3MFImportState * __restrict st,
     return false;
   if (extra == 0u)
     return true;
-  if (st->bambuPartCount > SIZE_MAX - extra)
+  if (st->bambuOrcaPartCount > SIZE_MAX - extra)
     return false;
 
-  needed = st->bambuPartCount + extra;
-  if (needed <= st->bambuPartCapacity)
+  needed = st->bambuOrcaPartCount + extra;
+  if (needed <= st->bambuOrcaPartCapacity)
     return true;
 
-  newCapacity = st->bambuPartCapacity ? st->bambuPartCapacity * 2u : 8u;
+  newCapacity = st->bambuOrcaPartCapacity ? st->bambuOrcaPartCapacity * 2u : 8u;
   while (newCapacity < needed) {
     if (newCapacity > SIZE_MAX / 2u)
       return false;
     newCapacity *= 2u;
   }
 
-  parts = realloc(st->bambuParts, sizeof(*parts) * newCapacity);
+  parts = realloc(st->bambuOrcaParts, sizeof(*parts) * newCapacity);
   if (!parts)
     return false;
 
-  memset(parts + st->bambuPartCapacity,
+  memset(parts + st->bambuOrcaPartCapacity,
          0,
-         sizeof(*parts) * (newCapacity - st->bambuPartCapacity));
-  st->bambuParts        = parts;
-  st->bambuPartCapacity = newCapacity;
+         sizeof(*parts) * (newCapacity - st->bambuOrcaPartCapacity));
+  st->bambuOrcaParts        = parts;
+  st->bambuOrcaPartCapacity = newCapacity;
   return true;
 }
 
@@ -136,9 +136,9 @@ ak_3mf_bambu_orca_add_part_material(AK3MFImportState * __restrict st,
   if (!st || objectId == 0u || extruder == 0u)
     return true;
 
-  for (i = 0; i < st->bambuPartCount; i++) {
-    if (st->bambuParts[i].objectId == objectId) {
-      st->bambuParts[i].extruder = extruder;
+  for (i = 0; i < st->bambuOrcaPartCount; i++) {
+    if (st->bambuOrcaParts[i].objectId == objectId) {
+      st->bambuOrcaParts[i].extruder = extruder;
       return true;
     }
   }
@@ -146,9 +146,9 @@ ak_3mf_bambu_orca_add_part_material(AK3MFImportState * __restrict st,
   if (!ak_3mf_bambu_orca_reserve_parts(st, 1u))
     return false;
 
-  st->bambuParts[st->bambuPartCount].objectId = objectId;
-  st->bambuParts[st->bambuPartCount].extruder = extruder;
-  st->bambuPartCount++;
+  st->bambuOrcaParts[st->bambuOrcaPartCount].objectId = objectId;
+  st->bambuOrcaParts[st->bambuOrcaPartCount].extruder = extruder;
+  st->bambuOrcaPartCount++;
   return true;
 }
 
@@ -230,17 +230,17 @@ ak_3mf_bambu_orca_parse_project_settings(AK3MFImportState * __restrict st) {
   if (count == 0u)
     goto cleanup;
 
-  st->bambuColors = calloc(count, sizeof(*st->bambuColors));
-  st->bambuMaterials = calloc(count, sizeof(*st->bambuMaterials));
-  if (!st->bambuColors || !st->bambuMaterials) {
-    free(st->bambuColors);
-    free(st->bambuMaterials);
-    st->bambuColors    = NULL;
-    st->bambuMaterials = NULL;
+  st->bambuOrcaColors = calloc(count, sizeof(*st->bambuOrcaColors));
+  st->bambuOrcaMaterials = calloc(count, sizeof(*st->bambuOrcaMaterials));
+  if (!st->bambuOrcaColors || !st->bambuOrcaMaterials) {
+    free(st->bambuOrcaColors);
+    free(st->bambuOrcaMaterials);
+    st->bambuOrcaColors    = NULL;
+    st->bambuOrcaMaterials = NULL;
     goto cleanup;
   }
 
-  st->bambuColorCount = count;
+  st->bambuOrcaColorCount = count;
   i = 0u;
   for (item = colors->base.value; item && i < count; item = item->next, i++) {
     const char *color;
@@ -248,7 +248,7 @@ ak_3mf_bambu_orca_parse_project_settings(AK3MFImportState * __restrict st) {
     color = json_string(item);
     (void)ak_3mf_parse_color_slice(color,
                                    item->valsize > 0 ? (size_t)item->valsize : 0u,
-                                   st->bambuColors[i]);
+                                   st->bambuOrcaColors[i]);
   }
 
 cleanup:
@@ -335,7 +335,7 @@ AK_HIDE
 void
 ak_3mf_bambu_orca_parse_metadata(AK3MFImportState * __restrict st) {
   ak_3mf_bambu_orca_parse_project_settings(st);
-  if (st && st->bambuColorCount > 0u)
+  if (st && st->bambuOrcaColorCount > 0u)
     ak_3mf_bambu_orca_parse_model_settings(st);
 }
 
@@ -354,13 +354,13 @@ ak_3mf_bambu_orca_material_for_extruder(AK3MFImportState * __restrict st,
     return NULL;
 
   colorIndex = extruder - 1u;
-  if (colorIndex >= st->bambuColorCount
-      || !st->bambuColors
-      || !st->bambuMaterials)
+  if (colorIndex >= st->bambuOrcaColorCount
+      || !st->bambuOrcaColors
+      || !st->bambuOrcaMaterials)
     return NULL;
 
-  if (st->bambuMaterials[colorIndex])
-    return st->bambuMaterials[colorIndex];
+  if (st->bambuOrcaMaterials[colorIndex])
+    return st->bambuOrcaMaterials[colorIndex];
 
   heap = ak_heap_getheap(st->doc);
   if (!heap)
@@ -377,7 +377,7 @@ ak_3mf_bambu_orca_material_for_extruder(AK3MFImportState * __restrict st,
 
   surface->baseColor = ak_3mf_material_color_input(heap,
                                                    surface,
-                                                   st->bambuColors[colorIndex]);
+                                                   st->bambuOrcaColors[colorIndex]);
   surface->metallic  = ak_3mf_material_scalar_input(heap,
                                                     surface,
                                                     _s_ak_metallic,
@@ -404,7 +404,7 @@ ak_3mf_bambu_orca_material_for_extruder(AK3MFImportState * __restrict st,
   material->name = ak_heap_strdup(heap, material, name);
 
   AK_LIB_PREPEND(st->doc->lib.materials, material, next);
-  st->bambuMaterials[colorIndex] = material;
+  st->bambuOrcaMaterials[colorIndex] = material;
   return material;
 }
 
@@ -417,9 +417,9 @@ ak_3mf_bambu_orca_extruder_for_object(AK3MFImportState * __restrict st,
   if (!st || objectId == 0u)
     return 0u;
 
-  for (i = 0; i < st->bambuPartCount; i++) {
-    if (st->bambuParts[i].objectId == objectId)
-      return st->bambuParts[i].extruder;
+  for (i = 0; i < st->bambuOrcaPartCount; i++) {
+    if (st->bambuOrcaParts[i].objectId == objectId)
+      return st->bambuOrcaParts[i].extruder;
   }
 
   return 0u;
