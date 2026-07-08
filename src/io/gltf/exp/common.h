@@ -19,6 +19,7 @@
 
 #include "../../../../include/ak/assetkit.h"
 #include "../../../image/export.h"
+#include "../../../string_fast.h"
 
 #include <ds/rb.h>
 

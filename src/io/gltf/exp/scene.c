@@ -84,19 +84,18 @@ gltf_node_core_extension_skip(const char * __restrict name,
                               size_t                  nameLen,
                               void * __restrict       userdata) {
   (void)userdata;
-  return name
-         && ((nameLen == _s_gltf_KHR_lights_punctual_len
-              && memcmp(name,
+  return ak_str_eq_fast(name,
+                        nameLen,
                         _s_gltf_KHR_lights_punctual,
-                        _s_gltf_KHR_lights_punctual_len) == 0)
-             || (nameLen == _s_gltf_EXT_mesh_gpu_instancing_len
-                 && memcmp(name,
+                        _s_gltf_KHR_lights_punctual_len)
+         || ak_str_eq_fast(name,
+                           nameLen,
                            _s_gltf_EXT_mesh_gpu_instancing,
-                           _s_gltf_EXT_mesh_gpu_instancing_len) == 0)
-             || (nameLen == _s_gltf_KHR_node_visibility_len
-                 && memcmp(name,
+                           _s_gltf_EXT_mesh_gpu_instancing_len)
+         || ak_str_eq_fast(name,
+                           nameLen,
                            _s_gltf_KHR_node_visibility,
-                           _s_gltf_KHR_node_visibility_len) == 0));
+                           _s_gltf_KHR_node_visibility_len);
 }
 
 static

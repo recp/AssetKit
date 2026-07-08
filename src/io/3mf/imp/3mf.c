@@ -105,20 +105,6 @@ typedef struct AK3MFBlendMethods {
   bool              cached;
 } AK3MFBlendMethods;
 
-static
-bool
-ak_3mf_slice_eq_cstr(const char * __restrict slice,
-                     size_t                  sliceLen,
-                     const char * __restrict str) {
-  size_t len;
-
-  if (!slice || !str)
-    return false;
-
-  len = strlen(str);
-  return len == sliceLen && memcmp(slice, str, len) == 0;
-}
-
 AK_INLINE
 bool
 ak_3mf_space(char c) {
@@ -180,7 +166,8 @@ ak_3mf_cstr_ends_lit(const char * __restrict str,
     return false;
 
   len = strlen(str);
-  return len >= litLen && memcmp(str + len - litLen, lit, litLen) == 0;
+  return len >= litLen
+         && ak_str_eq_fast(str + len - litLen, litLen, lit, litLen);
 }
 
 static
@@ -299,17 +286,7 @@ ak_3mf_entry_name_eq_sz(const char * __restrict name,
 
   name = ak_3mf_skip_root_slash(name, &nameLen);
   path = ak_3mf_skip_root_slash(path, &pathLen);
-  return nameLen == pathLen && memcmp(name, path, nameLen) == 0;
-}
-
-static
-bool
-ak_3mf_entry_name_eq(const char * __restrict name,
-                     size_t                  nameLen,
-                     const char * __restrict path) {
-  return path
-         ? ak_3mf_entry_name_eq_sz(name, nameLen, path, strlen(path))
-         : false;
+  return ak_str_eq_fast(name, nameLen, path, pathLen);
 }
 
 static
@@ -341,7 +318,7 @@ ak_3mf_xmla_local_sz(const xml_t * __restrict xml,
       attrName     = colon + 1u;
     }
 
-    if (attrNameLen == nameLen && memcmp(attrName, name, nameLen) == 0)
+    if (ak_str_eq_fast(attrName, attrNameLen, name, nameLen))
       return attr;
   }
 
@@ -389,7 +366,7 @@ ak_3mf_attr_value_eq_entry(const xml_attr_t * __restrict attr,
 
   value    = attr->val;
   valueLen = attr->valsize;
-  return ak_3mf_entry_name_eq(value, valueLen, entryName);
+  return ak_3mf_entry_name_eq_sz(value, valueLen, entryName, strlen(entryName));
 }
 
 static
@@ -408,7 +385,7 @@ ak_3mf_model_path_eq(const char * __restrict a,
   bLen = strlen(b);
   a = ak_3mf_skip_root_slash(a, &aLen);
   b = ak_3mf_skip_root_slash(b, &bLen);
-  return aLen == bLen && memcmp(a, b, aLen) == 0;
+  return ak_str_eq_fast(a, aLen, b, bLen);
 }
 
 static
@@ -705,7 +682,7 @@ ak_3mf_tag_sz(const xml_t * __restrict xml,
   if (!tag || !ak_3mf_tag_local(xml, &xmlTag, &xmlTagSize))
     return false;
 
-  return tagSize == xmlTagSize && memcmp(xmlTag, tag, tagSize) == 0;
+  return ak_str_eq_fast(xmlTag, xmlTagSize, tag, tagSize);
 }
 
 static
@@ -1250,6 +1227,9 @@ ak_3mf_content_type_dup(AkDoc       * __restrict doc,
 
     ext = ak_3mf_entry_extension(entryName);
     if (ext) {
+      size_t extLen;
+
+      extLen = strlen(ext);
       for (child = contentTypesRoot->val; child; child = child->next) {
         xml_attr_t *extension;
         xml_attr_t *contentType;
@@ -1260,7 +1240,7 @@ ak_3mf_content_type_dup(AkDoc       * __restrict doc,
         extension = AK_3MF_XMLA(child, Extension);
         if (!extension
             || !extension->val
-            || !ak_3mf_slice_eq_cstr(extension->val, extension->valsize, ext))
+            || !ak_str_eq_fast(extension->val, extension->valsize, ext, extLen))
           continue;
 
         contentType = AK_3MF_XMLA(child, ContentType);
@@ -1760,7 +1740,11 @@ ak_3mf_import_package_part_visitor(const AkZipEntryInfo * __restrict info,
     return true;
   if (AK_3MF_ENTRY_NAME_EQ(info->name, info->nameLen, AK_3MF_CONTENT_TYPES_PART)
       || AK_3MF_ENTRY_NAME_EQ(info->name, info->nameLen, AK_3MF_ROOT_RELS_PART)
-      || ak_3mf_entry_name_eq(info->name, info->nameLen, st->modelPath))
+      || (st->modelPath
+          && ak_3mf_entry_name_eq_sz(info->name,
+                                     info->nameLen,
+                                     st->modelPath,
+                                     strlen(st->modelPath))))
     return true;
 
   entryName = malloc(info->nameLen + 1u);

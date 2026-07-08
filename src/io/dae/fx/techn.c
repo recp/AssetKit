@@ -23,6 +23,7 @@
 #include "../1.4/image.h"
 #include "../bugfix/transp.h"
 #include "../../../default/material.h"
+#include "../../../string_fast.h"
 
 #include <string.h>
 
@@ -44,7 +45,7 @@ bool
 dae_xmlAttrEq(const xml_attr_t * __restrict attr,
               const char       * __restrict value,
               size_t                        len) {
-  return attr && attr->val && attr->valsize == len && memcmp(attr->val, value, len) == 0;
+  return attr && ak_str_eq_fast(attr->val, attr->valsize, value, len);
 }
 
 AK_HIDE

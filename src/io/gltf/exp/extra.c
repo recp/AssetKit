@@ -44,16 +44,6 @@ gltf_extra_type(const AkTreeNode * __restrict node) {
   return NULL;
 }
 
-static
-bool
-gltf_extra_type_eq(const AkTreeNode * __restrict node,
-                   const char       * __restrict type) {
-  const char *nodeType;
-
-  nodeType = gltf_extra_type(node);
-  return nodeType && strcmp(nodeType, type) == 0;
-}
-
 AkTreeNode*
 gltf_extra_extensions_node(AkTreeNode * __restrict extra) {
   return gltf_extra_child(extra,
@@ -82,23 +72,13 @@ gltf_extra_root_required(GLTFExpState * __restrict st) {
 
 static
 bool
-gltf_extra_value_eq(const AkTreeNode * __restrict node,
-                    const char       * __restrict name,
-                    size_t                        nameLen) {
-  return node
-         && node->val
-         && ak_str_eq_cstr_fast(node->val, name, nameLen);
-}
-
-static
-bool
 gltf_extra_array_contains(const AkTreeNode * __restrict array,
                           const char       * __restrict name,
                           size_t                        nameLen) {
   AkTreeNode *child;
 
   for (child = array ? array->chld : NULL; child; child = child->next) {
-    if (gltf_extra_value_eq(child, name, nameLen))
+    if (child->val && ak_str_eq_cstr_fast(child->val, name, nameLen))
       return true;
   }
 
@@ -152,15 +132,6 @@ gltf_extra_json_number(const char * __restrict val, size_t len) {
   }
 
   return i == len;
-}
-
-static
-bool
-gltf_extra_literal(const char * __restrict val,
-                   size_t                  len,
-                   const char * __restrict literal,
-                   size_t                  literalLen) {
-  return len == literalLen && memcmp(val, literal, literalLen) == 0;
 }
 
 static
@@ -259,9 +230,9 @@ gltf_write_extra_leaf(GLTFExpWriter * __restrict w,
   }
 
   len = strlen(val);
-  if (gltf_extra_literal(val, len, "true", 4)
-      || gltf_extra_literal(val, len, "false", 5)
-      || gltf_extra_literal(val, len, "null", 4)
+  if (ak_str_eq_fast(val, len, "true", 4)
+      || ak_str_eq_fast(val, len, "false", 5)
+      || ak_str_eq_fast(val, len, "null", 4)
       || gltf_extra_json_number(val, len)) {
     gltf_w_raw(w, val, len);
     return;
@@ -277,7 +248,7 @@ gltf_extra_has_json_extras(AkTreeNode * __restrict node) {
   if (!node)
     return false;
 
-  if (gltf_extra_type_eq(node, "array"))
+  if (ak_str_eq_cstr_fast(gltf_extra_type(node), "array", sizeof("array") - 1u))
     return true;
 
   if (!node->chld)
@@ -297,7 +268,11 @@ gltf_write_extra_json_extras(GLTFExpWriter * __restrict w,
   AkTreeNode *child;
   bool        comma;
 
-  if (!node || gltf_extra_type_eq(node, "array") || !node->chld) {
+  if (!node
+      || ak_str_eq_cstr_fast(gltf_extra_type(node),
+                             "array",
+                             sizeof("array") - 1u)
+      || !node->chld) {
     gltf_write_extra_json_value(w, node);
     return;
   }
@@ -370,14 +345,18 @@ gltf_write_extra_extensions_member(GLTFExpWriter           * __restrict w,
 void
 gltf_write_extra_json_value(GLTFExpWriter * __restrict w,
                             AkTreeNode    * __restrict node) {
+  const char *nodeType;
+
   if (!node) {
     gltf_w_raw(w, "null", 4);
     return;
   }
 
-  if (gltf_extra_type_eq(node, "array")) {
+  nodeType = gltf_extra_type(node);
+  if (ak_str_eq_cstr_fast(nodeType, "array", sizeof("array") - 1u)) {
     gltf_write_extra_array(w, node);
-  } else if (gltf_extra_type_eq(node, "object") || node->chld) {
+  } else if (ak_str_eq_cstr_fast(nodeType, "object", sizeof("object") - 1u)
+             || node->chld) {
     gltf_write_extra_object(w, node);
   } else {
     gltf_write_extra_leaf(w, node);

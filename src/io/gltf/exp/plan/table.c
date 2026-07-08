@@ -275,8 +275,10 @@ gltf_strings_add(GLTFExpStringTable * __restrict table,
     return true;
 
   for (i = 0; i < table->count; i++) {
-    if (table->items[i].nameLen == nameLen
-        && memcmp(table->items[i].name, name, nameLen) == 0)
+    if (ak_str_eq_fast(table->items[i].name,
+                       table->items[i].nameLen,
+                       name,
+                       nameLen))
       return true;
   }
 

@@ -23,7 +23,6 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 static
 bool
@@ -242,22 +241,11 @@ gltf_write_extras_member(GLTFExpWriter * __restrict w,
 
 static
 bool
-gltf_ext_name_eq(const char * __restrict name,
-                 size_t                  nameLen,
-                 const char * __restrict expected,
-                 size_t                  expectedLen) {
-  return name
-         && nameLen == expectedLen
-         && memcmp(name, expected, expectedLen) == 0;
-}
-
-static
-bool
 gltf_texture_info_core_extension_skip(const char * __restrict name,
                                       size_t                  nameLen,
                                       void * __restrict       userdata) {
   (void)userdata;
-  return gltf_ext_name_eq(name,
+  return ak_str_eq_fast(name,
                           nameLen,
                           _s_gltf_KHR_texture_transform,
                           _s_gltf_KHR_texture_transform_len);
@@ -269,11 +257,11 @@ gltf_texture_core_extension_skip(const char * __restrict name,
                                  size_t                  nameLen,
                                  void * __restrict       userdata) {
   (void)userdata;
-  return gltf_ext_name_eq(name,
+  return ak_str_eq_fast(name,
                           nameLen,
                           _s_gltf_KHR_texture_basisu,
                           _s_gltf_KHR_texture_basisu_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_EXT_texture_webp,
                              _s_gltf_EXT_texture_webp_len);
@@ -285,59 +273,59 @@ gltf_material_core_extension_skip(const char * __restrict name,
                                   size_t                  nameLen,
                                   void * __restrict       userdata) {
   (void)userdata;
-  return gltf_ext_name_eq(name,
+  return ak_str_eq_fast(name,
                           nameLen,
                           _s_gltf_KHR_materials_unlit,
                           _s_gltf_KHR_materials_unlit_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_KHR_materials_emissive_strength,
                              _s_gltf_KHR_materials_emissive_strength_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_KHR_materials_ior,
                              _s_gltf_KHR_materials_ior_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_KHR_materials_clearcoat,
                              _s_gltf_KHR_materials_clearcoat_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_KHR_materials_specular,
                              _s_gltf_KHR_materials_specular_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_KHR_materials_pbrSpecularGlossiness,
                              _s_gltf_KHR_materials_pbrSpecularGlossiness_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_KHR_materials_transmission,
                              _s_gltf_KHR_materials_transmission_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_KHR_materials_sheen,
                              _s_gltf_KHR_materials_sheen_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_KHR_materials_iridescence,
                              _s_gltf_KHR_materials_iridescence_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_KHR_materials_volume,
                              _s_gltf_KHR_materials_volume_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_KHR_materials_anisotropy,
                              _s_gltf_KHR_materials_anisotropy_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_KHR_materials_dispersion,
                              _s_gltf_KHR_materials_dispersion_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_KHR_materials_diffuse_transmission,
                              _s_gltf_KHR_materials_diffuse_transmission_len)
-         || gltf_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                              nameLen,
                              _s_gltf_KHR_materials_volume_scatter,
                              _s_gltf_KHR_materials_volume_scatter_len);

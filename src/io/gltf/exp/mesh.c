@@ -21,19 +21,16 @@
 #include "plan.h"
 #include "../strpool.h"
 
-#include <string.h>
-
 static
 bool
 gltf_primitive_core_extension_skip(const char * __restrict name,
                                    size_t                  nameLen,
                                    void * __restrict       userdata) {
   (void)userdata;
-  return name
-         && nameLen == _s_gltf_KHR_materials_variants_len
-         && memcmp(name,
-                   _s_gltf_KHR_materials_variants,
-                   _s_gltf_KHR_materials_variants_len) == 0;
+  return ak_str_eq_fast(name,
+                        nameLen,
+                        _s_gltf_KHR_materials_variants,
+                        _s_gltf_KHR_materials_variants_len);
 }
 
 static

@@ -108,28 +108,20 @@ gltf_image_source_path(GLTFExpState  * __restrict st,
   return NULL;
 }
 
-static
-bool
-gltf_image_cstr_eq_token(const char * __restrict val,
-                         const char * __restrict token,
-                         size_t                  tokenLen) {
-  return ak_str_eq_cstr_fast(val, token, tokenLen);
-}
-
 bool
 gltf_image_mime_supported(const char * __restrict mimeType) {
-  return gltf_image_cstr_eq_token(mimeType,
-                                  _s_gltf_mime_image_png,
-                                  _s_gltf_mime_image_png_len)
-         || gltf_image_cstr_eq_token(mimeType,
-                                     _s_gltf_mime_image_jpeg,
-                                     _s_gltf_mime_image_jpeg_len)
-         || gltf_image_cstr_eq_token(mimeType,
-                                     _s_gltf_mime_image_webp,
-                                     _s_gltf_mime_image_webp_len)
-         || gltf_image_cstr_eq_token(mimeType,
-                                     _s_gltf_mime_image_ktx2,
-                                     _s_gltf_mime_image_ktx2_len);
+  return ak_str_eq_cstr_fast(mimeType,
+                             _s_gltf_mime_image_png,
+                             _s_gltf_mime_image_png_len)
+         || ak_str_eq_cstr_fast(mimeType,
+                                _s_gltf_mime_image_jpeg,
+                                _s_gltf_mime_image_jpeg_len)
+         || ak_str_eq_cstr_fast(mimeType,
+                                _s_gltf_mime_image_webp,
+                                _s_gltf_mime_image_webp_len)
+         || ak_str_eq_cstr_fast(mimeType,
+                                _s_gltf_mime_image_ktx2,
+                                _s_gltf_mime_image_ktx2_len);
 }
 
 static
@@ -148,17 +140,17 @@ gltf_image_data_uri_mime(const char * __restrict uri) {
     return NULL;
 
   len = (size_t)(end - start);
-  if (len == _s_gltf_mime_image_png_len
-      && memcmp(start, _s_gltf_mime_image_png, len) == 0)
+  if (ak_str_eq_fast(start, len, _s_gltf_mime_image_png,
+                     _s_gltf_mime_image_png_len))
     return _s_gltf_mime_image_png;
-  if (len == _s_gltf_mime_image_jpeg_len
-      && memcmp(start, _s_gltf_mime_image_jpeg, len) == 0)
+  if (ak_str_eq_fast(start, len, _s_gltf_mime_image_jpeg,
+                     _s_gltf_mime_image_jpeg_len))
     return _s_gltf_mime_image_jpeg;
-  if (len == _s_gltf_mime_image_webp_len
-      && memcmp(start, _s_gltf_mime_image_webp, len) == 0)
+  if (ak_str_eq_fast(start, len, _s_gltf_mime_image_webp,
+                     _s_gltf_mime_image_webp_len))
     return _s_gltf_mime_image_webp;
-  if (len == _s_gltf_mime_image_ktx2_len
-      && memcmp(start, _s_gltf_mime_image_ktx2, len) == 0)
+  if (ak_str_eq_fast(start, len, _s_gltf_mime_image_ktx2,
+                     _s_gltf_mime_image_ktx2_len))
     return _s_gltf_mime_image_ktx2;
 
   return NULL;
@@ -323,7 +315,7 @@ gltf_image_mime_or_uri_is(AkImageSource * __restrict source,
                           const char    * __restrict ext,
                           size_t                     extLen) {
   return source
-         && (gltf_image_cstr_eq_token(source->mimeType, mimeType, mimeTypeLen)
+         && (ak_str_eq_cstr_fast(source->mimeType, mimeType, mimeTypeLen)
              || gltf_image_uri_has_suffix_ci(source->uri, ext, extLen));
 }
 

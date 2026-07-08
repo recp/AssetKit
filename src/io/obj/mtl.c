@@ -106,7 +106,7 @@ wobj_mtl_map_value(AkHeap             * __restrict heap,
     tokEnd = p;
     tokLen = (size_t)(tokEnd - tokBegin);
 
-    if (tokLen == 8 && memcmp(tokBegin, "-imfchan", 8) == 0) {
+    if (ak_str_eq_fast(tokBegin, tokLen, "-imfchan", 8u)) {
       sawOption = true;
       while (p < end && (*p == ' ' || *p == '\t'))
         p++;

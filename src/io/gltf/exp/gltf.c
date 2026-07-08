@@ -138,24 +138,13 @@ gltf_state_destroy(GLTFExpState * __restrict st) {
 
 static
 bool
-gltf_root_ext_name_eq(const char * __restrict name,
-                      size_t                  nameLen,
-                      const char * __restrict expected,
-                      size_t                  expectedLen) {
-  return name
-         && nameLen == expectedLen
-         && memcmp(name, expected, expectedLen) == 0;
-}
-
-static
-bool
 gltf_root_ext_is_core_payload(const char * __restrict name,
                               size_t                  nameLen) {
-  return gltf_root_ext_name_eq(name,
+  return ak_str_eq_fast(name,
                                nameLen,
                                _s_gltf_KHR_lights_punctual,
                                _s_gltf_KHR_lights_punctual_len)
-         || gltf_root_ext_name_eq(name,
+         || ak_str_eq_fast(name,
                                   nameLen,
                                   _s_gltf_KHR_materials_variants,
                                   _s_gltf_KHR_materials_variants_len);
@@ -168,7 +157,7 @@ gltf_root_ext_material_used(uint32_t               mask,
                             size_t                  nameLen) {
 #define GLTF_EXP_MAT_USED(MASK, NAME)                                        \
   (((mask) & (MASK))                                                         \
-   && gltf_root_ext_name_eq(name, nameLen, _s_gltf_ ## NAME,                 \
+   && ak_str_eq_fast(name, nameLen, _s_gltf_ ## NAME,                 \
                             _s_gltf_ ## NAME ## _len))
 
   return GLTF_EXP_MAT_USED(GLTF_EXP_MAT_EXT_UNLIT,
@@ -212,43 +201,43 @@ gltf_root_ext_core_used(GLTFExpState * __restrict st,
                         const char * __restrict   name,
                         size_t                    nameLen) {
   return (st->lights.count > 0
-          && gltf_root_ext_name_eq(name,
+          && ak_str_eq_fast(name,
                                    nameLen,
                                    _s_gltf_KHR_lights_punctual,
                                    _s_gltf_KHR_lights_punctual_len))
          || gltf_root_ext_material_used(materialMask, name, nameLen)
          || ((textureMask & GLTF_EXP_TEX_EXT_BASISU)
-             && gltf_root_ext_name_eq(name,
+             && ak_str_eq_fast(name,
                                       nameLen,
                                       _s_gltf_KHR_texture_basisu,
                                       _s_gltf_KHR_texture_basisu_len))
          || ((textureMask & GLTF_EXP_TEX_EXT_WEBP)
-             && gltf_root_ext_name_eq(name,
+             && ak_str_eq_fast(name,
                                       nameLen,
                                       _s_gltf_EXT_texture_webp,
                                       _s_gltf_EXT_texture_webp_len))
          || (gltf_has_material_variants(st)
-             && gltf_root_ext_name_eq(name,
+             && ak_str_eq_fast(name,
                                       nameLen,
                                       _s_gltf_KHR_materials_variants,
                                       _s_gltf_KHR_materials_variants_len))
          || (st->usesNodeVisibility
-             && gltf_root_ext_name_eq(name,
+             && ak_str_eq_fast(name,
                                       nameLen,
                                       _s_gltf_KHR_node_visibility,
                                       _s_gltf_KHR_node_visibility_len))
          || (st->usesGpuInstancing
-             && gltf_root_ext_name_eq(name,
+             && ak_str_eq_fast(name,
                                       nameLen,
                                       _s_gltf_EXT_mesh_gpu_instancing,
                                       _s_gltf_EXT_mesh_gpu_instancing_len))
          || (st->usesMeshQuantization
-             && gltf_root_ext_name_eq(name,
+             && ak_str_eq_fast(name,
                                       nameLen,
                                       _s_gltf_KHR_mesh_quantization,
                                       _s_gltf_KHR_mesh_quantization_len))
          || (st->usesAnimationPointer
-             && gltf_root_ext_name_eq(name,
+             && ak_str_eq_fast(name,
                                       nameLen,
                                       _s_gltf_KHR_animation_pointer,
                                       _s_gltf_KHR_animation_pointer_len));
@@ -261,17 +250,17 @@ gltf_root_ext_core_required(uint32_t                textureMask,
                             const char * __restrict name,
                             size_t                  nameLen) {
   return ((textureMask & GLTF_EXP_TEX_EXT_BASISU)
-          && gltf_root_ext_name_eq(name,
+          && ak_str_eq_fast(name,
                                    nameLen,
                                    _s_gltf_KHR_texture_basisu,
                                    _s_gltf_KHR_texture_basisu_len))
          || ((textureMask & GLTF_EXP_TEX_EXT_WEBP)
-             && gltf_root_ext_name_eq(name,
+             && ak_str_eq_fast(name,
                                       nameLen,
                                       _s_gltf_EXT_texture_webp,
                                       _s_gltf_EXT_texture_webp_len))
          || (st->usesMeshQuantization
-             && gltf_root_ext_name_eq(name,
+             && ak_str_eq_fast(name,
                                       nameLen,
                                       _s_gltf_KHR_mesh_quantization,
                                       _s_gltf_KHR_mesh_quantization_len));

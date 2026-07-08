@@ -17,6 +17,7 @@
 #include "../../../../include/ak/assetkit.h"
 #include "../common.h"
 #include "dae14.h"
+#include "../../../string_fast.h"
 
 static
 AkNewParam*
@@ -82,9 +83,7 @@ dae14_find_image_by_id_n(AkDoc * __restrict doc,
     const char *imageId;
 
     imageId = ak_getId(image);
-    if (imageId
-        && strlen(imageId) == idLen
-        && memcmp(imageId, id, idLen) == 0)
+    if (ak_str_eq_cstr_fast(imageId, id, idLen))
       return image;
   }
 
@@ -111,7 +110,10 @@ dae14_find_image_id_for_surface_source(DAEState * __restrict dst,
 
   suffixLen = sizeof(suffix) - 1;
   if (sidLen > suffixLen
-      && memcmp(sid + sidLen - suffixLen, suffix, suffixLen) == 0) {
+      && ak_str_eq_fast(sid + sidLen - suffixLen,
+                        suffixLen,
+                        suffix,
+                        suffixLen)) {
     if ((image = dae14_find_image_by_id_n(doc, sid, sidLen - suffixLen)))
       return ak_getId(image);
   }
