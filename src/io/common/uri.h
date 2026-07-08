@@ -38,6 +38,14 @@ bool
 io_uri_has_scheme(const char * __restrict uri);
 
 AK_HIDE
+const char*
+io_uri_scheme_sep(const char * __restrict uri);
+
+AK_HIDE
+bool
+io_uri_has_path_or_scheme_sep(const char * __restrict uri);
+
+AK_HIDE
 bool
 io_path_is_abs_drive_colon(const char * __restrict path);
 

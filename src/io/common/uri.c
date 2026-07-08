@@ -56,6 +56,40 @@ io_uri_has_scheme(const char * __restrict uri) {
 }
 
 AK_HIDE
+const char*
+io_uri_scheme_sep(const char * __restrict uri) {
+  const char *it;
+
+  if (!uri)
+    return NULL;
+
+  for (it = uri; it[0] && it[1] && it[2]; it++) {
+    if (it[0] == ':' && it[1] == '/' && it[2] == '/')
+      return it;
+  }
+
+  return NULL;
+}
+
+AK_HIDE
+bool
+io_uri_has_path_or_scheme_sep(const char * __restrict uri) {
+  const char *it;
+
+  if (!uri)
+    return false;
+
+  for (it = uri; *it; it++) {
+    if (*it == '/' || *it == '\\')
+      return true;
+    if (it[0] == ':' && it[1] && it[2] && it[1] == '/' && it[2] == '/')
+      return true;
+  }
+
+  return false;
+}
+
+AK_HIDE
 bool
 io_path_is_abs_drive_colon(const char * __restrict path) {
   return path

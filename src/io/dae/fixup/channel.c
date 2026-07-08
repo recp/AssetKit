@@ -88,14 +88,6 @@ err:
   return false;
 }
 
-static
-bool
-dae_parse_u32_between(const char * __restrict begin,
-                      const char * __restrict end,
-                      uint32_t   * __restrict out) {
-  return ak_str_parse_u32_slice_fast(begin, end, out);
-}
-
 /*----------------------------------------------------------------------------
  * Channel target parsing.
  *
@@ -124,7 +116,7 @@ dae_parseChannelTargetIndexed(const char  *target,
       || close == open + 1)
     return false;
 
-  if (!dae_parse_u32_between(open + 1, close, &idx))
+  if (!ak_str_parse_u32_slice_fast(open + 1, close, &idx))
     return false;
 
   /* Id portion: everything from the last '/' (or start) up to '('. */
@@ -282,7 +274,7 @@ dae_resolveMatrixElement(AkContext        * __restrict ctx,
       || close1 == open1 + 1)
     return false;
 
-  if (!dae_parse_u32_between(open1 + 1, close1, &a))
+  if (!ak_str_parse_u32_slice_fast(open1 + 1, close1, &a))
     return false;
 
   open2 = close2 = NULL;
@@ -294,7 +286,7 @@ dae_resolveMatrixElement(AkContext        * __restrict ctx,
         || close2 == open2 + 1)
       return false;
 
-    if (!dae_parse_u32_between(open2 + 1, close2, &b) || close2[1] != '\0')
+    if (!ak_str_parse_u32_slice_fast(open2 + 1, close2, &b) || close2[1] != '\0')
       return false;
     hasB = true;
   } else if (close1[1] != '\0') {

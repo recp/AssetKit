@@ -11,14 +11,6 @@
 #include <string.h>
 
 static
-bool
-gltf_extra_name_eq(const char * __restrict str,
-                   const char * __restrict name,
-                   size_t                  nameLen) {
-  return ak_str_eq_cstr_fast(str, name, nameLen);
-}
-
-static
 AkTreeNode*
 gltf_extra_child(const AkTreeNode * __restrict node,
                  const char       * __restrict name,
@@ -29,7 +21,7 @@ gltf_extra_child(const AkTreeNode * __restrict node,
     return NULL;
 
   for (child = node->chld; child; child = child->next) {
-    if (gltf_extra_name_eq(child->name, name, nameLen))
+    if (ak_str_eq_cstr_fast(child->name, name, nameLen))
       return child;
   }
 
@@ -45,7 +37,7 @@ gltf_extra_type(const AkTreeNode * __restrict node) {
     return NULL;
 
   for (attr = node->attribs; attr; attr = attr->next) {
-    if (gltf_extra_name_eq(attr->name, _s_gltf_type, _s_gltf_type_len))
+    if (ak_str_eq_cstr_fast(attr->name, _s_gltf_type, _s_gltf_type_len))
       return attr->val;
   }
 
@@ -178,12 +170,12 @@ gltf_extra_reserved_root_child(AkTreeNode * __restrict node) {
 
   name = node ? node->name : NULL;
   return name
-         && (gltf_extra_name_eq(name,
-                                _s_gltf_extensions,
-                                _s_gltf_extensions_len)
-             || gltf_extra_name_eq(name,
-                                   _s_gltf_extensionsRequired,
-                                   _s_gltf_extensionsRequired_len));
+         && (ak_str_eq_cstr_fast(name,
+                                 _s_gltf_extensions,
+                                 _s_gltf_extensions_len)
+             || ak_str_eq_cstr_fast(name,
+                                    _s_gltf_extensionsRequired,
+                                    _s_gltf_extensionsRequired_len));
 }
 
 bool
