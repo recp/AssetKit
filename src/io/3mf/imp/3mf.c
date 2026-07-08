@@ -2781,6 +2781,8 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
     size_t              i;
     uint32_t            stackIndices[16];
     uint32_t           *indices;
+    AK3MFPropertyGroup *stackLayerGroups[16];
+    AK3MFPropertyGroup **layerGroups;
     size_t              indexCount;
     AK3MFPropertyGroup *baseGroup;
     xml_attr_t         *blendMethodsAttr;
@@ -2834,6 +2836,7 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
     }
 
     indices          = NULL;
+    layerGroups      = NULL;
     indexCount       = 0u;
     baseGroup        = NULL;
     blendMethodsAttr = NULL;
@@ -2858,6 +2861,7 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
                          && indexCount > 0u;
     } else if (kind == AK_3MF_PROPERTY_GROUP_MULTI) {
       xml_attr_t *pidsAttr;
+      size_t      layer;
 
       pidsAttr         = AK_3MF_XMLA(xml, pids);
       blendMethodsAttr = AK_3MF_XMLA(xml, blendmethods);
@@ -2867,7 +2871,23 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
                                         &indices,
                                         &indexCount))
         indices = NULL;
-      group->hasColors = indexCount > 0u;
+      if (indices && indexCount > 0u) {
+        layerGroups = stackLayerGroups;
+        if (indexCount > AK_ARRAY_LEN(stackLayerGroups))
+          layerGroups = indexCount <= SIZE_MAX / sizeof(*layerGroups)
+                        ? malloc(sizeof(*layerGroups) * indexCount)
+                        : NULL;
+        if (layerGroups) {
+          for (layer = 0u; layer < indexCount; layer++) {
+            layerGroups[layer] = ak_3mf_find_property_group(st,
+                                                            st->currentModelPath,
+                                                            indices[layer]);
+          }
+        } else {
+          indexCount = 0u;
+        }
+      }
+      group->hasColors = layerGroups != NULL && indexCount > 0u;
       (void)ak_3mf_blend_methods_prepare(blendMethodsAttr,
                                          indexCount > 0u ? indexCount - 1u : 0u,
                                          &blendMethods);
@@ -2978,14 +2998,12 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
           pindexCount = 0u;
 
         firstLayer = true;
-        for (layer = 0u; indices && layer < indexCount; layer++) {
+        for (layer = 0u; layerGroups && layer < indexCount; layer++) {
           AK3MFPropertyGroup *layerGroup;
           uint8_t             layerColor[4];
           uint32_t            propertyIndex;
 
-          layerGroup = ak_3mf_find_property_group(st,
-                                                  st->currentModelPath,
-                                                  indices[layer]);
+          layerGroup    = layerGroups[layer];
           propertyIndex = layer < pindexCount ? pindices[layer] : 0u;
           if (!layerGroup
               || !layerGroup->hasColors
@@ -3027,6 +3045,8 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
         prop->name = xmla_strdup(AK_3MF_XMLA(child, name), heap, set);
       i++;
     }
+    if (layerGroups && layerGroups != stackLayerGroups)
+      free(layerGroups);
     if (indices && indices != stackIndices)
       free(indices);
     ak_3mf_blend_methods_free(&blendMethods);
