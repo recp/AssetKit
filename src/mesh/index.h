@@ -19,29 +19,6 @@
 
 #include "../common.h"
 
-typedef struct AkDuplicatorBuild {
-  AkMeshPrimitive    *primitive;
-  const AkIndexArray *indices;
-  const AkAccessor   *positionAccessor;
-  uint32_t           *ordinals;
-  uint32_t           *positionCopies;
-  uint32_t           *lookup;
-  void               *storage;
-
-  size_t             indexCount;
-  size_t             vertexCount;
-  size_t             lookupCount;
-  size_t             storageSize;
-  size_t             duplicateCount;
-  size_t             bufferCount;
-  AkUInt             duplicateMax;
-  uint32_t           indexStride;
-  uint32_t           positionOffset;
-  bool               computed;
-  bool               valid;
-  bool               ownsStorage;
-} AkDuplicatorBuild;
-
 AK_HIDE
 AkResult
 ak_meshFixIndices(AkMesh *mesh);
@@ -51,13 +28,6 @@ AkResult
 ak_primFixIndicesRetainDuplicator(AkMesh          *mesh,
                                   AkMeshPrimitive *prim,
                                   bool             retainDuplicator);
-
-AK_HIDE
-AkResult
-ak_primFixIndicesWithBuild(AkMesh            *mesh,
-                           AkMeshPrimitive   *prim,
-                           bool               retainDuplicator,
-                           AkDuplicatorBuild *build);
 
 AK_HIDE
 bool
@@ -73,26 +43,6 @@ AkDuplicator*
 ak_meshDuplicatorForIndicesRetained(AkMesh          * __restrict mesh,
                                     AkMeshPrimitive * __restrict prim,
                                     bool                         retain);
-
-AK_HIDE
-bool
-ak_meshDuplicatorBuildPrepare(AkMeshPrimitive   * __restrict prim,
-                              AkDuplicatorBuild * __restrict build);
-
-AK_HIDE
-void
-ak_meshDuplicatorBuildCompute(void *userdata);
-
-AK_HIDE
-AkDuplicator*
-ak_meshDuplicatorBuildFinish(AkMesh            * __restrict mesh,
-                             AkMeshPrimitive   * __restrict prim,
-                             bool                           retain,
-                             AkDuplicatorBuild * __restrict build);
-
-AK_HIDE
-void
-ak_meshDuplicatorBuildRelease(AkDuplicatorBuild *build);
 
 AK_HIDE
 AkResult

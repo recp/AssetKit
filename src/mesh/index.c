@@ -250,25 +250,6 @@ ak_primFixIndicesRetainDuplicator(AkMesh          *mesh,
 
 AK_HIDE
 AkResult
-ak_primFixIndicesWithBuild(AkMesh            *mesh,
-                           AkMeshPrimitive   *prim,
-                           bool               retainDuplicator,
-                           AkDuplicatorBuild *build) {
-  AkDuplicator *dupl;
-
-  if (!build
-      || build->primitive != prim
-      || !(dupl = ak_meshDuplicatorBuildFinish(mesh,
-                                               prim,
-                                               retainDuplicator,
-                                               build)))
-    return ak_primFixIndicesRetainDuplicator(mesh, prim, retainDuplicator);
-
-  return ak_primApplyDuplicator(mesh, prim, retainDuplicator, dupl);
-}
-
-AK_HIDE
-AkResult
 ak_meshFixIndicesDefaultRetainDuplicators(AkMesh *mesh,
                                           bool    retainDuplicators) {
   AkMeshPrimitive *prim;
