@@ -20,6 +20,7 @@
 
 #include "1.4/dae14.h"
 
+#include "core/index_parse.h"
 #include "core/source.h"
 #include "fixup/geom.h"
 #include "fixup/mesh.h"
@@ -226,6 +227,7 @@ dae_postscript(DAEState * __restrict dst) {
                     && !ak_coordOrientationIsEq(sourceCoordSys, targetCoordSys);
 
   dae_parse_float_sources(dst);
+  dae_parse_index_arrays(dst);
   dae_spread_vert(dst);
 
   /* first migrate 1.4 to 1.5 */

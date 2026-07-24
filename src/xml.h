@@ -36,6 +36,13 @@ xml_strtoui_fast_max(const xml_t * __restrict xobj,
                      unsigned long            n,
                      AkUInt      * __restrict maxValue);
 
+AK_HIDE
+unsigned long
+xml_strtoindex_u32_fast_max(const xml_t * __restrict xobj,
+                            AkUInt      * __restrict dest,
+                            unsigned long            n,
+                            AkUInt      * __restrict maxValue);
+
 AK_EXPORT
 unsigned long
 xml_strtoi_fast(const xml_t * __restrict xobj,

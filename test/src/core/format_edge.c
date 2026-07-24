@@ -182,6 +182,70 @@ ak_test_write_parallel_float_dae(const char *path) {
 
 static
 bool
+ak_test_write_parallel_index_dae(const char *path) {
+  static const uint32_t primitiveCount = 8u;
+  static const uint32_t triangleCount = 6000u;
+  FILE                 *file;
+  uint32_t              primitiveIndex;
+  uint32_t              triangleIndex;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
+        "<asset><unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>\n"
+        "<library_geometries><geometry id=\"geom\"><mesh>\n"
+        "<source id=\"pos\"><float_array id=\"pos-array\" count=\"9\">"
+        "0 0 0 1 0 0 0 1 0"
+        "</float_array><technique_common>"
+        "<accessor source=\"#pos-array\" count=\"3\" stride=\"3\">"
+        "<param name=\"X\" type=\"float\"/>"
+        "<param name=\"Y\" type=\"float\"/>"
+        "<param name=\"Z\" type=\"float\"/>"
+        "</accessor></technique_common></source>\n"
+        "<source id=\"nrm\"><float_array id=\"nrm-array\" count=\"9\">"
+        "0 0 1 0 1 0 1 0 0"
+        "</float_array><technique_common>"
+        "<accessor source=\"#nrm-array\" count=\"3\" stride=\"3\">"
+        "<param name=\"X\" type=\"float\"/>"
+        "<param name=\"Y\" type=\"float\"/>"
+        "<param name=\"Z\" type=\"float\"/>"
+        "</accessor></technique_common></source>\n"
+        "<vertices id=\"verts\"><input semantic=\"POSITION\" source=\"#pos\"/>"
+        "</vertices>\n",
+        file);
+
+  for (primitiveIndex = 0u;
+       primitiveIndex < primitiveCount;
+       primitiveIndex++) {
+    fprintf(file,
+            "<triangles count=\"%u\">"
+            "<input semantic=\"VERTEX\" source=\"#verts\" offset=\"0\"/>"
+            "<input semantic=\"NORMAL\" source=\"#nrm\" offset=\"1\"/><p>",
+            triangleCount);
+    for (triangleIndex = 0u; triangleIndex < triangleCount; triangleIndex++) {
+      if ((triangleIndex & 1u) == 0u)
+        fputs("0 0 1 1 2 2 ", file);
+      else
+        fputs("0 1 1 2 2 0 ", file);
+    }
+    fputs("</p></triangles>\n", file);
+  }
+
+  fputs("</mesh></geometry></library_geometries>\n"
+        "<library_visual_scenes><visual_scene id=\"Scene\"><node id=\"node\">"
+        "<instance_geometry url=\"#geom\"/></node></visual_scene></library_visual_scenes>\n"
+        "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
+        "</COLLADA>\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
 ak_test_write_gltf(const char *path, const char *binPath) {
   FILE    *file;
   uint8_t  buffer[76];
@@ -1378,6 +1442,98 @@ TEST_IMPL(parallel_dae_float_array_parse) {
   normalInput = ak_test_input(prim, AK_INPUT_NORMAL);
   ASSERT(normalInput != NULL && normalInput->accessor != NULL);
   ASSERT(ak_test_accessor_f32(normalInput->accessor, 5461u, 2u) == 1.0f);
+
+  ak_free(doc);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(parallel_dae_index_array_parse) {
+  AkDoc           *doc;
+  AkMeshPrimitive *prim;
+  AkInput         *normalInput;
+  AkResult          result;
+  char             dirTemplate[PATH_MAX];
+  char            *tmpdir;
+  char             daePath[PATH_MAX];
+  const char      *tmpBase;
+  uintptr_t         indicesDefault;
+  uint32_t         primitiveCount;
+
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-parallel-dae-index-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(daePath, sizeof(daePath), "%s/parallel_index.dae", tmpdir);
+  ASSERT(ak_test_write_parallel_index_dae(daePath));
+
+  doc            = NULL;
+  indicesDefault = ak_opt_get(AK_OPT_INDICES_DEFAULT);
+  ak_opt_set(AK_OPT_INDICES_DEFAULT, true);
+  result = ak_load(&doc, daePath, AK_FILE_TYPE_COLLADA);
+  ak_opt_set(AK_OPT_INDICES_DEFAULT, indicesDefault);
+
+  ASSERT(result == AK_OK);
+  ASSERT(doc != NULL);
+
+  primitiveCount = 0u;
+  for (prim = ak_test_first_primitive(doc); prim; prim = prim->next) {
+    ASSERT(prim->indices != NULL);
+    ASSERT(prim->indices->componentType == AKT_UBYTE);
+    ASSERT(prim->indices->count == 36000u);
+    ASSERT(prim->indices->max == 2u);
+    ASSERT(ak_indexArrayGet(prim->indices, 0u) == 0u);
+    ASSERT(ak_indexArrayGet(prim->indices, 1u) == 0u);
+    ASSERT(ak_indexArrayGet(prim->indices, 5u) == 2u);
+    ASSERT(ak_indexArrayGet(prim->indices, 6u) == 0u);
+    ASSERT(ak_indexArrayGet(prim->indices, 7u) == 1u);
+    ASSERT(ak_indexArrayGet(prim->indices, 11u) == 0u);
+    ASSERT(ak_indexArrayGet(prim->indices, 35999u) == 0u);
+    primitiveCount++;
+  }
+  ASSERT(primitiveCount == 8u);
+
+  ak_free(doc);
+
+  doc = NULL;
+  ak_opt_set(AK_OPT_INDICES_DEFAULT, false);
+  result = ak_load(&doc, daePath, AK_FILE_TYPE_COLLADA);
+  ak_opt_set(AK_OPT_INDICES_DEFAULT, indicesDefault);
+
+  ASSERT(result == AK_OK);
+  ASSERT(doc != NULL);
+
+  primitiveCount = 0u;
+  for (prim = ak_test_first_primitive(doc); prim; prim = prim->next) {
+    ASSERT(prim->indexStride == 1u);
+    ASSERT(prim->indices != NULL);
+    ASSERT(prim->indices->componentType == AKT_USHORT);
+    ASSERT(prim->indices->count == 18000u);
+    ASSERT(ak_indexArrayGet(prim->indices, 0u) == 0u);
+    ASSERT(ak_indexArrayGet(prim->indices, 1u) == 2u);
+    ASSERT(ak_indexArrayGet(prim->indices, 2u) == 4u);
+    ASSERT(ak_indexArrayGet(prim->indices, 3u) == 1u);
+    ASSERT(ak_indexArrayGet(prim->indices, 4u) == 3u);
+    ASSERT(ak_indexArrayGet(prim->indices, 5u) == 5u);
+    ASSERT(ak_indexArrayGet(prim->indices, 17997u) == 1u);
+    ASSERT(ak_indexArrayGet(prim->indices, 17999u) == 5u);
+    ASSERT(prim->pos && prim->pos->accessor);
+    ASSERT(prim->pos->accessor->count == 6u);
+    normalInput = ak_test_input(prim, AK_INPUT_NORMAL);
+    ASSERT(normalInput && normalInput->accessor);
+    ASSERT(normalInput->accessor->count == 6u);
+    primitiveCount++;
+  }
+  ASSERT(primitiveCount == 8u);
 
   ak_free(doc);
   unlink(daePath);

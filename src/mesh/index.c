@@ -202,6 +202,24 @@ ak_movePositions(AkMesh          *mesh,
   return AK_OK;
 }
 
+static
+AkResult
+ak_primApplyDuplicator(AkMesh          *mesh,
+                       AkMeshPrimitive *prim,
+                       bool             retainDuplicator,
+                       AkDuplicator    *dupl) {
+  ak_meshFixIndexBuffer(mesh, prim, dupl);
+
+  ak_meshReserveBuffers(mesh, prim, dupl->dupCount + dupl->bufCount);
+
+  ak_movePositions(mesh, prim, dupl);
+
+  if (!retainDuplicator)
+    ak_free(dupl);
+
+  return AK_OK;
+}
+
 AK_HIDE
 AkResult
 ak_primFixIndicesRetainDuplicator(AkMesh          *mesh,
@@ -227,16 +245,26 @@ ak_primFixIndicesRetainDuplicator(AkMesh          *mesh,
                                                    retainDuplicator)))
     return AK_ERR;
 
-  ak_meshFixIndexBuffer(mesh, prim, dupl);
+  return ak_primApplyDuplicator(mesh, prim, retainDuplicator, dupl);
+}
 
-  ak_meshReserveBuffers(mesh, prim, dupl->dupCount + dupl->bufCount);
+AK_HIDE
+AkResult
+ak_primFixIndicesWithBuild(AkMesh            *mesh,
+                           AkMeshPrimitive   *prim,
+                           bool               retainDuplicator,
+                           AkDuplicatorBuild *build) {
+  AkDuplicator *dupl;
 
-  ak_movePositions(mesh, prim, dupl);
+  if (!build
+      || build->primitive != prim
+      || !(dupl = ak_meshDuplicatorBuildFinish(mesh,
+                                               prim,
+                                               retainDuplicator,
+                                               build)))
+    return ak_primFixIndicesRetainDuplicator(mesh, prim, retainDuplicator);
 
-  if (!retainDuplicator)
-    ak_free(dupl);
-
-  return AK_OK;
+  return ak_primApplyDuplicator(mesh, prim, retainDuplicator, dupl);
 }
 
 AK_HIDE

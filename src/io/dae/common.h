@@ -196,7 +196,22 @@ typedef struct DaeSource {
 typedef struct DaeFloatParseJob {
   const xml_t *source;
   AkBuffer    *buffer;
+  size_t       sourceByteCount;
+  uint32_t     workerIndex;
 } DaeFloatParseJob;
+
+typedef struct DaeIndexParseJob {
+  const xml_t     *source;
+  AkMeshPrimitive *primitive;
+  void            *parent;
+  size_t           scratchOffset;
+  size_t           sequence;
+  size_t           sourceByteCount;
+  unsigned long    count;
+  unsigned long    remaining;
+  AkUInt           maxValue;
+  uint32_t         workerIndex;
+} DaeIndexParseJob;
 
 typedef struct DAELibrary {
   struct DAELibrary *next;
@@ -226,6 +241,7 @@ typedef AK_ALIGN(16) struct DAEState {
   RBTree          *materialEffectMap;
   FListItem       *vertMap;
   DaeFloatParseJob *floatParseJobs;
+  DaeIndexParseJob *indexParseJobs;
   DAELibrary      *effectLibraries;
   DAELibrary      *controllerLibraries;
   DAELibrary      *nodeLibraries;
@@ -240,8 +256,11 @@ typedef AK_ALIGN(16) struct DAEState {
   RBTree          *meshTargets;
   DaeSource       *sources;
   uint64_t         floatValueCount;
+  uint64_t         indexValueCount;
   size_t           floatParseJobCount;
   size_t           floatParseJobCapacity;
+  size_t           indexParseJobCount;
+  size_t           indexParseJobCapacity;
   AkCOLLADAVersion version;
   bool             stop;
 } DAEState;

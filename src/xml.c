@@ -37,6 +37,20 @@ xml_strtoui_node_max(char          * __restrict src,
   return ak_str_parse_uint_array_fast(src, srclen, n, dest, maxValue);
 }
 
+AK_INLINE
+unsigned long
+xml_strtoindex_u32_node_max(char          * __restrict src,
+                            size_t                     srclen,
+                            unsigned long              n,
+                            AkUInt        * __restrict dest,
+                            AkUInt        * __restrict maxValue) {
+  return ak_str_parse_uint_index_array_fast(src,
+                                            srclen,
+                                            n,
+                                            dest,
+                                            maxValue);
+}
+
 static
 AkIndexArray*
 xml_index_promote(AkHeap       * __restrict heap,
@@ -452,6 +466,33 @@ xml_strtoui_fast_max(const xml_t  * __restrict xobj,
                                      rem,
                                      dest + n - rem,
                                      maxValue))
+         && (v = xmls_next(v)));
+
+  return rem;
+}
+
+AK_HIDE
+unsigned long
+xml_strtoindex_u32_fast_max(const xml_t  * __restrict xobj,
+                            AkUInt       * __restrict dest,
+                            unsigned long              n,
+                            AkUInt       * __restrict maxValue) {
+  const xml_t  *v;
+  unsigned long rem;
+
+  if (maxValue)
+    *maxValue = 0;
+
+  if (!(v = xobj)
+      || !v->val
+      || (rem = n) < 1)
+    return 0;
+
+  while ((rem = xml_strtoindex_u32_node_max(v->val,
+                                            v->valsize,
+                                            rem,
+                                            dest + n - rem,
+                                            maxValue))
          && (v = xmls_next(v)));
 
   return rem;

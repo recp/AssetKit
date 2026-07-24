@@ -18,9 +18,26 @@
 #define dae_mesh_fixup_h
 
 #include "../common.h"
+#include "../../../mesh/index.h"
+
+typedef struct DaeDuplicatorJob {
+  AkMesh            *mesh;
+  AkDuplicatorBuild  build;
+  size_t             scratchOffset;
+  size_t             sequence;
+  size_t             weight;
+  uint32_t           workerIndex;
+} DaeDuplicatorJob;
 
 AK_HIDE
 AkResult
 dae_mesh_fixup(AkMesh * mesh, bool retainDuplicators);
+
+AK_HIDE
+AkResult
+dae_mesh_fixup_with_builds(AkMesh           *mesh,
+                           bool              retainDuplicators,
+                           DaeDuplicatorJob *jobs,
+                           size_t            jobCount);
 
 #endif /* dae_mesh_fixup_h */

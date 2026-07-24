@@ -78,12 +78,17 @@ dae_mesh_needs_edit(AkMesh * __restrict mesh,
   }
 }
 
-AK_HIDE
+static
 AkResult
-dae_mesh_fixup(AkMesh * mesh, bool retainDuplicators) {
+dae_mesh_fixup_impl(AkMesh           *mesh,
+                    bool              retainDuplicators,
+                    DaeDuplicatorJob *jobs,
+                    size_t            jobCount) {
   AkMeshEditHelper *edith;
   AkHeap           *heap;
   AkDoc            *doc;
+  AkMeshPrimitive  *prim;
+  size_t            jobIndex;
   bool              needsTriangulate, needsNormals, needsFixIndices;
 
   heap = ak_heap_getheap(mesh->geom);
@@ -125,10 +130,30 @@ dae_mesh_fixup(AkMesh * mesh, bool retainDuplicators) {
     ak_meshGenNormals(mesh);
 
   edith->skipFixIndices = false;
-  if (needsFixIndices || needsNormals)
-    ak_meshFixIndicesDefaultRetainDuplicators(mesh,
-                                              retainDuplicators
+  if (needsFixIndices || needsNormals) {
+    if (jobCount == 0) {
+      ak_meshFixIndicesDefaultRetainDuplicators(mesh,
+                                                retainDuplicators
+                                                || mesh->skins != NULL);
+    } else {
+      jobIndex = 0;
+      for (prim = mesh->primitive; prim; prim = prim->next) {
+        if (jobIndex < jobCount
+            && jobs[jobIndex].build.primitive == prim) {
+          ak_primFixIndicesWithBuild(mesh,
+                                     prim,
+                                     retainDuplicators || mesh->skins != NULL,
+                                     &jobs[jobIndex].build);
+          jobIndex++;
+        } else {
+          ak_primFixIndicesRetainDuplicator(mesh,
+                                            prim,
+                                            retainDuplicators
                                               || mesh->skins != NULL);
+        }
+      }
+    }
+  }
 
   ak_meshEndEdit(mesh);
 
@@ -136,4 +161,22 @@ dae_mesh_fixup(AkMesh * mesh, bool retainDuplicators) {
     ak_bbox_mesh(mesh);
   
   return AK_OK;
+}
+
+AK_HIDE
+AkResult
+dae_mesh_fixup(AkMesh *mesh, bool retainDuplicators) {
+  return dae_mesh_fixup_impl(mesh, retainDuplicators, NULL, 0);
+}
+
+AK_HIDE
+AkResult
+dae_mesh_fixup_with_builds(AkMesh           *mesh,
+                           bool              retainDuplicators,
+                           DaeDuplicatorJob *jobs,
+                           size_t            jobCount) {
+  return dae_mesh_fixup_impl(mesh,
+                             retainDuplicators,
+                             jobs,
+                             jobCount);
 }

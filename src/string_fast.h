@@ -1290,6 +1290,59 @@ ak_str_parse_uint_array_fast(char     * __restrict src,
 
 AK_INLINE
 unsigned long
+ak_str_parse_uint_index_array_fast(char     * __restrict src,
+                                   size_t                 srclen,
+                                   unsigned long          n,
+                                   AkUInt   * __restrict dest,
+                                   AkUInt   * __restrict maxValue) {
+  AkUInt       *out;
+  char         *tok;
+  char         *end;
+  AkUInt        value;
+  AkUInt        maxv;
+  unsigned long rem;
+
+  if (n == 0)
+    return 0;
+
+  out  = dest;
+  tok  = src;
+  rem  = n;
+  maxv = maxValue ? *maxValue : 0;
+
+  if (srclen != 0) {
+    end = src + srclen;
+    do {
+      tok = ak_str_skip_sep_fast(tok, end, false);
+      if (tok >= end)
+        break;
+      tok = ak_str_parse_uint_index_end_fast(tok, end, &value);
+      *out++ = value;
+      if (value > maxv)
+        maxv = value;
+      rem--;
+    } while (rem > 0ul && tok < end);
+  } else {
+    do {
+      tok = ak_str_skip_sep_fast(tok, NULL, false);
+      if (*tok == '\0')
+        break;
+      tok = ak_str_parse_uint_index_fast(tok, NULL, &value);
+      *out++ = value;
+      if (value > maxv)
+        maxv = value;
+      rem--;
+    } while (rem > 0ul && *tok != '\0');
+  }
+
+  if (maxValue)
+    *maxValue = maxv;
+
+  return rem;
+}
+
+AK_INLINE
+unsigned long
 ak_str_parse_int_array_fast(char    * __restrict src,
                             size_t                srclen,
                             unsigned long         n,

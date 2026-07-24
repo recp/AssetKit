@@ -16,6 +16,7 @@
 
 #include "triangle.h"
 #include "enum.h"
+#include "index_parse.h"
 #include "../../../array.h"
 
 AK_HIDE
@@ -90,18 +91,30 @@ dae_triangles(DAEState * __restrict dst,
                       ? (unsigned long)tri->base.nPolygons * 3ul * indexStride
                       : 0ul;
       maxIndex      = 0;
+      if (expectedCount > 0
+          && dae_defer_index_array(dst,
+                                   xml->val,
+                                   &tri->base,
+                                   tri,
+                                   expectedCount)) {
+        xml = xml->next;
+        continue;
+      }
+      if (expectedCount > 0 && dst->indexParseJobCount > 0u)
+        dae_parse_index_arrays(dst);
+
       ret = expectedCount > 0
             ? xml_strtoindex_arrayN_max(heap,
-                                         tri,
-                                         xml->val,
-                                         expectedCount,
-                                         &indexArray,
-                                         &maxIndex)
-            : xml_strtoindex_array_max(heap,
                                         tri,
                                         xml->val,
+                                        expectedCount,
                                         &indexArray,
-                                        &maxIndex);
+                                        &maxIndex)
+            : xml_strtoindex_array_max(heap,
+                                       tri,
+                                       xml->val,
+                                       &indexArray,
+                                       &maxIndex);
       if (ret == AK_OK) {
         tri->base.indices = indexArray;
       }

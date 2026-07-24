@@ -27,9 +27,21 @@
 typedef struct DaeFloatParseWorker {
   DaeFloatParseJob *jobs;
   size_t            jobCount;
-  uint32_t          startIndex;
-  uint32_t          stride;
+  uint32_t          workerIndex;
 } DaeFloatParseWorker;
+
+static
+uint64_t
+dae_float_parse_job_weight(const DaeFloatParseJob *job) {
+  uint64_t sourceBytes;
+  uint64_t bufferBytes;
+
+  sourceBytes = job->sourceByteCount;
+  bufferBytes = job->buffer->length;
+  if (sourceBytes > UINT64_MAX - bufferBytes)
+    return UINT64_MAX;
+  return sourceBytes + bufferBytes;
+}
 
 static
 void
@@ -56,8 +68,8 @@ dae_float_parse_job_compare(const void *left, const void *right) {
   a = left;
   b = right;
 
-  return (a->buffer->length < b->buffer->length)
-       - (a->buffer->length > b->buffer->length);
+  return (dae_float_parse_job_weight(a) < dae_float_parse_job_weight(b))
+       - (dae_float_parse_job_weight(a) > dae_float_parse_job_weight(b));
 }
 
 static
@@ -67,8 +79,10 @@ dae_parse_float_source_worker(void *userdata) {
   size_t               i;
 
   worker = userdata;
-  for (i = worker->startIndex; i < worker->jobCount; i += worker->stride)
-    dae_parse_float_source_task(&worker->jobs[i]);
+  for (i = 0u; i < worker->jobCount; i++) {
+    if (worker->jobs[i].workerIndex == worker->workerIndex)
+      dae_parse_float_source_task(&worker->jobs[i]);
+  }
 }
 
 static
@@ -86,6 +100,7 @@ dae_parse_float_sources(DAEState * __restrict dst) {
   AkThreadTask          tasks[DAE_FLOAT_PARSE_MAX_THREADS];
   DaeFloatParseWorker  workers[DAE_FLOAT_PARSE_MAX_THREADS];
   size_t                jobCount;
+  uint64_t              workerLoads[DAE_FLOAT_PARSE_MAX_THREADS];
   uint32_t              threadCount;
   uint32_t              i;
 
@@ -100,7 +115,7 @@ dae_parse_float_sources(DAEState * __restrict dst) {
     goto done;
   }
 
-  /* Longest jobs first keeps the fixed-stride worker groups balanced. */
+  /* Longest jobs first improves greedy worker load balancing. */
   qsort(dst->floatParseJobs,
         jobCount,
         sizeof(*dst->floatParseJobs),
@@ -112,13 +127,31 @@ dae_parse_float_sources(DAEState * __restrict dst) {
   if ((size_t)threadCount > jobCount)
     threadCount = (uint32_t)jobCount;
 
+  memset(workerLoads, 0, sizeof(workerLoads));
+  for (i = 0u; i < jobCount; i++) {
+    uint64_t weight;
+    uint32_t lightest;
+    uint32_t workerIndex;
+
+    lightest = 0u;
+    for (workerIndex = 1u; workerIndex < threadCount; workerIndex++) {
+      if (workerLoads[workerIndex] < workerLoads[lightest])
+        lightest = workerIndex;
+    }
+
+    weight = dae_float_parse_job_weight(&dst->floatParseJobs[i]);
+    dst->floatParseJobs[i].workerIndex = lightest;
+    workerLoads[lightest] = weight <= UINT64_MAX - workerLoads[lightest]
+                             ? workerLoads[lightest] + weight
+                             : UINT64_MAX;
+  }
+
   for (i = 0u; i < threadCount; i++) {
-    workers[i].jobs       = dst->floatParseJobs;
-    workers[i].jobCount   = jobCount;
-    workers[i].startIndex = i;
-    workers[i].stride     = threadCount;
-    tasks[i].func         = dae_parse_float_source_worker;
-    tasks[i].userdata     = &workers[i];
+    workers[i].jobs        = dst->floatParseJobs;
+    workers[i].jobCount    = jobCount;
+    workers[i].workerIndex = i;
+    tasks[i].func          = dae_parse_float_source_worker;
+    tasks[i].userdata      = &workers[i];
   }
 
   if (!ak_thread_run_tasks(tasks, threadCount))
@@ -141,6 +174,9 @@ dae_defer_float_source(DAEState   * __restrict dst,
   DaeFloatParseJob *jobs;
   size_t            capacity;
 
+  if (dst->floatValueCount > UINT64_MAX - count)
+    return false;
+
   if (dst->floatParseJobCount == dst->floatParseJobCapacity) {
     if (dst->floatParseJobCapacity > SIZE_MAX / 2u)
       return false;
@@ -160,8 +196,10 @@ dae_defer_float_source(DAEState   * __restrict dst,
   }
 
   jobs = &dst->floatParseJobs[dst->floatParseJobCount++];
-  jobs->source = source;
-  jobs->buffer = buffer;
+  jobs->source          = source;
+  jobs->buffer          = buffer;
+  jobs->sourceByteCount = xmls_sumlen(source);
+  jobs->workerIndex     = 0u;
   dst->floatValueCount += count;
   return true;
 }
