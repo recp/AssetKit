@@ -16,6 +16,30 @@
 
 #include "../../../test_export_common.h"
 
+static char ak_test_dae_image_load_path[PATH_MAX];
+
+static
+AkImageData*
+ak_test_dae_image_loader(AkHeap     * __restrict heap,
+                         AkImage    * __restrict image,
+                         const char * __restrict path,
+                         bool                    flipVertically) {
+  size_t pathLen;
+
+  (void)heap;
+  (void)image;
+  (void)flipVertically;
+
+  pathLen = path ? strlen(path) : 0;
+  if (pathLen >= sizeof(ak_test_dae_image_load_path))
+    pathLen = sizeof(ak_test_dae_image_load_path) - 1u;
+  if (pathLen)
+    memcpy(ak_test_dae_image_load_path, path, pathLen);
+  ak_test_dae_image_load_path[pathLen] = '\0';
+
+  return NULL;
+}
+
 TEST_IMPL(dae_scene_roots_are_child_nodes) {
   AkDoc       *doc;
   AkScene     *scene;
@@ -334,6 +358,130 @@ TEST_IMPL(dae14_missing_surface_sampler_resolves_image) {
   rmdir(outDir);
   snprintf(texPath, sizeof(texPath), "%s/duckCM.tga", tmpdir);
   unlink(texPath);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(dae14_broken_texture_ref_recovers_unique_image_and_path) {
+  AkDoc           *doc;
+  AkMaterial      *material;
+  AkTextureRef    *textureRef;
+  AkImage         *recoverImage;
+  AkImage         *exactImage;
+  AkImage         *image;
+  char             dirTemplate[PATH_MAX];
+  char            *tmpdir;
+  char             daePath[PATH_MAX];
+  char             recoveredTexturePath[PATH_MAX];
+  char             exactTexturePath[PATH_MAX];
+  char             exactCandidatePath[PATH_MAX];
+  char             pathCandidateA[PATH_MAX];
+  char             pathCandidateB[PATH_MAX];
+  const char      *tmpBase;
+  FILE            *file;
+
+  doc = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-dae14-broken-texture-ref-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(daePath, sizeof(daePath), "%s/broken_texture_ref.dae", tmpdir);
+  snprintf(recoveredTexturePath,
+           sizeof(recoveredTexturePath),
+           "%s/bbr_metal-2048.dds",
+           tmpdir);
+  snprintf(exactTexturePath, sizeof(exactTexturePath), "%s/exact.dds", tmpdir);
+  snprintf(exactCandidatePath,
+           sizeof(exactCandidatePath),
+           "%s/bbr_wood-2048.dds",
+           tmpdir);
+  snprintf(pathCandidateA, sizeof(pathCandidateA), "%s/path_a.dds", tmpdir);
+  snprintf(pathCandidateB, sizeof(pathCandidateB), "%s/path_b.dds", tmpdir);
+
+  ASSERT(ak_test_write_dae14_broken_texture_refs(daePath));
+  file = fopen(recoveredTexturePath, "wb");
+  ASSERT(file != NULL);
+  ASSERT(fputs("DDSDATA", file) >= 0);
+  ASSERT(fclose(file) == 0);
+  file = fopen(exactCandidatePath, "wb");
+  ASSERT(file != NULL);
+  ASSERT(fputs("DDSDATA", file) >= 0);
+  ASSERT(fclose(file) == 0);
+  file = fopen(pathCandidateA, "wb");
+  ASSERT(file != NULL);
+  ASSERT(fputs("DDSDATA", file) >= 0);
+  ASSERT(fclose(file) == 0);
+  file = fopen(pathCandidateB, "wb");
+  ASSERT(file != NULL);
+  ASSERT(fputs("DDSDATA", file) >= 0);
+  ASSERT(fclose(file) == 0);
+  file = fopen(exactTexturePath, "wb");
+  ASSERT(file != NULL);
+  ASSERT(fputs("DDSDATA", file) >= 0);
+  ASSERT(fclose(file) == 0);
+
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+
+  recoverImage = ak_getObjectById(doc, "bbr_metal-2048_dds");
+  ASSERT(recoverImage != NULL);
+  material = ak_getObjectById(doc, "mat_recover");
+  ASSERT(material && material->surface && material->surface->baseColor);
+  textureRef = ak_materialInputTexture(material->surface->baseColor);
+  ASSERT(textureRef && textureRef->texture);
+  ASSERT(textureRef->texture->image == recoverImage);
+  ASSERT(recoverImage->source != NULL);
+  ASSERT(strcmp(recoverImage->source->uri, "metal-2048.dds") == 0);
+  ASSERT(recoverImage->source->resolvedPath != NULL);
+  ASSERT(strcmp(recoverImage->source->resolvedPath, recoveredTexturePath) == 0);
+
+  ak_test_dae_image_load_path[0] = '\0';
+  ak_imageInitLoader(ak_test_dae_image_loader, NULL);
+  ak_imageLoad(recoverImage);
+  ak_imageInitLoader(NULL, NULL);
+  ASSERT(strcmp(ak_test_dae_image_load_path, recoveredTexturePath) == 0);
+
+  exactImage = ak_getObjectById(doc, "wood-2048_dds");
+  ASSERT(exactImage != NULL);
+  material = ak_getObjectById(doc, "mat_exact");
+  ASSERT(material && material->surface && material->surface->baseColor);
+  textureRef = ak_materialInputTexture(material->surface->baseColor);
+  ASSERT(textureRef && textureRef->texture);
+  ASSERT(textureRef->texture->image == exactImage);
+  ASSERT(exactImage->source != NULL);
+  ASSERT(exactImage->source->resolvedPath == NULL);
+
+  material = ak_getObjectById(doc, "mat_ambiguous");
+  ASSERT(material && material->surface && material->surface->baseColor);
+  textureRef = ak_materialInputTexture(material->surface->baseColor);
+  ASSERT(textureRef && textureRef->texture);
+  image = textureRef->texture->image;
+  ASSERT(image == NULL);
+
+  image = ak_getObjectById(doc, "path_a_dds");
+  ASSERT(image != NULL);
+  material = ak_getObjectById(doc, "mat_path_ambiguous");
+  ASSERT(material && material->surface && material->surface->baseColor);
+  textureRef = ak_materialInputTexture(material->surface->baseColor);
+  ASSERT(textureRef && textureRef->texture);
+  ASSERT(textureRef->texture->image == image);
+  ASSERT(image->source != NULL);
+  ASSERT(image->source->resolvedPath == NULL);
+
+  ak_free(doc);
+  unlink(pathCandidateB);
+  unlink(pathCandidateA);
+  unlink(exactCandidatePath);
+  unlink(exactTexturePath);
+  unlink(recoveredTexturePath);
   unlink(daePath);
   rmdir(tmpdir);
 

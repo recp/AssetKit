@@ -692,6 +692,62 @@ ak_test_write_dae14_missing_surface_texture(const char *path) {
 
 static inline
 bool
+ak_test_write_dae14_broken_texture_refs(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
+        "<asset><unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>\n"
+        "<library_images>"
+        "<image id=\"bbr_metal-2048_dds\" name=\"bbr_metal-2048_dds\"><init_from>metal-2048.dds</init_from></image>"
+        "<image id=\"wood-2048_dds\" name=\"wood-2048_dds\"><init_from>exact.dds</init_from></image>"
+        "<image id=\"bbr_wood-2048_dds\" name=\"bbr_wood-2048_dds\"><init_from>bbr_wood-2048.dds</init_from></image>"
+        "<image id=\"a_steel-2048_dds\" name=\"a_steel-2048_dds\"><init_from>a_steel-2048.dds</init_from></image>"
+        "<image id=\"b_steel-2048_dds\" name=\"b_steel-2048_dds\"><init_from>b_steel-2048.dds</init_from></image>"
+        "<image id=\"path_a_dds\" name=\"path_b_dds\"><init_from>missing.dds</init_from></image>"
+        "</library_images>\n"
+        "<library_effects>"
+        "<effect id=\"fx_recover\"><profile_COMMON>"
+        "<newparam sid=\"recover-surface\"><surface type=\"2D\"><init_from>metal-2048_dds</init_from></surface></newparam>"
+        "<newparam sid=\"recover-sampler\"><sampler2D><source>recover-surface</source></sampler2D></newparam>"
+        "<technique sid=\"common\"><lambert><diffuse><texture texture=\"recover-sampler\" texcoord=\"UVSET0\"/></diffuse></lambert></technique>"
+        "</profile_COMMON></effect>"
+        "<effect id=\"fx_exact\"><profile_COMMON>"
+        "<newparam sid=\"exact-surface\"><surface type=\"2D\"><init_from>wood-2048_dds</init_from></surface></newparam>"
+        "<newparam sid=\"exact-sampler\"><sampler2D><source>exact-surface</source></sampler2D></newparam>"
+        "<technique sid=\"common\"><lambert><diffuse><texture texture=\"exact-sampler\" texcoord=\"UVSET0\"/></diffuse></lambert></technique>"
+        "</profile_COMMON></effect>"
+        "<effect id=\"fx_ambiguous\"><profile_COMMON>"
+        "<newparam sid=\"ambiguous-surface\"><surface type=\"2D\"><init_from>steel-2048_dds</init_from></surface></newparam>"
+        "<newparam sid=\"ambiguous-sampler\"><sampler2D><source>ambiguous-surface</source></sampler2D></newparam>"
+        "<technique sid=\"common\"><lambert><diffuse><texture texture=\"ambiguous-sampler\" texcoord=\"UVSET0\"/></diffuse></lambert></technique>"
+        "</profile_COMMON></effect>"
+        "<effect id=\"fx_path_ambiguous\"><profile_COMMON>"
+        "<newparam sid=\"path-ambiguous-surface\"><surface type=\"2D\"><init_from>path_a_dds</init_from></surface></newparam>"
+        "<newparam sid=\"path-ambiguous-sampler\"><sampler2D><source>path-ambiguous-surface</source></sampler2D></newparam>"
+        "<technique sid=\"common\"><lambert><diffuse><texture texture=\"path-ambiguous-sampler\" texcoord=\"UVSET0\"/></diffuse></lambert></technique>"
+        "</profile_COMMON></effect>"
+        "</library_effects>\n"
+        "<library_materials>"
+        "<material id=\"mat_recover\"><instance_effect url=\"#fx_recover\"/></material>"
+        "<material id=\"mat_exact\"><instance_effect url=\"#fx_exact\"/></material>"
+        "<material id=\"mat_ambiguous\"><instance_effect url=\"#fx_ambiguous\"/></material>"
+        "<material id=\"mat_path_ambiguous\"><instance_effect url=\"#fx_path_ambiguous\"/></material>"
+        "</library_materials>\n"
+        "<library_visual_scenes><visual_scene id=\"Scene\"/></library_visual_scenes>\n"
+        "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
+        "</COLLADA>\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static inline
+bool
 ak_test_write_dae14_nested_ref_image(const char *path) {
   FILE *file;
 

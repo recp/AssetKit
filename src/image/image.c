@@ -104,6 +104,12 @@ ak_imageLoad(AkImage * __restrict image) {
       if (!source->uri || !ak__img_conf.loadFromFile)
         return;
 
+      if (source->resolvedPath && *source->resolvedPath) {
+        path = source->resolvedPath;
+        image->data = ak__img_conf.loadFromFile(heap, image, path, flipImage);
+        break;
+      }
+
       uriPath = source->uri;
       if (ak_str_has_char_fast(source->uri, '%')) {
         if (!io_uri_decode_path(source->uri, uribuf, sizeof(uribuf)))

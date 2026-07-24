@@ -17,6 +17,7 @@
 #include "../../../../include/ak/assetkit.h"
 #include "../common.h"
 #include "dae14.h"
+#include "../bugfix/texture.h"
 #include "../../../string_fast.h"
 
 static
@@ -91,9 +92,9 @@ dae14_find_image_by_id_n(AkDoc * __restrict doc,
 }
 
 static
-const char*
-dae14_find_image_id_for_surface_source(DAEState * __restrict dst,
-                                       const char * __restrict sid) {
+AkImage*
+dae14_find_image_for_surface_source(DAEState * __restrict dst,
+                                    const char * __restrict sid) {
   static const char suffix[] = "-surface";
   AkDoc            *doc;
   AkImage          *image;
@@ -106,7 +107,9 @@ dae14_find_image_id_for_surface_source(DAEState * __restrict dst,
   doc    = dst->doc;
   sidLen = strlen(sid);
   if ((image = dae14_find_image_by_id_n(doc, sid, sidLen)))
-    return ak_getId(image);
+    return image;
+  if ((image = dae_bugfix_texture_image_by_ref(dst, sid)))
+    return image;
 
   suffixLen = sizeof(suffix) - 1;
   if (sidLen > suffixLen
@@ -114,8 +117,19 @@ dae14_find_image_id_for_surface_source(DAEState * __restrict dst,
                         suffixLen,
                         suffix,
                         suffixLen)) {
-    if ((image = dae14_find_image_by_id_n(doc, sid, sidLen - suffixLen)))
-      return ak_getId(image);
+    char imageRef[PATH_MAX];
+
+    if (sidLen - suffixLen >= sizeof(imageRef))
+      return NULL;
+
+    memcpy(imageRef, sid, sidLen - suffixLen);
+    imageRef[sidLen - suffixLen] = '\0';
+    if ((image = dae14_find_image_by_id_n(doc,
+                                          imageRef,
+                                          sidLen - suffixLen)))
+      return image;
+    if ((image = dae_bugfix_texture_image_by_ref(dst, imageRef)))
+      return image;
   }
 
   return NULL;
@@ -193,6 +207,7 @@ dae14_loadjobs_finish(DAEState * __restrict dst) {
           /* surface may already migrated to 1.5+ */
           if (!surface->instanceImage) {
             AkImage *image;
+            const char *imageId;
 
             sampler = job->parent;
 
@@ -209,10 +224,20 @@ dae14_loadjobs_finish(DAEState * __restrict dst) {
 
             rb_insert(dst->instanceMap, sampler, instanceImage);
             if (surface->initFrom && surface->initFrom->image) {
+              image = dae14_find_image_by_id_n(dst->doc,
+                                               surface->initFrom->image,
+                                               strlen(surface->initFrom->image));
+              if (!image)
+                image = dae_bugfix_texture_image_by_ref(
+                  dst,
+                  surface->initFrom->image);
+              imageId = image ? ak_getId(image) : surface->initFrom->image;
               ak_url_init_with_id(dst->heap->allocator,
                                   instanceImage,
-                                  (char *)surface->initFrom->image,
+                                  (char *)imageId,
                                   &instanceImage->url);
+              if (image)
+                dae_bugfix_texture_image_path(dst, image);
             }
 
             /* TODO: */
@@ -234,14 +259,17 @@ dae14_loadjobs_finish(DAEState * __restrict dst) {
         } else {
           AkSampler       *sampler;
           AkInstanceBase  *instanceImage;
-          const char      *imageId;
+          AkImage         *image;
 
-          imageId = dae14_find_image_id_for_surface_source(dst, job->value);
-          if (!imageId)
+          image = dae14_find_image_for_surface_source(dst, job->value);
+          if (!image)
             break;
 
           sampler       = job->parent;
-          instanceImage = dae14_make_image_instance(dst, sampler, imageId);
+          dae_bugfix_texture_image_path(dst, image);
+          instanceImage = dae14_make_image_instance(dst,
+                                                     sampler,
+                                                     ak_getId(image));
           if (instanceImage)
             rb_insert(dst->instanceMap, sampler, instanceImage);
         }
