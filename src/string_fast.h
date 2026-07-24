@@ -384,6 +384,19 @@ ak_str_skip_sep_fast(char * __restrict p,
   if (end) {
     char *shortEnd;
 
+    if (p < end
+        && (lineOnly ? ak_str_sepline_fast(*p) : ak_str_sep_fast(*p))) {
+      char *next;
+
+      next = p + 1u;
+      if (next >= end
+          || !(lineOnly
+               ? ak_str_sepline_fast(*next)
+               : ak_str_sep_fast(*next)))
+        return next;
+      p = next;
+    }
+
     shortEnd = p + ((end - p) < 8 ? (end - p) : 8);
     while (p < shortEnd
            && (lineOnly ? ak_str_sepline_fast(*p) : ak_str_sep_fast(*p)))

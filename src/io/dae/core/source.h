@@ -26,4 +26,8 @@ dae_source(DAEState * __restrict dst,
            AkEnum              (*asEnum)(const char *name, size_t nameLen),
            AkTypeId              enumType);
 
+AK_HIDE
+void
+dae_parse_float_sources(DAEState * __restrict dst);
+
 #endif /* dae_source_h */

@@ -193,6 +193,11 @@ typedef struct DaeSource {
   int32_t           target;
 } DaeSource;
 
+typedef struct DaeFloatParseJob {
+  const xml_t *source;
+  AkBuffer    *buffer;
+} DaeFloatParseJob;
+
 typedef struct DAELibrary {
   struct DAELibrary *next;
   const char        *name;
@@ -220,6 +225,7 @@ typedef AK_ALIGN(16) struct DAEState {
   RBTree          *instanceMap;
   RBTree          *materialEffectMap;
   FListItem       *vertMap;
+  DaeFloatParseJob *floatParseJobs;
   DAELibrary      *effectLibraries;
   DAELibrary      *controllerLibraries;
   DAELibrary      *nodeLibraries;
@@ -233,6 +239,9 @@ typedef AK_ALIGN(16) struct DAEState {
      <instance_controller>, leaving the morph dangling otherwise). */
   RBTree          *meshTargets;
   DaeSource       *sources;
+  uint64_t         floatValueCount;
+  size_t           floatParseJobCount;
+  size_t           floatParseJobCapacity;
   AkCOLLADAVersion version;
   bool             stop;
 } DAEState;

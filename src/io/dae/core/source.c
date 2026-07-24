@@ -19,6 +19,152 @@
 #include "../core/techn.h"
 #include "../core/enum.h"
 #include "../core/value.h"
+#include "../../../thread.h"
+
+#define DAE_FLOAT_PARSE_PARALLEL_MIN_VALUES 131072u
+#define DAE_FLOAT_PARSE_MAX_THREADS 8u
+
+typedef struct DaeFloatParseWorker {
+  DaeFloatParseJob *jobs;
+  size_t            jobCount;
+  uint32_t          startIndex;
+  uint32_t          stride;
+} DaeFloatParseWorker;
+
+static
+void
+dae_parse_float_source_task(void *userdata) {
+  DaeFloatParseJob *job;
+  size_t            count;
+
+  job = userdata;
+  if (!job || !job->source || !job->buffer || !job->buffer->data)
+    return;
+
+  count = job->buffer->length / sizeof(AkFloat);
+  xml_strtof_fast(job->source,
+                  job->buffer->data,
+                  (unsigned long)count);
+}
+
+static
+int
+dae_float_parse_job_compare(const void *left, const void *right) {
+  const DaeFloatParseJob *a;
+  const DaeFloatParseJob *b;
+
+  a = left;
+  b = right;
+
+  return (a->buffer->length < b->buffer->length)
+       - (a->buffer->length > b->buffer->length);
+}
+
+static
+void
+dae_parse_float_source_worker(void *userdata) {
+  DaeFloatParseWorker *worker;
+  size_t               i;
+
+  worker = userdata;
+  for (i = worker->startIndex; i < worker->jobCount; i += worker->stride)
+    dae_parse_float_source_task(&worker->jobs[i]);
+}
+
+static
+void
+dae_parse_float_sources_serial(DAEState * __restrict dst) {
+  size_t i;
+
+  for (i = 0u; i < dst->floatParseJobCount; i++)
+    dae_parse_float_source_task(&dst->floatParseJobs[i]);
+}
+
+AK_HIDE
+void
+dae_parse_float_sources(DAEState * __restrict dst) {
+  AkThreadTask          tasks[DAE_FLOAT_PARSE_MAX_THREADS];
+  DaeFloatParseWorker  workers[DAE_FLOAT_PARSE_MAX_THREADS];
+  size_t                jobCount;
+  uint32_t              threadCount;
+  uint32_t              i;
+
+  if (!dst || !dst->floatParseJobs || dst->floatParseJobCount == 0u)
+    return;
+
+  jobCount = dst->floatParseJobCount;
+  if (jobCount < 2u
+      || jobCount > UINT32_MAX
+      || dst->floatValueCount < DAE_FLOAT_PARSE_PARALLEL_MIN_VALUES) {
+    dae_parse_float_sources_serial(dst);
+    goto done;
+  }
+
+  /* Longest jobs first keeps the fixed-stride worker groups balanced. */
+  qsort(dst->floatParseJobs,
+        jobCount,
+        sizeof(*dst->floatParseJobs),
+        dae_float_parse_job_compare);
+
+  threadCount = ak_thread_cpu_count();
+  if (threadCount > DAE_FLOAT_PARSE_MAX_THREADS)
+    threadCount = DAE_FLOAT_PARSE_MAX_THREADS;
+  if ((size_t)threadCount > jobCount)
+    threadCount = (uint32_t)jobCount;
+
+  for (i = 0u; i < threadCount; i++) {
+    workers[i].jobs       = dst->floatParseJobs;
+    workers[i].jobCount   = jobCount;
+    workers[i].startIndex = i;
+    workers[i].stride     = threadCount;
+    tasks[i].func         = dae_parse_float_source_worker;
+    tasks[i].userdata     = &workers[i];
+  }
+
+  if (!ak_thread_run_tasks(tasks, threadCount))
+    dae_parse_float_sources_serial(dst);
+
+done:
+  free(dst->floatParseJobs);
+  dst->floatParseJobs        = NULL;
+  dst->floatParseJobCount    = 0u;
+  dst->floatParseJobCapacity = 0u;
+  dst->floatValueCount       = 0u;
+}
+
+static
+bool
+dae_defer_float_source(DAEState   * __restrict dst,
+                       const xml_t * __restrict source,
+                       AkBuffer    * __restrict buffer,
+                       uint32_t                 count) {
+  DaeFloatParseJob *jobs;
+  size_t            capacity;
+
+  if (dst->floatParseJobCount == dst->floatParseJobCapacity) {
+    if (dst->floatParseJobCapacity > SIZE_MAX / 2u)
+      return false;
+
+    capacity = dst->floatParseJobCapacity
+               ? dst->floatParseJobCapacity * 2u
+               : 64u;
+    if (capacity > SIZE_MAX / sizeof(*jobs))
+      return false;
+
+    jobs = realloc(dst->floatParseJobs, sizeof(*jobs) * capacity);
+    if (!jobs)
+      return false;
+
+    dst->floatParseJobs        = jobs;
+    dst->floatParseJobCapacity = capacity;
+  }
+
+  jobs = &dst->floatParseJobs[dst->floatParseJobCount++];
+  jobs->source = source;
+  jobs->buffer = buffer;
+  dst->floatValueCount += count;
+  return true;
+}
 
 AK_HIDE
 DaeSource*
@@ -107,7 +253,9 @@ dae_source(DAEState * __restrict dst,
       if (DAE_XML_TAG_EQ(xml, float_array)) {
         buffer->length = sizeof(float) * count;
         buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
-        xml_strtof_fast(sval, buffer->data, count);
+        /* Float sources remain independent until DAE post-processing. */
+        if (!dae_defer_float_source(dst, sval, buffer, count))
+          xml_strtof_fast(sval, buffer->data, count);
         
         ak_setUserData(buffer, (void *)(uintptr_t)AKT_FLOAT);
       } else if (DAE_XML_TAG_EQ(xml, int_array)) {

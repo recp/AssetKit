@@ -121,6 +121,67 @@ ak_test_write_dae(const char *path) {
 
 static
 bool
+ak_test_write_parallel_float_dae(const char *path) {
+  static const uint32_t vectorCount = 5462u;
+  FILE                 *file;
+  uint32_t              sourceIndex;
+  uint32_t              i;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
+        "<asset><unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>\n"
+        "<library_geometries><geometry id=\"geom\"><mesh>\n",
+        file);
+
+  for (sourceIndex = 0u; sourceIndex < 8u; sourceIndex++) {
+    fprintf(file,
+            "<source id=\"source-%u\"><float_array id=\"array-%u\" count=\"%u\">",
+            sourceIndex,
+            sourceIndex,
+            vectorCount * 3u);
+
+    for (i = 0u; i < vectorCount; i++) {
+      if (sourceIndex == 0u)
+        fprintf(file, "%u -0.1326828 1e-3 ", i);
+      else if (sourceIndex == 1u)
+        fputs("0 0 1 ", file);
+      else
+        fputs("-1775.787 0.1753 0.998616 ", file);
+    }
+
+    fprintf(file,
+            "</float_array><technique_common>"
+            "<accessor source=\"#array-%u\" count=\"%u\" stride=\"3\">"
+            "<param name=\"X\" type=\"float\"/>"
+            "<param name=\"Y\" type=\"float\"/>"
+            "<param name=\"Z\" type=\"float\"/>"
+            "</accessor></technique_common></source>\n",
+            sourceIndex,
+            vectorCount);
+  }
+
+  fputs("<vertices id=\"verts\"><input semantic=\"POSITION\" source=\"#source-0\"/></vertices>\n"
+        "<triangles count=\"1\">"
+        "<input semantic=\"VERTEX\" source=\"#verts\" offset=\"0\"/>"
+        "<input semantic=\"NORMAL\" source=\"#source-1\" offset=\"1\"/>"
+        "<p>0 0 2731 2731 5461 5461</p>"
+        "</triangles>\n"
+        "</mesh></geometry></library_geometries>\n"
+        "<library_visual_scenes><visual_scene id=\"Scene\"><node id=\"node\">"
+        "<instance_geometry url=\"#geom\"/></node></visual_scene></library_visual_scenes>\n"
+        "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
+        "</COLLADA>\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
 ak_test_write_gltf(const char *path, const char *binPath) {
   FILE    *file;
   uint8_t  buffer[76];
@@ -1267,6 +1328,59 @@ TEST_IMPL(gltf_load_short_buffer_uri) {
   ak_free(doc);
   unlink(gltfPath);
   unlink(binPath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(parallel_dae_float_array_parse) {
+  AkDoc           *doc;
+  AkMeshPrimitive *prim;
+  AkAccessor      *positions;
+  AkInput         *normalInput;
+  char             dirTemplate[PATH_MAX];
+  char            *tmpdir;
+  char             daePath[PATH_MAX];
+  const char      *tmpBase;
+
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-parallel-dae-float-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(daePath, sizeof(daePath), "%s/parallel_float.dae", tmpdir);
+  ASSERT(ak_test_write_parallel_float_dae(daePath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_COLLADA) == AK_OK);
+  ASSERT(doc != NULL);
+
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->pos != NULL && prim->pos->accessor != NULL);
+  ASSERT(prim->pos->accessor->count == 5462u);
+
+  positions = prim->pos->accessor;
+  ASSERT(ak_test_accessor_f32(positions, 0u, 0u) == 0.0f);
+  ASSERT(ak_test_accessor_f32(positions, 2731u, 0u) == 2731.0f);
+  ASSERT(ak_test_accessor_f32(positions, 5461u, 0u) == 5461.0f);
+  ASSERT(fabsf(ak_test_accessor_f32(positions, 5461u, 1u)
+               - (-0.1326828f)) < 1.0e-6f);
+  ASSERT(fabsf(ak_test_accessor_f32(positions, 5461u, 2u)
+               - 1.0e-3f) < 1.0e-6f);
+
+  normalInput = ak_test_input(prim, AK_INPUT_NORMAL);
+  ASSERT(normalInput != NULL && normalInput->accessor != NULL);
+  ASSERT(ak_test_accessor_f32(normalInput->accessor, 5461u, 2u) == 1.0f);
+
+  ak_free(doc);
+  unlink(daePath);
   rmdir(tmpdir);
 
   TEST_SUCCESS

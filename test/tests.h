@@ -234,6 +234,7 @@ TEST_DECLARE(load_auto_uppercase_extension)
 TEST_DECLARE(path_short_ref_does_not_overread)
 TEST_DECLARE(path_fullpathn_rejects_too_long_ref)
 TEST_DECLARE(gltf_load_short_buffer_uri)
+TEST_DECLARE(parallel_dae_float_array_parse)
 TEST_DECLARE(index_stats_corpus)
 TEST_DECLARE(format_edge_cases)
 
@@ -449,6 +450,7 @@ TEST_LIST {
   TEST_ENTRY(path_short_ref_does_not_overread)
   TEST_ENTRY(path_fullpathn_rejects_too_long_ref)
   TEST_ENTRY(gltf_load_short_buffer_uri)
+  TEST_ENTRY(parallel_dae_float_array_parse)
   TEST_ENTRY(index_stats_corpus)
   TEST_ENTRY(format_edge_cases)
 };
