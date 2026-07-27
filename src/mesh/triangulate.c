@@ -15,6 +15,7 @@
  */
 
 #include "../common.h"
+#include "triangulate_holes.h"
 
 AK_HIDE
 uint32_t
@@ -123,6 +124,9 @@ ak_meshTriangulatePoly(AkPolygon * __restrict poly) {
 
   if (!poly->vcount)
     return 0;
+
+  if (poly->haveHoles)
+    return ak_meshTriangulatePolyHoles(poly);
 
   if (!ak_meshPrimitiveMaterializeIndices(&poly->base))
     return ak_meshTriangulatePoly_noindices(poly);

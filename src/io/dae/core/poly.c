@@ -19,6 +19,140 @@
 #include "../../../array.h"
 #include "../../../data.h"
 
+static
+bool
+dae_poly_parse_outer(DAEState     * __restrict dst,
+                     AkPolygon    * __restrict poly,
+                     xml_t        * __restrict value,
+                     FListItem   ** __restrict polyi,
+                     uint32_t     * __restrict polygonsCount,
+                     size_t       * __restrict indicesCount,
+                     AkUInt       * __restrict maxIndex) {
+  AkIndexArray *indexArray;
+  AkUInt        arrayMax;
+
+  if (!value)
+    return false;
+
+  arrayMax = 0;
+  if (xml_strtoindex_array_max(dst->heap,
+                               poly,
+                               value,
+                               &indexArray,
+                               &arrayMax) != AK_OK)
+    return false;
+
+  if (arrayMax > *maxIndex)
+    *maxIndex = arrayMax;
+
+  flist_sp_insert(polyi, indexArray);
+  (*polygonsCount)++;
+  *indicesCount += indexArray->count;
+  return true;
+}
+
+static
+void
+dae_poly_append_hole(AkPolygon     * __restrict poly,
+                     AkPolygonHole * __restrict hole) {
+  AkPolygonHole *last;
+
+  if (!poly->holes) {
+    poly->holes = hole;
+    return;
+  }
+
+  last = poly->holes;
+  while (last->next)
+    last = last->next;
+  last->next = hole;
+}
+
+static
+void
+dae_poly_parse_ph(DAEState     * __restrict dst,
+                  AkPolygon    * __restrict poly,
+                  xml_t        * __restrict ph,
+                  FListItem   ** __restrict polyi,
+                  uint32_t     * __restrict polygonsCount,
+                  size_t       * __restrict indicesCount,
+                  AkUInt       * __restrict maxIndex) {
+  AkPolygonHole *holes;
+  AkPolygonHole *holesTail;
+  xml_t         *ring;
+  uint32_t       polygonIndex;
+  bool           haveOuter;
+
+  holes        = NULL;
+  holesTail    = NULL;
+  polygonIndex = *polygonsCount;
+  haveOuter    = false;
+  ring         = ph->val;
+
+  while (ring) {
+    if (!haveOuter && DAE_XML_TAG_EQ8(ring, p) && ring->val) {
+      haveOuter = dae_poly_parse_outer(dst,
+                                       poly,
+                                       ring->val,
+                                       polyi,
+                                       polygonsCount,
+                                       indicesCount,
+                                       maxIndex);
+    } else if (DAE_XML_TAG_EQ8(ring, h) && ring->val) {
+      AkPolygonHole *hole;
+      AkUInt          arrayMax;
+
+      hole = ak_heap_calloc(dst->heap, poly, sizeof(*hole));
+      if (!hole)
+        goto next;
+
+      arrayMax = 0;
+      if (xml_strtoui_array_max(dst->heap,
+                                hole,
+                                ring->val,
+                                &hole->indices,
+                                &arrayMax) != AK_OK) {
+        ak_free(hole);
+        goto next;
+      }
+
+      hole->polygonIndex = polygonIndex;
+      if (arrayMax > *maxIndex)
+        *maxIndex = arrayMax;
+
+      if (!holes)
+        holes = hole;
+      else
+        holesTail->next = hole;
+      holesTail = hole;
+    }
+
+  next:
+    ring = ring->next;
+  }
+
+  if (!haveOuter) {
+    while (holes) {
+      AkPolygonHole *next;
+
+      next = holes->next;
+      ak_free(holes);
+      holes = next;
+    }
+    return;
+  }
+
+  while (holes) {
+    AkPolygonHole *next;
+
+    next = holes->next;
+    holes->next = NULL;
+    dae_poly_append_hole(poly, holes);
+    holes = next;
+  }
+  poly->haveHoles = poly->holes != NULL;
+}
+
 AK_HIDE
 AkPolygon*
 dae_poly(DAEState * __restrict dst,
@@ -87,26 +221,39 @@ dae_poly(DAEState * __restrict dst,
         }
       }
     } else if (DAE_XML_TAG_EQ8(xml, p) && xml->val) {
-      AkIndexArray *indexArray;
-      AkUInt        arrayMax;
-      
-      arrayMax = 0;
-      if ((xml_strtoindex_array_max(heap,
+      if (mode == AK_POLY_POLYLIST) {
+        AkIndexArray *indexArray;
+        AkUInt        arrayMax;
+
+        arrayMax = 0;
+        if (xml_strtoindex_array_max(heap,
                                      poly,
                                      xml->val,
                                      &indexArray,
-                                     &arrayMax) == AK_OK)) {
-        if (arrayMax > maxIndex)
-          maxIndex = arrayMax;
-        if (mode == AK_POLY_POLYLIST) {
+                                     &arrayMax) == AK_OK) {
           poly->base.indices = indexArray;
-        } else if (mode == AK_POLY_POLYGONS) {
-          /* TODO: do this for POLYLIST if vcount not exists */
-          flist_sp_insert(&polyi, indexArray);
-          polygonsCount++;
-          indicesCount += indexArray->count;
+          if (arrayMax > maxIndex)
+            maxIndex = arrayMax;
         }
+      } else if (mode == AK_POLY_POLYGONS) {
+        dae_poly_parse_outer(dst,
+                             poly,
+                             xml->val,
+                             &polyi,
+                             &polygonsCount,
+                             &indicesCount,
+                             &maxIndex);
       }
+    } else if (mode == AK_POLY_POLYGONS
+               && DAE_XML_TAG_EQ8(xml, ph)
+               && xml->val) {
+      dae_poly_parse_ph(dst,
+                        poly,
+                        xml,
+                        &polyi,
+                        &polygonsCount,
+                        &indicesCount,
+                        &maxIndex);
     } else if (DAE_XML_TAG_EQ8(xml, vcount) && xml->val) {
       AkUIntArray *intArray;
       if ((xml_strtoui_array(heap, poly, xml->val, &intArray) == AK_OK)) {
@@ -199,6 +346,19 @@ dae_poly(DAEState * __restrict dst,
 
     poly->base.indices = indices;
     poly->vcount         = vcount;
+    poly->base.nPolygons = polygonsCount;
+
+    if (poly->holes) {
+      AkPolygonHole *hole;
+
+      /*
+       * The temporary forward list prepends outer contours, so the packed
+       * primitive order is reversed.  Keep hole ownership aligned with that
+       * established ordering.
+       */
+      for (hole = poly->holes; hole; hole = hole->next)
+        hole->polygonIndex = polygonsCount - 1u - hole->polygonIndex;
+    }
 
     flist_sp_destroy(&polyi);
   }

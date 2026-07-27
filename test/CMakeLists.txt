@@ -11,6 +11,7 @@ add_executable(assetkit_tests
   src/io/dae/exp/geometry.c
   src/io/dae/imp/scene.c
   src/io/dae/imp/folder.c
+  src/io/dae/imp/archive.c
   src/io/gltf/exp/core.c
   src/io/gltf/exp/material.c
   src/io/gltf/exp/textures.c

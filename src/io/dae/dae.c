@@ -56,6 +56,16 @@ static DAEVersionPair daeVersions[] = {
 typedef void*(*AkLoadLibraryItemFn)(DAEState * __restrict dst,
                                     xml_t    * __restrict xml,
                                     void     * __restrict memp);
+typedef void(*DAEInputReleaseFn)(void *data, size_t size);
+
+static
+AkResult
+dae_doc_data(AkDoc            ** __restrict dest,
+             const char        * __restrict filepath,
+             void              * __restrict xmlString,
+             size_t                         xmlSize,
+             DAEInputReleaseFn              releaseInput);
+
 static bool
 dae_xml_utf16(const void * __restrict data,
               size_t                  size,
@@ -85,24 +95,65 @@ AK_HIDE
 AkResult
 dae_doc(AkDoc     ** __restrict dest,
         const char * __restrict filepath) {
+  void     *xmlString;
+  size_t    xmlSize;
+  AkResult  ret;
+
+  if ((ret = ak_readfile(filepath, NULL, &xmlString, &xmlSize)) != AK_OK)
+    return ret;
+
+  return dae_doc_data(dest,
+                      filepath,
+                      xmlString,
+                      xmlSize,
+                      ak_releasefile);
+}
+
+static
+void
+dae_free_input(void *data, size_t size) {
+  (void)size;
+  free(data);
+}
+
+AK_HIDE
+AkResult
+dae_doc_memory(AkDoc     ** __restrict dest,
+               const char * __restrict filepath,
+               void       * __restrict xmlData,
+               size_t                  xmlSize) {
+  if (!dest || !filepath || !xmlData)
+    return AK_ERR;
+
+  return dae_doc_data(dest,
+                      filepath,
+                      xmlData,
+                      xmlSize,
+                      dae_free_input);
+}
+
+static
+AkResult
+dae_doc_data(AkDoc            ** __restrict dest,
+             const char        * __restrict filepath,
+             void              * __restrict xmlString,
+             size_t                         xmlSize,
+             DAEInputReleaseFn              releaseInput) {
   AkHeap            *heap;
   AkDoc             *doc;
   xml_doc_t         *xdoc;
   xml_t             *xml, *assetEl;
   AkAssetInf        *inf;
   xml_attr_t        *versionAttr;
-  void              *xmlString;
   char              *xmlUtf8;
   const char        *xmlInput;
   FListItem         *freeUsrData;
   DAEState           dstVal, *dst;
-  size_t             xmlSize;
-  AkResult           ret;
   bool               xmlBigEndian;
   size_t             xmlByteOffset;
 
-  if ((ret = ak_readfile(filepath, NULL, &xmlString, &xmlSize)) != AK_OK)
-    return ret;
+  if (!dest || !filepath || !xmlString || !releaseInput)
+    return AK_ERR;
 
   xmlUtf8  = NULL;
   xmlInput = xmlString;
@@ -113,10 +164,10 @@ dae_doc(AkDoc     ** __restrict dest,
                                     xmlByteOffset,
                                     NULL);
     if (!xmlUtf8) {
-      ak_releasefile(xmlString, xmlSize);
+      releaseInput(xmlString, xmlSize);
       return AK_ERR;
     }
-    ak_releasefile(xmlString, xmlSize);
+    releaseInput(xmlString, xmlSize);
     xmlString = NULL;
     xmlSize   = 0;
     xmlInput  = xmlUtf8;
@@ -128,7 +179,8 @@ dae_doc(AkDoc     ** __restrict dest,
       xml_free(xdoc);
     if (xmlUtf8)
       free(xmlUtf8);
-    ak_releasefile(xmlString, xmlSize);
+    if (xmlString)
+      releaseInput(xmlString, xmlSize);
     return AK_ERR;
   }
 
@@ -305,7 +357,7 @@ dae_doc(AkDoc     ** __restrict dest,
     xml_free(xdoc);
   
   if (xmlString)
-    ak_releasefile(xmlString, xmlSize);
+    releaseInput(xmlString, xmlSize);
   if (xmlUtf8)
     free(xmlUtf8);
 

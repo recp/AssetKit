@@ -18,6 +18,8 @@
 #include "brep.h"
 #include "source.h"
 
+#include <stdlib.h>
+
 static
 bool
 dae_input_morph_vertex_domain(AkInput * __restrict input) {
@@ -188,15 +190,16 @@ dae_write_vertices(DAEExpState * __restrict st,
 
 static
 bool
-dae_write_primitive(DAEExpState      * __restrict st,
-                    AkMeshPrimitive  * __restrict prim,
-                    uint32_t                      geomIdx,
-                    uint32_t                      primIdx,
-                    bool                          morphVertexGeometry) {
+dae_write_primitive_with_storage(DAEExpState      * __restrict st,
+                                 AkMeshPrimitive  * __restrict prim,
+                                 uint32_t                      geomIdx,
+                                 uint32_t                      primIdx,
+                                 bool                          morphVertexGeometry,
+                                 AkInput         ** __restrict inputs,
+                                 AkInput         ** __restrict pInputs,
+                                 uint32_t                      inputCapacity) {
   DAEExpWriter *w;
   AkInput      *input;
-  AkInput      *inputs[32];
-  AkInput      *pInputs[32];
   uint32_t      inputCount;
   uint32_t      pInputCount;
   uint32_t      posInputIdx;
@@ -223,7 +226,7 @@ dae_write_primitive(DAEExpState      * __restrict st,
     semantic = dae_semantic_name(input);
     if (!semantic || !*semantic)
       continue;
-    if (inputCount >= AK_ARRAY_LEN(inputs))
+    if (inputCount >= inputCapacity)
       return false;
 
     isPosition = input == prim->pos || input->semantic == AK_INPUT_POSITION;
@@ -285,7 +288,7 @@ dae_write_primitive(DAEExpState      * __restrict st,
       continue;
 
     if (!shareSingleIndex) {
-      if (pInputCount >= AK_ARRAY_LEN(pInputs))
+      if (pInputCount >= inputCapacity)
         return false;
       pInputs[pInputCount] = srcInput;
       outOffset = pInputCount++;
@@ -381,6 +384,64 @@ dae_write_primitive(DAEExpState      * __restrict st,
   dae_w_ch(w, '>');
 
   return w->result == AK_OK;
+}
+
+static
+bool
+dae_write_primitive(DAEExpState      * __restrict st,
+                    AkMeshPrimitive  * __restrict prim,
+                    uint32_t                      geomIdx,
+                    uint32_t                      primIdx,
+                    bool                          morphVertexGeometry) {
+  AkInput  *stackInputs[32];
+  AkInput  *stackPInputs[32];
+  AkInput **inputs;
+  AkInput **pInputs;
+  AkInput  *input;
+  void     *storage;
+  size_t    candidateCount;
+  size_t    storageSize;
+  bool      result;
+
+  candidateCount = 0u;
+  for (input = prim ? prim->input : NULL; input; input = input->next) {
+    const char *semantic;
+
+    if (!input->accessor)
+      continue;
+    semantic = dae_semantic_name(input);
+    if (semantic && *semantic)
+      candidateCount++;
+  }
+
+  if (candidateCount == 0u || candidateCount > UINT32_MAX)
+    return false;
+
+  storage = NULL;
+  if (candidateCount <= AK_ARRAY_LEN(stackInputs)) {
+    inputs  = stackInputs;
+    pInputs = stackPInputs;
+  } else {
+    if (candidateCount > (size_t)-1 / (sizeof(*inputs) * 2u))
+      return false;
+    storageSize = sizeof(*inputs) * candidateCount * 2u;
+    storage     = malloc(storageSize);
+    if (!storage)
+      return false;
+    inputs  = storage;
+    pInputs = inputs + candidateCount;
+  }
+
+  result = dae_write_primitive_with_storage(st,
+                                            prim,
+                                            geomIdx,
+                                            primIdx,
+                                            morphVertexGeometry,
+                                            inputs,
+                                            pInputs,
+                                            (uint32_t)candidateCount);
+  free(storage);
+  return result;
 }
 
 

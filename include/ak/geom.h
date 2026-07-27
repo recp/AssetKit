@@ -147,11 +147,22 @@ typedef struct AkLines {
   AkLineMode      mode;
 } AkLines;
 
+/*
+ * One authored hole contour in a polygon.  indices stores complete
+ * interleaved index tuples using AkUInt items; polygonIndex identifies the
+ * outer contour in AkPolygon.vcount.
+ */
+typedef struct AkPolygonHole {
+  struct AkPolygonHole *next;
+  AkUIntArray          *indices;
+  uint32_t              polygonIndex;
+} AkPolygonHole;
+
 typedef struct AkPolygon {
-  AkMeshPrimitive base;
-  AkDoubleArrayL *holes;
-  AkUIntArray    *vcount;
-  AkBool          haveHoles;
+  AkMeshPrimitive  base;
+  AkPolygonHole   *holes;
+  AkUIntArray     *vcount;
+  AkBool           haveHoles;
 } AkPolygon;
 
 typedef struct AkTriangles {

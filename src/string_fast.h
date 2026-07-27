@@ -633,6 +633,20 @@ ak_str_parse_float_fast(char    * __restrict p,
       fracMul *= 0.1f;
       found = true;
     }
+
+    /*
+     * Old Microsoft CRT spellings such as -1.#IND and 1.#QNAN are not
+     * standard floating-point tokens.  Consume the complete token as one
+     * zero value instead of returning after the numeric prefix and shifting
+     * every following array item.
+     */
+    if ((!end || p < end) && *p == '#') {
+      do {
+        p++;
+      } while ((!end || p < end) && *p && !ak_str_sep_fast(*p));
+      *dest = 0.0f;
+      return p;
+    }
   }
 
   if (!found) {
@@ -701,6 +715,18 @@ ak_str_parse_float_end_fast(char    * __restrict p,
       value += (float)(*p++ - '0') * fracMul;
       fracMul *= 0.1f;
       found = true;
+    }
+
+    /*
+     * Keep legacy Microsoft CRT non-finite spellings aligned with one
+     * destination element.  See the unbounded parser above.
+     */
+    if (p < end && *p == '#') {
+      do {
+        p++;
+      } while (p < end && !ak_str_sep_fast(*p));
+      *dest = 0.0f;
+      return p;
     }
   }
 

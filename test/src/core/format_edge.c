@@ -121,6 +121,86 @@ ak_test_write_dae(const char *path) {
 
 static
 bool
+ak_test_write_dae_legacy_crt_nonfinite(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
+        "<asset><unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>\n"
+        "<library_geometries><geometry id=\"geom\"><mesh>\n"
+        "<source id=\"pos\"><float_array id=\"pos-array\" count=\"9\">"
+        "0 0 0 1 -1.#IND 2 3 1.#QNAN 4"
+        "</float_array><technique_common>"
+        "<accessor source=\"#pos-array\" count=\"3\" stride=\"3\">"
+        "<param name=\"X\" type=\"float\"/>"
+        "<param name=\"Y\" type=\"float\"/>"
+        "<param name=\"Z\" type=\"float\"/>"
+        "</accessor></technique_common></source>\n"
+        "<vertices id=\"verts\"><input semantic=\"POSITION\" source=\"#pos\"/></vertices>\n"
+        "<triangles count=\"1\"><input semantic=\"VERTEX\" source=\"#verts\" offset=\"0\"/>"
+        "<p>0 1 2</p></triangles>\n"
+        "</mesh></geometry></library_geometries>\n"
+        "<library_visual_scenes><visual_scene id=\"Scene\"><node id=\"node\">"
+        "<instance_geometry url=\"#geom\"/></node></visual_scene></library_visual_scenes>\n"
+        "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
+        "</COLLADA>\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_dae_polygon_hole(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
+        "<asset><unit name=\"meter\" meter=\"1\"/><up_axis>Z_UP</up_axis></asset>\n"
+        "<library_geometries><geometry id=\"panel\"><mesh>\n"
+        "<source id=\"pos\"><float_array id=\"pos-array\" count=\"24\">"
+        "0 0 0 1 0 0 1 1 0 0 1 0 "
+        "0.4 0.4 0 0.4 0.6 0 0.6 0.6 0 0.6 0.4 0"
+        "</float_array><technique_common>"
+        "<accessor source=\"#pos-array\" count=\"8\" stride=\"3\">"
+        "<param name=\"X\" type=\"float\"/><param name=\"Y\" type=\"float\"/>"
+        "<param name=\"Z\" type=\"float\"/>"
+        "</accessor></technique_common></source>\n"
+        "<source id=\"uv\"><float_array id=\"uv-array\" count=\"16\">"
+        "0 0 1 0 1 1 0 1 0.4 0.4 0.4 0.6 0.6 0.6 0.6 0.4"
+        "</float_array><technique_common>"
+        "<accessor source=\"#uv-array\" count=\"8\" stride=\"2\">"
+        "<param name=\"S\" type=\"float\"/><param name=\"T\" type=\"float\"/>"
+        "</accessor></technique_common></source>\n"
+        "<vertices id=\"verts\"><input semantic=\"POSITION\" source=\"#pos\"/></vertices>\n"
+        "<polygons count=\"1\">"
+        "<input semantic=\"VERTEX\" source=\"#verts\" offset=\"0\"/>"
+        "<input semantic=\"TEXCOORD\" source=\"#uv\" offset=\"1\" set=\"0\"/>"
+        "<ph><p>0 0 1 1 2 2 3 3</p>"
+        "<h>4 4 5 5 6 6 7 7</h></ph>"
+        "</polygons></mesh></geometry></library_geometries>\n"
+        "<library_nodes><node id=\"panel-part\">"
+        "<instance_geometry url=\"#panel\"/></node></library_nodes>\n"
+        "<library_visual_scenes><visual_scene id=\"Scene\"><node id=\"assembly\">"
+        "<instance_node url=\"#panel-part\"/>"
+        "</node></visual_scene></library_visual_scenes>\n"
+        "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
+        "</COLLADA>\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
 ak_test_write_parallel_float_dae(const char *path) {
   static const uint32_t vectorCount = 5462u;
   FILE                 *file;
@@ -1442,6 +1522,127 @@ TEST_IMPL(parallel_dae_float_array_parse) {
   normalInput = ak_test_input(prim, AK_INPUT_NORMAL);
   ASSERT(normalInput != NULL && normalInput->accessor != NULL);
   ASSERT(ak_test_accessor_f32(normalInput->accessor, 5461u, 2u) == 1.0f);
+
+  ak_free(doc);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(dae_legacy_crt_nonfinite_float_tokens) {
+  AkDoc           *doc;
+  AkMeshPrimitive *prim;
+  AkAccessor      *positions;
+  char             dirTemplate[PATH_MAX];
+  char            *tmpdir;
+  char             daePath[PATH_MAX];
+  const char      *tmpBase;
+
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-dae-crt-nonfinite-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(daePath, sizeof(daePath), "%s/legacy_nonfinite.dae", tmpdir);
+  ASSERT(ak_test_write_dae_legacy_crt_nonfinite(daePath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_COLLADA) == AK_OK);
+  ASSERT(doc != NULL);
+
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL && prim->pos != NULL);
+  positions = prim->pos->accessor;
+  ASSERT(positions != NULL && positions->count == 3u);
+
+  ASSERT(ak_test_accessor_f32(positions, 0u, 0u) == 0.0f);
+  ASSERT(ak_test_accessor_f32(positions, 0u, 1u) == 0.0f);
+  ASSERT(ak_test_accessor_f32(positions, 0u, 2u) == 0.0f);
+  ASSERT(ak_test_accessor_f32(positions, 1u, 0u) == 1.0f);
+  ASSERT(ak_test_accessor_f32(positions, 1u, 1u) == 0.0f);
+  ASSERT(ak_test_accessor_f32(positions, 1u, 2u) == 2.0f);
+  ASSERT(ak_test_accessor_f32(positions, 2u, 0u) == 3.0f);
+  ASSERT(ak_test_accessor_f32(positions, 2u, 1u) == 0.0f);
+  ASSERT(ak_test_accessor_f32(positions, 2u, 2u) == 4.0f);
+
+  ak_free(doc);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(dae_polygon_hole_tessellation) {
+  AkDoc           *doc;
+  AkMeshPrimitive *prim;
+  AkAccessor      *positions;
+  AkInput         *texcoord;
+  char             dirTemplate[PATH_MAX];
+  char            *tmpdir;
+  char             daePath[PATH_MAX];
+  const char      *tmpBase;
+  double           area;
+  uint32_t         triangle;
+
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-dae-polygon-hole-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(daePath, sizeof(daePath), "%s/polygon_hole.dae", tmpdir);
+  ASSERT(ak_test_write_dae_polygon_hole(daePath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_COLLADA) == AK_OK);
+  ASSERT(doc != NULL);
+
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 8u);
+  ASSERT(prim->pos != NULL && prim->pos->accessor != NULL);
+
+  positions = prim->pos->accessor;
+  texcoord = ak_test_input(prim, AK_INPUT_TEXCOORD);
+  ASSERT(texcoord != NULL && texcoord->accessor != NULL);
+
+  area = 0.0;
+  for (triangle = 0u; triangle < prim->nPolygons; triangle++) {
+    double x[3];
+    double y[3];
+    uint32_t corner;
+
+    for (corner = 0u; corner < 3u; corner++) {
+      size_t tuple;
+      AkUInt index;
+
+      tuple = (size_t)triangle * 3u + corner;
+      index = prim->indices
+              ? ak_indexArrayGet(prim->indices,
+                                 tuple * prim->indexStride
+                                   + prim->pos->indexOffset)
+              : (AkUInt)tuple;
+      x[corner] = ak_test_accessor_f32(positions, index, 0u);
+      y[corner] = ak_test_accessor_f32(positions, index, 1u);
+    }
+
+    area += fabs((x[1] - x[0]) * (y[2] - y[0])
+                 - (y[1] - y[0]) * (x[2] - x[0])) * 0.5;
+  }
+  ASSERT(fabs(area - 0.96) < 1.0e-5);
 
   ak_free(doc);
   unlink(daePath);

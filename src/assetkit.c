@@ -561,6 +561,9 @@ ak_load(AkDoc ** __restrict dest, const char * __restrict url, ...) {
     {"stl",  stl_stl},
     {"ply",  ply_ply},
     {"3mf",  imp_3mf},
+    {"zae",  dae_archive_doc},
+    {"kmz",  dae_archive_doc},
+    {"zip",  dae_archive_doc},
   };
 
   floader = NULL;
@@ -586,7 +589,17 @@ ak_load(AkDoc ** __restrict dest, const char * __restrict url, ...) {
   } else {
     switch (file_type) {
       case AK_FILE_TYPE_COLLADA: {
-        floader = &floaders[0];
+        const char *file_ext;
+
+        file_ext = strrchr(localurl, '.');
+        if (file_ext
+            && (ak_ascii_streq_ci(file_ext + 1, "zae")
+                || ak_ascii_streq_ci(file_ext + 1, "kmz")
+                || ak_ascii_streq_ci(file_ext + 1, "zip"))) {
+          floader = &floaders[7];
+        } else {
+          floader = &floaders[0];
+        }
         break;
       }
       case AK_FILE_TYPE_GLTF: {

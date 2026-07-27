@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Recep Aslantas
+ * Copyright (C) 2026 Recep Aslantas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef dae_h
-#define dae_h
+#ifndef assetkit_triangulate_holes_h
+#define assetkit_triangulate_holes_h
 
-#include "../../../include/ak/assetkit.h"
-
-#include <stdlib.h>
+#include "../common.h"
 
 AK_HIDE
-AkResult
-dae_doc(AkDoc     ** __restrict dest,
-        const char * __restrict filepath);
+uint32_t
+ak_meshTriangulatePolyHoles(AkPolygon * __restrict poly);
 
-AK_HIDE
-AkResult
-dae_doc_memory(AkDoc     ** __restrict dest,
-               const char * __restrict filepath,
-               void       * __restrict xmlData,
-               size_t                  xmlSize);
-
-AK_HIDE
-AkResult
-dae_archive_doc(AkDoc     ** __restrict dest,
-                const char * __restrict filepath);
-
-#endif /* dae_h */
+#endif /* assetkit_triangulate_holes_h */

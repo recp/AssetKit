@@ -16,6 +16,144 @@
 
 #include "../../../test_export_common.h"
 
+static
+bool
+ak_test_write_dae_many_color_sets(const char *path, uint32_t colorSetCount) {
+  FILE    *file;
+  uint32_t set;
+  uint32_t vertex;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" "
+        "version=\"1.4.1\">"
+        "<asset><unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>"
+        "<library_geometries><geometry id=\"beamng-mesh\" name=\"body_a800\"><mesh>"
+        "<source id=\"positions\"><float_array id=\"positions-array\" count=\"9\">"
+        "0 0 0 1 0 0 0 1 0"
+        "</float_array><technique_common><accessor source=\"#positions-array\" "
+        "count=\"3\" stride=\"3\"><param name=\"X\" type=\"float\"/>"
+        "<param name=\"Y\" type=\"float\"/><param name=\"Z\" type=\"float\"/>"
+        "</accessor></technique_common></source>",
+        file);
+
+  for (set = 0u; set < colorSetCount; set++) {
+    fprintf(file,
+            "<source id=\"color-%u\"><float_array id=\"color-%u-array\" count=\"12\">"
+            "1 0 0 1 0 1 0 1 0 0 1 1"
+            "</float_array><technique_common><accessor source=\"#color-%u-array\" "
+            "count=\"3\" stride=\"4\"><param name=\"R\" type=\"float\"/>"
+            "<param name=\"G\" type=\"float\"/><param name=\"B\" type=\"float\"/>"
+            "<param name=\"A\" type=\"float\"/></accessor></technique_common></source>",
+            set,
+            set,
+            set);
+  }
+
+  fputs("<vertices id=\"vertices\"><input semantic=\"POSITION\" "
+        "source=\"#positions\"/></vertices><triangles count=\"1\">"
+        "<input semantic=\"VERTEX\" source=\"#vertices\" offset=\"0\"/>",
+        file);
+  for (set = 0u; set < colorSetCount; set++) {
+    fprintf(file,
+            "<input semantic=\"COLOR\" source=\"#color-%u\" offset=\"%u\" set=\"%u\"/>",
+            set,
+            set + 1u,
+            set);
+  }
+
+  fputs("<p>", file);
+  for (vertex = 0u; vertex < 3u; vertex++) {
+    uint32_t input;
+
+    for (input = 0u; input <= colorSetCount; input++)
+      fprintf(file, "%s%u", vertex || input ? " " : "", vertex);
+  }
+  fputs("</p></triangles></mesh></geometry></library_geometries>"
+        "<library_visual_scenes><visual_scene id=\"Scene\">"
+        "<node id=\"base00\" name=\"base00\"><node id=\"body_a800\" name=\"body_a800\">"
+        "<instance_geometry url=\"#beamng-mesh\"/></node></node>"
+        "</visual_scene></library_visual_scenes>"
+        "<scene><instance_visual_scene url=\"#Scene\"/></scene></COLLADA>",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+uint32_t
+ak_test_primitive_color_input_count(AkDoc *doc) {
+  AkGeometry      *geom;
+  AkMesh          *mesh;
+  AkMeshPrimitive *prim;
+  AkInput         *input;
+  uint32_t         count;
+
+  geom = doc ? doc->lib.geometries.first : NULL;
+  if (!geom || !geom->gdata || geom->gdata->type != AK_GEOMETRY_MESH)
+    return 0u;
+  mesh = ak_objGet(geom->gdata);
+  prim = mesh ? mesh->primitive : NULL;
+  if (!prim)
+    return 0u;
+
+  count = 0u;
+  for (input = prim->input; input; input = input->next) {
+    if (input->semantic == AK_INPUT_COLOR)
+      count++;
+  }
+  return count;
+}
+
+TEST_IMPL(dae_export_many_vertex_color_sets) {
+  AkDoc       *doc;
+  AkDoc       *roundTrip;
+  char         dirTemplate[PATH_MAX];
+  char        *tmpdir;
+  char         daePath[PATH_MAX];
+  char         outDir[PATH_MAX];
+  char         outDae[PATH_MAX];
+  const char  *tmpBase;
+
+  doc       = NULL;
+  roundTrip = NULL;
+  tmpBase   = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-dae-many-colors-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(daePath, sizeof(daePath), "%s/beamng_colors.dae", tmpdir);
+  snprintf(outDir, sizeof(outDir), "%s/out", tmpdir);
+  snprintf(outDae, sizeof(outDae), "%s/beamng_colors.dae", outDir);
+
+  ASSERT(ak_test_write_dae_many_color_sets(daePath, 40u));
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  ASSERT(ak_test_primitive_color_input_count(doc) == 40u);
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(ak_test_file_contains(outDae, "semantic=\"COLOR\""));
+  ASSERT(ak_test_file_contains(outDae, "set=\"39\""));
+  ASSERT(ak_load(&roundTrip, outDae, AK_FILE_TYPE_AUTO) == AK_OK && roundTrip);
+  ASSERT(ak_test_primitive_color_input_count(roundTrip) == 40u);
+
+  ak_free(roundTrip);
+  ak_free(doc);
+  unlink(outDae);
+  rmdir(outDir);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(dae_export_brep_smoke) {
   AkDoc        *doc;
   AkDoc        *roundTrip;
