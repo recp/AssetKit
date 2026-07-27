@@ -4,6 +4,7 @@ add_executable(assetkit_tests
   src/core/memory.c
   src/core/coord.c
   src/core/format_edge.c
+  src/io/common/package.c
   src/io/dae/exp/core.c
   src/io/dae/exp/material.c
   src/io/dae/exp/scene.c

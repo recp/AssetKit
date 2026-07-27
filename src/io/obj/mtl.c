@@ -243,9 +243,11 @@ wobj_mtl(WOState    * __restrict wst,
   char      c;
 
   mtllib   = NULL;
+  mtlstr   = NULL;
   localurl = ak_getFileFrom(wst->doc, name);
 
-  if (ak_readfile(localurl, NULL, &mtlstr, &mtlstrSize) != AK_OK
+  if (!localurl
+      || ak_readfile(localurl, NULL, &mtlstr, &mtlstrSize) != AK_OK
       || !((p = mtlstr) && (c = *p) != '\0'))
     goto ret;
 

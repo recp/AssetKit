@@ -21,6 +21,8 @@
 
 #include <stdlib.h>
 
+struct AkZipArchive;
+
 AK_HIDE
 AkResult
 dae_doc(AkDoc     ** __restrict dest,
@@ -37,5 +39,12 @@ AK_HIDE
 AkResult
 dae_archive_doc(AkDoc     ** __restrict dest,
                 const char * __restrict filepath);
+
+AK_HIDE
+AkResult
+dae_archive_doc_archive(AkDoc              ** __restrict dest,
+                        const char          * __restrict filepath,
+                        struct AkZipArchive * __restrict archive,
+                        const char          * __restrict entryName);
 
 #endif /* dae_h */

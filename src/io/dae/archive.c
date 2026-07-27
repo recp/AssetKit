@@ -591,37 +591,36 @@ dae_archive_attach_images(AkDoc                 * __restrict doc,
   }
 }
 
-AK_HIDE
+static
 AkResult
-dae_archive_doc(AkDoc     ** __restrict dest,
-                const char * __restrict filepath) {
+dae_archive_doc_open(AkDoc          ** __restrict dest,
+                     const char      * __restrict filepath,
+                     AkZipArchive    * __restrict archive,
+                     const char      * __restrict entryName) {
   DAEArchiveNames names;
-  AkZipArchive   *archive;
   const char     *daeRoot;
   void           *daeData;
   size_t          daeSize;
   AkDoc          *doc;
   AkResult        result;
 
-  if (!dest || !filepath)
+  if (!dest || !filepath || !archive)
     return AK_ERR;
 
   *dest   = NULL;
-  archive = NULL;
   daeData = NULL;
   daeSize = 0u;
   doc     = NULL;
   memset(&names, 0, sizeof(names));
 
-  result = ak_zip_open(filepath, &archive);
-  if (result != AK_OK)
-    goto cleanup;
   if (!dae_archive_names_load(archive, &names)) {
     result = AK_EBADF;
     goto cleanup;
   }
 
-  daeRoot = dae_archive_pick_root(archive, &names);
+  daeRoot = entryName
+            ? dae_archive_find(&names, entryName, false)
+            : dae_archive_pick_root(archive, &names);
   if (!daeRoot) {
     result = AK_EBADF;
     goto cleanup;
@@ -645,6 +644,35 @@ cleanup:
   if (daeData)
     free(daeData);
   dae_archive_names_release(&names);
+  return result;
+}
+
+AK_HIDE
+AkResult
+dae_archive_doc(AkDoc      ** __restrict dest,
+                const char  * __restrict filepath) {
+  AkZipArchive *archive;
+  AkResult      result;
+
+  if (!dest || !filepath)
+    return AK_ERR;
+
+  *dest   = NULL;
+  archive = NULL;
+  result  = ak_zip_open(filepath, &archive);
+  if (result == AK_OK)
+    result = dae_archive_doc_open(dest, filepath, archive, NULL);
   ak_zip_close(archive);
   return result;
+}
+
+AK_HIDE
+AkResult
+dae_archive_doc_archive(AkDoc          ** __restrict dest,
+                        const char      * __restrict filepath,
+                        AkZipArchive    * __restrict archive,
+                        const char      * __restrict entryName) {
+  if (!entryName || !archive)
+    return AK_ERR;
+  return dae_archive_doc_open(dest, filepath, archive, entryName);
 }

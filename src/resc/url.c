@@ -17,6 +17,7 @@
 #include "../common.h"
 #include "../string_fast.h"
 #include "../../include/ak/path.h"
+#include "file_scope.h"
 #include "resource.h"
 
 #include <string.h>
@@ -24,11 +25,77 @@
 #include <assert.h>
 #include <limits.h>
 
+#if defined(AK_WINAPI)
+#  include <windows.h>
+#endif
+
 #ifdef _MSC_VER
 #  ifndef PATH_MAX
 #    define PATH_MAX 260
 #  endif
 #endif
+
+#if defined(_MSC_VER)
+#  define AK_FILE_SCOPE_TLS __declspec(thread)
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#  define AK_FILE_SCOPE_TLS _Thread_local
+#else
+#  define AK_FILE_SCOPE_TLS __thread
+#endif
+
+static AK_FILE_SCOPE_TLS const char *ak__file_scope;
+
+static
+bool
+ak_file_scope_contains(const char * __restrict path) {
+  char   resolvedPath[PATH_MAX];
+  char   resolvedRoot[PATH_MAX];
+  size_t rootLen;
+
+  if (!ak__file_scope)
+    return true;
+
+#if defined(AK_WINAPI)
+  if (!_fullpath(resolvedPath, path, sizeof(resolvedPath))
+      || !_fullpath(resolvedRoot, ak__file_scope, sizeof(resolvedRoot))) {
+    return false;
+  }
+#else
+  if (!realpath(path, resolvedPath)
+      || !realpath(ak__file_scope, resolvedRoot)) {
+    return false;
+  }
+#endif
+
+  rootLen = strlen(resolvedRoot);
+  while (rootLen > 1u
+         && (resolvedRoot[rootLen - 1u] == '/'
+             || resolvedRoot[rootLen - 1u] == '\\')) {
+    rootLen--;
+  }
+
+#if defined(AK_WINAPI)
+  if (_strnicmp(resolvedPath, resolvedRoot, rootLen) != 0)
+    return false;
+#else
+  if (strncmp(resolvedPath, resolvedRoot, rootLen) != 0)
+    return false;
+#endif
+
+  return resolvedPath[rootLen] == '\0'
+         || resolvedPath[rootLen] == '/'
+         || resolvedPath[rootLen] == '\\';
+}
+
+AK_HIDE
+const char*
+ak_file_scope_set(const char *root) {
+  const char *previous;
+
+  previous       = ak__file_scope;
+  ak__file_scope = root;
+  return previous;
+}
 
 void
 ak_url_init(void  *parent,
@@ -215,7 +282,7 @@ ak_getFileFrom(AkDoc *doc, const char *url) {
     return NULL;
 
   path = ak_fullpathn(doc, decodedUrl, pathbuf, sizeof(pathbuf));
-  if (!path)
+  if (!path || !ak_file_scope_contains(path))
     return NULL;
 
   return ak_strdup(NULL, path);

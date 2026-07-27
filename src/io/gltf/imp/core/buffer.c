@@ -188,8 +188,10 @@ gltf_buffers(json_t * __restrict jbuff,
           base64_buff(uri, jbuffVal->valsize, buff);
         } else {
           localurl = ak_getFileFrom(gst->doc, uri);
-          ak_readfile(localurl, buff, &buff->data, &buff->length);
-          ak_free(localurl);
+          if (localurl) {
+            ak_readfile(localurl, buff, &buff->data, &buff->length);
+            ak_free(localurl);
+          }
         }
 
         if (uri)

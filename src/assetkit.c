@@ -23,6 +23,7 @@
 #include "io/stl/stl.h"
 #include "io/ply/ply.h"
 #include "io/3mf/3mf.h"
+#include "io/common/package.h"
 
 #ifndef AK_BUILD_EXPORTERS
 #  define AK_BUILD_EXPORTERS 1
@@ -563,7 +564,7 @@ ak_load(AkDoc ** __restrict dest, const char * __restrict url, ...) {
     {"3mf",  imp_3mf},
     {"zae",  dae_archive_doc},
     {"kmz",  dae_archive_doc},
-    {"zip",  dae_archive_doc},
+    {"zip",  ak_zip_package_doc},
   };
 
   floader = NULL;
