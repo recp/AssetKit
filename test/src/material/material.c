@@ -82,6 +82,12 @@ test_write_material_dae(const char *path) {
         "<transparent opaque=\"RGB_ZERO\"><texture texture=\"sampler_alpha\" texcoord=\"UVSET0\"/></transparent>"
         "<transparency><float>0.5</float></transparency>"
         "</lambert></technique></profile_COMMON></effect>\n"
+        "<effect id=\"effect_diffuse_tex\"><profile_COMMON>"
+        "<newparam sid=\"surface_diffuse\"><surface type=\"2D\"><init_from>img_alpha</init_from></surface></newparam>"
+        "<newparam sid=\"sampler_diffuse\"><sampler2D><source>surface_diffuse</source></sampler2D></newparam>"
+        "<technique sid=\"common\"><lambert>"
+        "<diffuse><texture texture=\"sampler_diffuse\" texcoord=\"UVSET0\"/></diffuse>"
+        "</lambert></technique></profile_COMMON></effect>\n"
         "</library_effects>\n"
         "<library_materials>"
         "<material id=\"mat_edge\" name=\"edge\"><instance_effect url=\"#effect_edge\"/></material>"
@@ -93,6 +99,7 @@ test_write_material_dae(const char *path) {
         "<material id=\"mat_tex_a_zero\" name=\"tex_a_zero\"><instance_effect url=\"#effect_tex_a_zero\"/></material>"
         "<material id=\"mat_tex_rgb_one\" name=\"tex_rgb_one\"><instance_effect url=\"#effect_tex_rgb_one\"/></material>"
         "<material id=\"mat_tex_rgb_zero\" name=\"tex_rgb_zero\"><instance_effect url=\"#effect_tex_rgb_zero\"/></material>"
+        "<material id=\"mat_diffuse_tex\" name=\"diffuse_tex\"><instance_effect url=\"#effect_diffuse_tex\"/></material>"
         "</library_materials>\n"
         "<library_visual_scenes><visual_scene id=\"Scene\"/></library_visual_scenes>\n"
         "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
@@ -530,6 +537,7 @@ TEST_IMPL(material_dae_adapter) {
   AkMaterial  *texAZero;
   AkMaterial  *texRgbOne;
   AkMaterial  *texRgbZero;
+  AkMaterial  *diffuseTex;
   AkDoc       *noExtraDoc;
   AkMaterial  *noExtraEdge;
   char          dirTemplate[PATH_MAX];
@@ -599,6 +607,11 @@ TEST_IMPL(material_dae_adapter) {
 
   texRgbZero = test_material_by_name(doc, "tex_rgb_zero");
   ASSERT(test_material_opacity(texRgbZero, AK_TEXTURE_CHANNEL_RGB, 0.499f, 0.501f, true, true));
+
+  diffuseTex = test_material_by_name(doc, "diffuse_tex");
+  ASSERT(diffuseTex && diffuseTex->surface && diffuseTex->surface->baseColor);
+  ASSERT(diffuseTex->surface->baseColor->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(diffuseTex->surface->baseColor->channels == AK_TEXTURE_CHANNEL_RGB);
   ASSERT(ak_extra(edge));
   ASSERT(test_tree_has_name(ak_extra(edge), "profile_COMMON"));
   ASSERT(test_tree_has_name(ak_extra(edge), "technique"));

@@ -189,7 +189,7 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       techn->diffuse = dae_colorOrTex(dst, xml, techn);
       dae_colorDescTextureUsage(dst, techn->diffuse,
                                 AK_TEXTURE_COLORSPACE_SRGB,
-                                AK_TEXTURE_CHANNEL_RGBA);
+                                AK_TEXTURE_CHANNEL_RGB);
     } else if (DAE_XML_TAG_EQ8(xml, specular)) {
       AkMaterialSpecularProp *specularProp;
 

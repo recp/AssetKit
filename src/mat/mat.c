@@ -587,8 +587,14 @@ ak__materialInputFromColorDesc(AkHeap       * __restrict heap,
   input             = ak__materialInputAlloc(heap, parent, semantic);
   input->sourceName = desc->param ? desc->param->ref : NULL;
   input->texture    = desc->texture;
-  input->channels   = channels;
-  input->colorSpace = colorSpace;
+  input->channels   = desc->texture
+                      && desc->texture->channels != AK_TEXTURE_CHANNEL_NONE
+                        ? desc->texture->channels
+                        : channels;
+  input->colorSpace = desc->texture
+                      && desc->texture->colorSpace != AK_TEXTURE_COLORSPACE_UNSPECIFIED
+                        ? desc->texture->colorSpace
+                        : colorSpace;
   input->valueType  = AK_MATERIAL_VALUE_COLOR;
 
   if (desc->color) {
