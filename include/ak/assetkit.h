@@ -407,6 +407,14 @@ ak_load(AkDoc     ** __restrict dest,
         const char * __restrict url,
         .../* options */);
 
+/* identify the loadable format without parsing asset payloads. For generic
+   ZIP packages this inspects only archive metadata and reports the selected
+   root asset format. */
+AK_EXPORT
+AkResult
+ak_probeFileType(const char * __restrict url,
+                 AkFileType * __restrict fileType);
+
 /* multi-file formats may create companion resource files next to the main asset
    file */
 AK_EXPORT

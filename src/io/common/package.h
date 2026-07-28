@@ -24,4 +24,9 @@ AkResult
 ak_zip_package_doc(AkDoc      ** __restrict dest,
                    const char  * __restrict filepath);
 
+AK_HIDE
+AkResult
+ak_zip_package_file_type(const char * __restrict filepath,
+                         AkFileType * __restrict fileType);
+
 #endif /* assetkit_io_common_package_h */

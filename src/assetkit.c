@@ -539,6 +539,52 @@ ak_export_prepare_file_dir(const char * __restrict outPath) {
 
 AK_EXPORT
 AkResult
+ak_probeFileType(const char * __restrict url,
+                 AkFileType * __restrict fileType) {
+  const char *localurl;
+  const char *extension;
+
+  if (!url || !fileType)
+    return AK_ERR;
+
+  *fileType = AK_FILE_TYPE_AUTO;
+  localurl  = ak_getFile(url);
+  if (!localurl)
+    return AK_EBADF;
+
+  extension = strrchr(localurl, '.');
+  if (!extension || extension[1] == '\0')
+    return AK_EBADF;
+  extension++;
+
+  if (ak_ascii_streq_ci(extension, "zip"))
+    return ak_zip_package_file_type(localurl, fileType);
+
+  if (ak_ascii_streq_ci(extension, "dae")
+      || ak_ascii_streq_ci(extension, "zae")
+      || ak_ascii_streq_ci(extension, "kmz")) {
+    *fileType = AK_FILE_TYPE_COLLADA;
+  } else if (ak_ascii_streq_ci(extension, "gltf")) {
+    *fileType = AK_FILE_TYPE_GLTF;
+  } else if (ak_ascii_streq_ci(extension, "glb")) {
+    *fileType = AK_FILE_TYPE_GLB;
+  } else if (ak_ascii_streq_ci(extension, "obj")) {
+    *fileType = AK_FILE_TYPE_WAVEFRONT;
+  } else if (ak_ascii_streq_ci(extension, "stl")) {
+    *fileType = AK_FILE_TYPE_STL;
+  } else if (ak_ascii_streq_ci(extension, "ply")) {
+    *fileType = AK_FILE_TYPE_PLY;
+  } else if (ak_ascii_streq_ci(extension, "3mf")) {
+    *fileType = AK_FILE_TYPE_3MF;
+  } else {
+    return AK_EBADF;
+  }
+
+  return AK_OK;
+}
+
+AK_EXPORT
+AkResult
 ak_load(AkDoc ** __restrict dest, const char * __restrict url, ...) {
   floader_t  *floader;
   const char *localurl;

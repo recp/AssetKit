@@ -281,6 +281,45 @@ ak_package_is_dae(const char * __restrict path) {
 }
 
 static
+AkFileType
+ak_package_file_type(const char * __restrict path) {
+  const char *ext;
+
+  ext = strrchr(path, '.');
+  if (!ext || ext[1] == '\0')
+    return AK_FILE_TYPE_AUTO;
+  ext++;
+
+  if (ak_package_ascii_eq_ci(ext, "dae")
+      || ak_package_ascii_eq_ci(ext, "zae")
+      || ak_package_ascii_eq_ci(ext, "kmz")) {
+    return AK_FILE_TYPE_COLLADA;
+  }
+  if (ak_package_ascii_eq_ci(ext, "gltf"))
+    return AK_FILE_TYPE_GLTF;
+  if (ak_package_ascii_eq_ci(ext, "glb"))
+    return AK_FILE_TYPE_GLB;
+  if (ak_package_ascii_eq_ci(ext, "obj"))
+    return AK_FILE_TYPE_WAVEFRONT;
+  if (ak_package_ascii_eq_ci(ext, "stl"))
+    return AK_FILE_TYPE_STL;
+  if (ak_package_ascii_eq_ci(ext, "ply"))
+    return AK_FILE_TYPE_PLY;
+  if (ak_package_ascii_eq_ci(ext, "3mf"))
+    return AK_FILE_TYPE_3MF;
+  return AK_FILE_TYPE_AUTO;
+}
+
+static
+bool
+ak_package_root_is_self_contained(AkFileType fileType) {
+  return fileType == AK_FILE_TYPE_STL
+         || fileType == AK_FILE_TYPE_PLY
+         || fileType == AK_FILE_TYPE_3MF
+         || fileType == AK_FILE_TYPE_COLLADA;
+}
+
+static
 const AkPackageEntry*
 ak_package_pick_root(const AkPackageEntries * __restrict entries) {
   const AkPackageEntry *best;
@@ -311,6 +350,52 @@ ak_package_pick_root(const AkPackageEntries * __restrict entries) {
   }
 
   return best;
+}
+
+AK_HIDE
+AkResult
+ak_zip_package_file_type(const char * __restrict filepath,
+                         AkFileType * __restrict fileType) {
+  AkPackageEntries      entries;
+  AkZipArchive         *archive;
+  const AkPackageEntry *root;
+  char                  normalizedRoot[PATH_MAX];
+  AkResult              result;
+
+  if (!filepath || !fileType)
+    return AK_ERR;
+
+  *fileType = AK_FILE_TYPE_AUTO;
+  archive   = NULL;
+  result    = AK_ERR;
+  memset(&entries, 0, sizeof(entries));
+
+  result = ak_zip_open(filepath, &archive);
+  if (result != AK_OK)
+    goto cleanup;
+  if (!ak_package_entries_load(archive, &entries)) {
+    result = AK_EBADF;
+    goto cleanup;
+  }
+
+  root = ak_package_pick_root(&entries);
+  if (!root
+      || !ak_package_path_normalize(root->name,
+                                    normalizedRoot,
+                                    sizeof(normalizedRoot),
+                                    NULL,
+                                    NULL)) {
+    result = AK_EBADF;
+    goto cleanup;
+  }
+
+  *fileType = ak_package_file_type(normalizedRoot);
+  result    = *fileType == AK_FILE_TYPE_AUTO ? AK_EBADF : AK_OK;
+
+cleanup:
+  ak_package_entries_release(&entries);
+  ak_zip_close(archive);
+  return result;
 }
 
 static
@@ -414,7 +499,8 @@ static
 bool
 ak_package_extract_entries(AkZipArchive          * __restrict archive,
                            const AkPackageEntries * __restrict entries,
-                           const char             * __restrict tempDir) {
+                           const char             * __restrict tempDir,
+                           const AkPackageEntry   * __restrict onlyEntry) {
   AkZipDecompressor *decompressor;
   size_t             i;
   bool               ok;
@@ -433,6 +519,8 @@ ak_package_extract_entries(AkZipArchive          * __restrict archive,
     bool                  directory;
 
     entry = &entries->items[i];
+    if (onlyEntry && entry != onlyEntry)
+      continue;
     if (!ak_package_path_normalize(entry->name,
                                    normalized,
                                    sizeof(normalized),
@@ -639,6 +727,7 @@ ak_zip_package_doc(AkDoc      ** __restrict dest,
   char                *rootPath;
   const char          *previousScope;
   AkDoc               *doc;
+  AkFileType           rootFileType;
   AkResult             result;
 
   if (!dest || !filepath)
@@ -650,6 +739,7 @@ ak_zip_package_doc(AkDoc      ** __restrict dest,
   rootPath      = NULL;
   previousScope = NULL;
   doc           = NULL;
+  rootFileType  = AK_FILE_TYPE_AUTO;
   result        = AK_ERR;
   memset(&entries, 0, sizeof(entries));
 
@@ -679,13 +769,18 @@ ak_zip_package_doc(AkDoc      ** __restrict dest,
                                      root->name);
     goto cleanup;
   }
+  rootFileType = ak_package_file_type(normalizedRoot);
 
   tempDir = ak_package_temp_dir();
   if (!tempDir) {
     result = AK_ERR;
     goto cleanup;
   }
-  if (!ak_package_extract_entries(archive, &entries, tempDir)) {
+  if (!ak_package_extract_entries(
+        archive,
+        &entries,
+        tempDir,
+        ak_package_root_is_self_contained(rootFileType) ? root : NULL)) {
     result = AK_EBADF;
     goto cleanup;
   }

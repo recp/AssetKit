@@ -266,6 +266,7 @@ TEST_IMPL(zip_package_selects_shallowest_root_and_embeds_resources) {
   AkDoc         *doc;
   AkImage       *image;
   AkImageSource *source;
+  AkFileType     fileType;
 
   ASSERT(ak_test_package_path(path,
                               sizeof(path),
@@ -274,6 +275,9 @@ TEST_IMPL(zip_package_selects_shallowest_root_and_embeds_resources) {
   ASSERT(ak_test_package_write_zip(path,
                                    entries,
                                    AK_ARRAY_LEN(entries)));
+  fileType = AK_FILE_TYPE_AUTO;
+  ASSERT(ak_probeFileType(path, &fileType) == AK_OK);
+  ASSERT(fileType == AK_FILE_TYPE_GLTF);
 
   doc = NULL;
   ASSERT(ak_load(&doc, path, AK_FILE_TYPE_AUTO) == AK_OK && doc);
@@ -322,6 +326,7 @@ TEST_IMPL(zip_package_equal_depth_uses_archive_order) {
   char   tempDir[] = "/tmp/assetkit-package-order-XXXXXX";
   char   path[PATH_MAX];
   AkDoc *doc;
+  AkFileType fileType;
 
   ASSERT(ak_test_package_path(path,
                               sizeof(path),
@@ -330,6 +335,9 @@ TEST_IMPL(zip_package_equal_depth_uses_archive_order) {
   ASSERT(ak_test_package_write_zip(path,
                                    entries,
                                    AK_ARRAY_LEN(entries)));
+  fileType = AK_FILE_TYPE_AUTO;
+  ASSERT(ak_probeFileType(path, &fileType) == AK_OK);
+  ASSERT(fileType == AK_FILE_TYPE_PLY);
 
   doc = NULL;
   ASSERT(ak_load(&doc, path, AK_FILE_TYPE_AUTO) == AK_OK && doc);
