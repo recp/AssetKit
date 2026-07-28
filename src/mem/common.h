@@ -81,9 +81,10 @@ typedef struct AkMemoryMapNode {
              chld
                |               */
 struct AkHeapNode {
-  AkHeapNode *prev; /* parent */
-  AkHeapNode *next; /* right  */
-  void       *chld; /* left   */
+  AkHeapNode *parent;
+  AkHeapNode *prev; /* parent for first child, otherwise left sibling */
+  AkHeapNode *next; /* right sibling */
+  void       *chld; /* first child */
   uint32_t    heapid;
   uint16_t    typeid;
   uint16_t    flags;

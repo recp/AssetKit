@@ -93,14 +93,10 @@ ak_sid_set(void       *memnode,
 
   sidnode->sid = sid;
 
-  /* mark parents */
-  while (heapNode->prev) {
-    /* we foound parent */
-    if (ak_heap_chld(heapNode->prev) == heapNode)
-      heapNode->prev->flags |= AK_HEAP_NODE_FLAGS_SID_CHLD;
-
-    heapNode = heapNode->prev;
-  }
+  /* Mark ancestors directly. Walking prev also walks every older sibling,
+     which makes this quadratic for wide documents. */
+  while ((heapNode = ak_heap_parent(heapNode)))
+    heapNode->flags |= AK_HEAP_NODE_FLAGS_SID_CHLD;
 
   /* TODO: invalidate refs */
 }
@@ -147,14 +143,10 @@ ak_sid_seta(void       *memnode,
   sidptrval = (uintptr_t)sid;
   memcpy(sidptr, &sidptrval, sizeof(uintptr_t));
 
-  /* mark parents */
-  while (heapNode->prev) {
-    /* we foound parent */
-    if (ak_heap_chld(heapNode->prev) == heapNode)
-      heapNode->prev->flags |= AK_HEAP_NODE_FLAGS_SID_CHLD;
-
-    heapNode = heapNode->prev;
-  }
+  /* Mark ancestors directly. Walking prev also walks every older sibling,
+     which makes this quadratic for wide documents. */
+  while ((heapNode = ak_heap_parent(heapNode)))
+    heapNode->flags |= AK_HEAP_NODE_FLAGS_SID_CHLD;
 
   /* TODO: invalidate refs */
 }

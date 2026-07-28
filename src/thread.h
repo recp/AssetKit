@@ -43,6 +43,28 @@ typedef struct AkThread {
   bool         started;
 } AkThread;
 
+#if defined(AK_WINAPI)
+typedef CRITICAL_SECTION AkMutex;
+#else
+typedef pthread_mutex_t AkMutex;
+#endif
+
+AK_HIDE
+void
+ak_mutex_init(AkMutex * __restrict mutex);
+
+AK_HIDE
+void
+ak_mutex_destroy(AkMutex * __restrict mutex);
+
+AK_HIDE
+void
+ak_mutex_lock(AkMutex * __restrict mutex);
+
+AK_HIDE
+void
+ak_mutex_unlock(AkMutex * __restrict mutex);
+
 AK_HIDE
 bool
 ak_thread_start(AkThread    * __restrict thread,

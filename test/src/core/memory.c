@@ -22,8 +22,83 @@
 
 #include <limits.h>
 
+#if defined(AK_WINAPI)
+#  include <windows.h>
+#else
+#  include <pthread.h>
+#endif
+
 #ifndef PATH_MAX
 #  define PATH_MAX 4096
+#endif
+
+typedef struct AkTestHeapRegistryWorker {
+  uint32_t iterations;
+  uint32_t failureCode;
+  uint32_t failureIteration;
+  uint32_t heapId;
+  uint32_t attachedHeapId;
+} AkTestHeapRegistryWorker;
+
+static
+void
+ak_test_heap_registry_worker(void *userdata) {
+  AkTestHeapRegistryWorker *worker;
+  uint32_t                  iteration;
+
+  worker = userdata;
+  for (iteration = 0u; iteration < worker->iterations; iteration++) {
+    AkHeap  *heap;
+    AkHeap  *attached;
+    void    *mem;
+    uint32_t attachedHeapId;
+
+    heap           = ak_heap_new(NULL, NULL, NULL);
+    attached       = ak_heap_new(NULL, NULL, NULL);
+    mem            = ak_heap_calloc(heap, NULL, 16);
+    attachedHeapId = attached->heapid;
+
+    if (ak_heap_lt_find(heap->heapid) != heap
+        || ak_heap_lt_find(attachedHeapId) != attached) {
+      worker->failureCode      = 1u;
+      worker->failureIteration = iteration;
+      worker->heapId           = heap->heapid;
+      worker->attachedHeapId   = attachedHeapId;
+      return;
+    }
+
+    ak_setAttachedHeap(mem, attached);
+    if (ak_attachedHeap(mem) != attached) {
+      worker->failureCode      = 2u;
+      worker->failureIteration = iteration;
+      worker->heapId           = heap->heapid;
+      worker->attachedHeapId   = attachedHeapId;
+      return;
+    }
+
+    /* This destroys the attached heap and removes both global registry
+       entries while other workers do the same operations concurrently. */
+    ak_free(mem);
+
+    ak_heap_destroy(heap);
+  }
+}
+
+#if defined(AK_WINAPI)
+static
+DWORD
+WINAPI
+ak_test_heap_registry_thread(void *userdata) {
+  ak_test_heap_registry_worker(userdata);
+  return 0;
+}
+#else
+static
+void *
+ak_test_heap_registry_thread(void *userdata) {
+  ak_test_heap_registry_worker(userdata);
+  return NULL;
+}
 #endif
 
 TEST_IMPL(heap) {
@@ -76,6 +151,36 @@ TEST_IMPL(heap) {
 
   ak_heap_setdata(heap, &data);
   ASSERT(ak_heap_data(heap) == &data);
+
+  {
+    void *parent;
+    void *otherParent;
+    void *firstChild;
+    void *secondChild;
+    void *grandchild;
+
+    parent      = ak_heap_calloc(heap, NULL, 16);
+    otherParent = ak_heap_calloc(heap, NULL, 16);
+    firstChild  = ak_heap_calloc(heap, parent, 16);
+    secondChild = ak_heap_calloc(heap, parent, 16);
+    grandchild  = ak_heap_calloc(heap, firstChild, 16);
+
+    ASSERT(ak_mem_parent(firstChild) == parent);
+    ASSERT(ak_mem_parent(secondChild) == parent);
+    ASSERT(ak_mem_parent(grandchild) == firstChild);
+
+    parent = ak_heap_realloc(heap, NULL, parent, 1024 * 1024);
+    ASSERT(ak_mem_parent(firstChild) == parent);
+    ASSERT(ak_mem_parent(secondChild) == parent);
+    ASSERT(ak_mem_parent(grandchild) == firstChild);
+
+    ak_mem_setp(secondChild, otherParent);
+    ASSERT(ak_mem_parent(secondChild) == otherParent);
+    ASSERT(ak_mem_parent(firstChild) == parent);
+
+    ak_free(parent);
+    ak_free(otherParent);
+  }
 
   ak_heap_destroy(heap);
   ASSERT(ak_heap_lt_find(heapid) == NULL);
@@ -136,6 +241,64 @@ TEST_IMPL(heap_multiple) {
     heap = ak_heap_new(NULL, NULL, NULL);
     ak_heap_attach(root, heap);
     ak_heap_dettach(root, heap);
+  }
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(heap_concurrent_registries) {
+  enum { WORKER_COUNT = 8, ITERATION_COUNT = 1000 };
+  AkTestHeapRegistryWorker workers[WORKER_COUNT];
+#if defined(AK_WINAPI)
+  HANDLE                   threads[WORKER_COUNT];
+#else
+  pthread_t                threads[WORKER_COUNT];
+#endif
+  uint32_t                 workerIndex;
+
+  memset(workers, 0, sizeof(workers));
+  memset(threads, 0, sizeof(threads));
+
+  for (workerIndex = 0u; workerIndex < WORKER_COUNT; workerIndex++) {
+    workers[workerIndex].iterations = ITERATION_COUNT;
+#if defined(AK_WINAPI)
+    threads[workerIndex] = CreateThread(NULL,
+                                        0,
+                                        ak_test_heap_registry_thread,
+                                        &workers[workerIndex],
+                                        0,
+                                        NULL);
+    ASSERT(threads[workerIndex] != NULL);
+#else
+    ASSERT(pthread_create(&threads[workerIndex],
+                          NULL,
+                          ak_test_heap_registry_thread,
+                          &workers[workerIndex]) == 0);
+#endif
+  }
+
+  for (workerIndex = 0u; workerIndex < WORKER_COUNT; workerIndex++) {
+#if defined(AK_WINAPI)
+    ASSERT(WaitForSingleObject(threads[workerIndex], INFINITE)
+           == WAIT_OBJECT_0);
+    CloseHandle(threads[workerIndex]);
+#else
+    ASSERT(pthread_join(threads[workerIndex], NULL) == 0);
+#endif
+  }
+
+  for (workerIndex = 0u; workerIndex < WORKER_COUNT; workerIndex++) {
+    if (workers[workerIndex].failureCode != 0u) {
+      fprintf(stderr,
+              "registry worker %u failed: code=%u iteration=%u "
+              "heap=%u attached=%u\n",
+              workerIndex,
+              workers[workerIndex].failureCode,
+              workers[workerIndex].failureIteration,
+              workers[workerIndex].heapId,
+              workers[workerIndex].attachedHeapId);
+    }
+    ASSERT(workers[workerIndex].failureCode == 0u);
   }
 
   TEST_SUCCESS

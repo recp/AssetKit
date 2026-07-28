@@ -15,6 +15,7 @@
  */
 
 #include "lt.h"
+#include "../thread.h"
 #include <assert.h>
 #include <string.h>
 
@@ -32,6 +33,8 @@ static AkHeapLookupTable ak__heap_lt = {
   .size             = 1,
   .bucketSize       = 4,
 };
+
+static AkMutex ak__heap_lt_lock;
 
 static
 AkHeapBucket *
@@ -90,6 +93,7 @@ ak__heap_lt_clear_last_used(AkHeapBucket      * __restrict bucket,
 void
 ak_heap_lt_init(AkHeap * __restrict initialHeap) {
   assert(initialHeap && "heap cannot be null!");
+  ak_mutex_init(&ak__heap_lt_lock);
   ak__heap_bucket.heapEntry = calloc(ak__heap_lt.bucketSize,
                                      sizeof(AkHeapBucketEntry));
 
@@ -108,6 +112,7 @@ ak_heap_lt_insert(AkHeap * __restrict heap) {
   uint32_t           entryIndex;
   uint32_t           heapid;
 
+  ak_mutex_lock(&ak__heap_lt_lock);
   bucket = ak__heap_lt.firstAvailBucket;
 
   /* all buckets are full */
@@ -148,6 +153,7 @@ ak_heap_lt_insert(AkHeap * __restrict heap) {
   bucket->count++;
 
   ak__heap_lt.lastUsedEntry = bucketEntry;
+  ak_mutex_unlock(&ak__heap_lt_lock);
 }
 
 AkHeap *
@@ -157,24 +163,35 @@ ak_heap_lt_find(uint32_t heapid) {
   uint32_t           bucketIndex;
   uint32_t           entryIndex;
 
+  AkHeap             *heap;
+
+  heap = NULL;
+  ak_mutex_lock(&ak__heap_lt_lock);
+
   if (ak__heap_lt.lastUsedEntry
       && ak__heap_lt.lastUsedEntry->heap
-      && ak__heap_lt.lastUsedEntry->heapid == heapid)
-    return ak__heap_lt.lastUsedEntry->heap;
+      && ak__heap_lt.lastUsedEntry->heapid == heapid) {
+    heap = ak__heap_lt.lastUsedEntry->heap;
+    goto done;
+  }
 
   bucketIndex = heapid / ak__heap_lt.bucketSize;
   entryIndex  = heapid % ak__heap_lt.bucketSize;
 
   bucket = ak__heap_lt_find_bucket(bucketIndex, NULL);
   if (!bucket)
-    return NULL;
+    goto done;
 
   entry = &bucket->heapEntry[entryIndex];
   if (!entry->heap || entry->heapid != heapid)
-    return NULL;
+    goto done;
 
   ak__heap_lt.lastUsedEntry = entry;
-  return entry->heap;
+  heap = entry->heap;
+
+done:
+  ak_mutex_unlock(&ak__heap_lt_lock);
+  return heap;
 }
 
 void
@@ -186,12 +203,14 @@ ak_heap_lt_remove(uint32_t heapid) {
   uint32_t           entryIndex;
   bool               destroyBucket;
 
+  ak_mutex_lock(&ak__heap_lt_lock);
+
   bucketIndex = heapid / ak__heap_lt.bucketSize;
   entryIndex  = heapid % ak__heap_lt.bucketSize;
 
   bucket = ak__heap_lt_find_bucket(bucketIndex, &prevBucket);
   if (!bucket)
-    return;
+    goto done;
 
   entry = &bucket->heapEntry[entryIndex];
   if (entry && entry->heap && entry->heapid == heapid) {
@@ -200,7 +219,7 @@ ak_heap_lt_remove(uint32_t heapid) {
            sizeof(AkHeapBucketEntry));
     bucket->count--;
 
-    if (!AK__LT_BUCKET_IS_FULL(bucket))
+    if (entryIndex < bucket->firstAvailEntry)
       bucket->firstAvailEntry = entryIndex;
 
     destroyBucket = bucket->count < 1 && bucket != &ak__heap_bucket;
@@ -226,6 +245,9 @@ ak_heap_lt_remove(uint32_t heapid) {
         ak__heap_lt.firstAvailBucket = bucket;
     }
   }
+
+done:
+  ak_mutex_unlock(&ak__heap_lt_lock);
 }
 
 void
@@ -233,6 +255,7 @@ ak_heap_lt_cleanup(void) {
   AkHeapBucket *bucket;
   AkHeapBucket *toFree;
 
+  ak_mutex_lock(&ak__heap_lt_lock);
   bucket = ak__heap_lt.rootBucket->next;
   while (bucket) {
     toFree = bucket;
@@ -243,4 +266,6 @@ ak_heap_lt_cleanup(void) {
   }
 
   free(ak__heap_bucket.heapEntry);
+  ak_mutex_unlock(&ak__heap_lt_lock);
+  ak_mutex_destroy(&ak__heap_lt_lock);
 }

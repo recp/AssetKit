@@ -17,6 +17,7 @@
 #include "common.h"
 #include "rb.h"
 #include "lt.h"
+#include "../thread.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -73,6 +74,7 @@ static AkHeap ak__heap = {
 };
 
 static RBTree *ak__heap_sub = NULL;
+static AkMutex ak__heap_sub_lock;
 
 static
 int
@@ -394,12 +396,14 @@ ak_heap_alloc(AkHeap * __restrict heap,
   currNode->typeid = 0;
   currNode->chld   = NULL;
   currNode->heapid = heap->heapid;
+  currNode->parent = NULL;
   ak__heap_stats_alloc(heap, size);
 
   if (parent) {
     AkHeapNode *chldNode;
 
     parentNode = ak__alignof(parent);
+    currNode->parent = parentNode;
     chldNode   = ak_heap_chld(parentNode);
 
     ak_heap_chld_set(parentNode, currNode);
@@ -487,6 +491,12 @@ ak_heap_realloc(AkHeap * __restrict heap,
     } else {
       chld->prev = newNode;
     }
+
+    chld = ak_heap_chld(newNode);
+    while (chld) {
+      chld->parent = newNode;
+      chld = chld->next;
+    }
   }
 
   if (newNode->next)
@@ -523,28 +533,16 @@ ak_heap_chld_set(AkHeapNode * __restrict heapNode,
     heapNode->chld = chldNode;
 
   if (chldNode)
-    chldNode->prev = heapNode;
+  {
+    chldNode->parent = heapNode;
+    chldNode->prev   = heapNode;
+  }
 }
 
 AK_EXPORT
 AkHeapNode *
 ak_heap_parent(AkHeapNode *heapNode) {
-  AkHeapNode *p, *it;
-
-  p  = NULL;
-  it = heapNode;
-
-  while (it->prev) {
-    /* we found near parent */
-    if (ak_heap_chld(it->prev) == it) {
-      p = it->prev;
-      break;
-    }
-
-    it = it->prev;
-  }
-
-  return p;
+  return heapNode->parent;
 }
 
 AK_EXPORT
@@ -895,7 +893,13 @@ ak_heap_printKeys(AkHeap * __restrict heap) {
 AK_EXPORT
 AkHeap*
 ak_attachedHeap(void * __restrict memptr) {
-  return rb_find(ak__heap_sub, ak__alignof(memptr));
+  AkHeap *heap;
+
+  ak_mutex_lock(&ak__heap_sub_lock);
+  heap = rb_find(ak__heap_sub, ak__alignof(memptr));
+  ak_mutex_unlock(&ak__heap_sub_lock);
+
+  return heap;
 }
 
 AK_EXPORT
@@ -906,22 +910,26 @@ ak_setAttachedHeap(void   * __restrict memptr,
   AkHeapNode *heapNode;
 
   heapNode = ak__alignof(memptr);
+  ak_mutex_lock(&ak__heap_sub_lock);
 
   if (!heap) {
     rb_remove(ak__heap_sub, heapNode);
     heapNode->flags &= ~AK_HEAP_NODE_FLAGS_HEAP_CHLD;
+    ak_mutex_unlock(&ak__heap_sub_lock);
     return;
   }
 
   found = rb_find_node(ak__heap_sub, heapNode);
   if (found) {
     found->val = heap;
+    ak_mutex_unlock(&ak__heap_sub_lock);
     return;
   }
 
   rb_insert(ak__heap_sub, heapNode, heap);
 
   heapNode->flags |= AK_HEAP_NODE_FLAGS_HEAP_CHLD;
+  ak_mutex_unlock(&ak__heap_sub_lock);
 }
 
 AK_EXPORT
@@ -1201,6 +1209,7 @@ ak_objFrom(void * __restrict memptr) {
 
 void
 ak_mem_init(void) {
+  ak_mutex_init(&ak__heap_sub_lock);
   ak__heap_sub = rb_newtree_ptr();
   ak_heap_init(&ak__heap, NULL, NULL, NULL);
   ak_heap_lt_init(&ak__heap);
@@ -1213,4 +1222,5 @@ ak_mem_deinit(void) {
   ak_heap_destroy(&ak__heap);
   ak_heap_lt_cleanup();
   rb_destroy(ak__heap_sub);
+  ak_mutex_destroy(&ak__heap_sub_lock);
 }

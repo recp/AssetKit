@@ -46,6 +46,46 @@ typedef struct AkThreadPool {
 static AkThreadPool ak_thread_pool;
 static uint32_t     ak_thread_cached_cpu_count;
 
+AK_HIDE
+void
+ak_mutex_init(AkMutex * __restrict mutex) {
+#if defined(AK_WINAPI)
+  InitializeCriticalSection(mutex);
+#else
+  pthread_mutex_init(mutex, NULL);
+#endif
+}
+
+AK_HIDE
+void
+ak_mutex_destroy(AkMutex * __restrict mutex) {
+#if defined(AK_WINAPI)
+  DeleteCriticalSection(mutex);
+#else
+  pthread_mutex_destroy(mutex);
+#endif
+}
+
+AK_HIDE
+void
+ak_mutex_lock(AkMutex * __restrict mutex) {
+#if defined(AK_WINAPI)
+  EnterCriticalSection(mutex);
+#else
+  pthread_mutex_lock(mutex);
+#endif
+}
+
+AK_HIDE
+void
+ak_mutex_unlock(AkMutex * __restrict mutex) {
+#if defined(AK_WINAPI)
+  LeaveCriticalSection(mutex);
+#else
+  pthread_mutex_unlock(mutex);
+#endif
+}
+
 #if defined(AK_WINAPI)
 static
 DWORD
@@ -254,15 +294,10 @@ ak_thread_join(AkThread * __restrict thread) {
   thread->started = false;
 }
 
-AK_HIDE
+static
 uint32_t
-ak_thread_cpu_count(void) {
-  uint32_t cached;
+ak_thread_detect_cpu_count(void) {
   uint32_t detected;
-
-  cached = ak_thread_cached_cpu_count;
-  if (cached > 0u)
-    return cached;
 
 #if defined(AK_WINAPI)
   SYSTEM_INFO info;
@@ -279,8 +314,48 @@ ak_thread_cpu_count(void) {
 #else
   detected = 1u;
 #endif
-  ak_thread_cached_cpu_count = detected;
+
   return detected;
+}
+
+#if defined(AK_WINAPI)
+static INIT_ONCE ak_thread_cpu_count_once = INIT_ONCE_STATIC_INIT;
+
+static
+BOOL
+CALLBACK
+ak_thread_cpu_count_init_once(PINIT_ONCE once,
+                              PVOID      param,
+                              PVOID     *context) {
+  (void)once;
+  (void)param;
+  (void)context;
+
+  ak_thread_cached_cpu_count = ak_thread_detect_cpu_count();
+  return TRUE;
+}
+#else
+static pthread_once_t ak_thread_cpu_count_once = PTHREAD_ONCE_INIT;
+
+static
+void
+ak_thread_cpu_count_init_once(void) {
+  ak_thread_cached_cpu_count = ak_thread_detect_cpu_count();
+}
+#endif
+
+AK_HIDE
+uint32_t
+ak_thread_cpu_count(void) {
+#if defined(AK_WINAPI)
+  InitOnceExecuteOnce(&ak_thread_cpu_count_once,
+                      ak_thread_cpu_count_init_once,
+                      NULL,
+                      NULL);
+#else
+  pthread_once(&ak_thread_cpu_count_once, ak_thread_cpu_count_init_once);
+#endif
+  return ak_thread_cached_cpu_count;
 }
 
 #if defined(AK_WINAPI)

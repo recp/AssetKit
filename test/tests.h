@@ -27,6 +27,7 @@
 
 TEST_DECLARE(heap)
 TEST_DECLARE(heap_multiple)
+TEST_DECLARE(heap_concurrent_registries)
 TEST_DECLARE(animation_time_range_walks_child_tree)
 TEST_DECLARE(coord_change_doc_converts_scene_payloads)
 TEST_DECLARE(mesh_triangulate_polygon_sets_triangle_mode)
@@ -251,6 +252,7 @@ TEST_DECLARE(format_edge_cases)
 TEST_LIST {
   TEST_ENTRY(heap)
   TEST_ENTRY(heap_multiple)
+  TEST_ENTRY(heap_concurrent_registries)
   TEST_ENTRY(animation_time_range_walks_child_tree)
   TEST_ENTRY(coord_change_doc_converts_scene_payloads)
   TEST_ENTRY(mesh_triangulate_polygon_sets_triangle_mode)
