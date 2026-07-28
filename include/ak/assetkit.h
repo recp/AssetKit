@@ -400,6 +400,7 @@ typedef struct AkDoc {
 #include "controller.h"
 #include "gsplat.h"
 #include "print.h"
+#include "render.h"
 
 AK_EXPORT
 AkResult
