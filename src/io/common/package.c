@@ -456,7 +456,9 @@ ak_package_temp_dir(void) {
   memcpy(path, base, baseLen);
   if (slash)
     path[baseLen++] = '/';
-  memcpy(path + baseLen, "assetkit-zip-XXXXXX", 21u);
+  memcpy(path + baseLen,
+         "assetkit-zip-XXXXXX",
+         sizeof("assetkit-zip-XXXXXX"));
   if (!mkdtemp(path)) {
     free(path);
     return NULL;
