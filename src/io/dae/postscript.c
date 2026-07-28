@@ -197,7 +197,7 @@ dae_spread_vert(DAEState * __restrict dst) {
       }
 
       if ((url = rb_find(dst->inputmap, inpv))) {
-        ak_url_dup(url, inp, url);
+        /* inputmap borrows this source URL only during post-processing. */
         rb_insert(dst->inputmap, inp, url);
       }
 
