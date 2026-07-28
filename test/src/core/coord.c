@@ -130,11 +130,15 @@ TEST_IMPL(coord_change_doc_converts_scene_payloads) {
   instancing->count       = 1;
   node->gpuInstancing     = instancing;
 
-  skin = ak_heap_calloc(heap, doc, sizeof(*skin));
+  skin = ak_heap_aligned_calloc(heap,
+                                doc,
+                                AK_ALIGNOF(AkSkin),
+                                sizeof(*skin));
   skin->nJoints = 1;
-  skin->invBindPoses = ak_heap_calloc(heap,
-                                      skin,
-                                      sizeof(*skin->invBindPoses));
+  skin->invBindPoses = ak_heap_aligned_calloc(heap,
+                                              skin,
+                                              AK_ALIGNOF(AkFloat4x4),
+                                              sizeof(*skin->invBindPoses));
   skin->bindShapeMatrix[0][0] = 1.0f;
   skin->bindShapeMatrix[1][1] = 1.0f;
   skin->bindShapeMatrix[2][2] = 1.0f;

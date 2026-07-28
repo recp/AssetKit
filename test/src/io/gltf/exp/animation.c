@@ -58,15 +58,20 @@ TEST_IMPL(gltf_export_native_skin) {
   prim = mesh->primitive;
   ak_test_add_skin_inputs(heap, prim);
 
-  skin = ak_heap_calloc(heap, doc, sizeof(*skin));
+  skin = ak_heap_aligned_calloc(heap,
+                                doc,
+                                AK_ALIGNOF(AkSkin),
+                                sizeof(*skin));
   skin->nJoints = 2;
   skin->joints = ak_heap_alloc(heap, skin, sizeof(*skin->joints) * 2);
   skin->joints[0] = jointA;
   skin->joints[1] = jointB;
   skin->skeleton = jointA;
-  skin->invBindPoses = ak_heap_alloc(heap,
-                                     skin,
-                                     sizeof(*skin->invBindPoses) * 2);
+  skin->invBindPoses = ak_heap_aligned_alloc(
+    heap,
+    skin,
+    AK_ALIGNOF(AkFloat4x4),
+    sizeof(*skin->invBindPoses) * 2);
   for (i = 0; i < 32; i++)
     ((float *)skin->invBindPoses)[i] = ((i % 16) % 5) == 0 ? 1.0f : 0.0f;
 
@@ -152,7 +157,10 @@ TEST_IMPL(gltf_export_unscened_skin_joints_scene_root) {
   prim = mesh->primitive;
   ak_test_add_skin_inputs(heap, prim);
 
-  skin = ak_heap_calloc(heap, doc, sizeof(*skin));
+  skin = ak_heap_aligned_calloc(heap,
+                                doc,
+                                AK_ALIGNOF(AkSkin),
+                                sizeof(*skin));
   skin->nJoints = 2;
   skin->joints = ak_heap_alloc(heap, skin, sizeof(*skin->joints) * 2);
   skin->joints[0] = jointA;
@@ -230,7 +238,10 @@ TEST_IMPL(gltf_export_instanced_skin_joints_not_scene_root) {
   prim = mesh->primitive;
   ak_test_add_skin_inputs(heap, prim);
 
-  skin = ak_heap_calloc(heap, doc, sizeof(*skin));
+  skin = ak_heap_aligned_calloc(heap,
+                                doc,
+                                AK_ALIGNOF(AkSkin),
+                                sizeof(*skin));
   skin->nJoints = 2;
   skin->joints = ak_heap_alloc(heap, skin, sizeof(*skin->joints) * 2);
   skin->joints[0] = jointA;

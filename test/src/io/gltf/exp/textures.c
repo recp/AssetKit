@@ -77,7 +77,7 @@ TEST_IMPL(gltf_export_texture_extras) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   sampler   = ak_heap_calloc(heap, doc, sizeof(*sampler));
@@ -204,7 +204,7 @@ TEST_IMPL(gltf_export_material_texture_file_uri) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -299,7 +299,7 @@ TEST_IMPL(gltf_export_material_texture_cwd_relative_uri) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -401,7 +401,7 @@ TEST_IMPL(gltf_export_rewrites_encoded_unsafe_texture_uri) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -510,8 +510,8 @@ TEST_IMPL(gltf_export_material_texture_uri_collision) {
 
   mat           = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface       = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor     = ak_heap_calloc(heap, surface, sizeof(*baseColor));
-  normal        = ak_heap_calloc(heap, surface, sizeof(*normal));
+  baseColor = ak_test_material_input(heap, surface);
+  normal = ak_test_material_input(heap, surface);
   baseRef       = ak_heap_calloc(heap, baseColor, sizeof(*baseRef));
   normalRef     = ak_heap_calloc(heap, normal, sizeof(*normalRef));
   baseTexture   = ak_heap_calloc(heap, doc, sizeof(*baseTexture));
@@ -614,7 +614,7 @@ TEST_IMPL(gltf_export_instance_texcoord_binding) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -716,7 +716,7 @@ TEST_IMPL(gltf_export_texcoord_binding_uses_source_set_zero) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -807,7 +807,7 @@ TEST_IMPL(gltf_export_skips_unsupported_image_uri) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -890,7 +890,7 @@ TEST_IMPL(gltf_export_material_texture_data_uri) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -975,7 +975,7 @@ TEST_IMPL(gltf_export_converts_loaded_unsupported_image_to_png) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -1068,7 +1068,7 @@ TEST_IMPL(gltf_export_converts_bmp_uri_to_png_without_loader) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -1148,7 +1148,7 @@ TEST_IMPL(gltf_export_converts_decoded_image_to_png) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -1228,7 +1228,7 @@ TEST_IMPL(gltf_export_glb_embeds_decoded_uri_image) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -1317,7 +1317,7 @@ TEST_IMPL(gltf_export_material_texture_ktx2) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -1405,7 +1405,7 @@ TEST_IMPL(gltf_export_material_texture_webp) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -1494,7 +1494,7 @@ TEST_IMPL(gltf_export_material_texture_transform) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   transform = ak_heap_calloc(heap, texref, sizeof(*transform));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
@@ -1591,7 +1591,7 @@ TEST_IMPL(gltf_export_material_texture_transform_invalid_slot) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   transform = ak_heap_calloc(heap, texref, sizeof(*transform));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
@@ -1688,7 +1688,7 @@ TEST_IMPL(gltf_export_material_texture_buffer_view) {
 
   mat         = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface     = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor   = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref      = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture     = ak_heap_calloc(heap, doc, sizeof(*texture));
   image       = ak_heap_calloc(heap, doc, sizeof(*image));

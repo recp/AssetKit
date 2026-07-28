@@ -2114,7 +2114,10 @@ ak_3mf_material_color_input(AkHeap     * __restrict heap,
                             uint8_t                  rgba[4]) {
   AkMaterialInput *input;
 
-  input = ak_heap_calloc(heap, parent, sizeof(*input));
+  input = ak_heap_aligned_calloc(heap,
+                                 parent,
+                                 AK_ALIGNOF(AkMaterialInput),
+                                 sizeof(*input));
   if (!input)
     return NULL;
 
@@ -2139,7 +2142,10 @@ ak_3mf_material_scalar_input(AkHeap      * __restrict heap,
                              float                    value) {
   AkMaterialInput *input;
 
-  input = ak_heap_calloc(heap, parent, sizeof(*input));
+  input = ak_heap_aligned_calloc(heap,
+                                 parent,
+                                 AK_ALIGNOF(AkMaterialInput),
+                                 sizeof(*input));
   if (!input)
     return NULL;
 
@@ -2792,9 +2798,11 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
     set->id         = group->id;
     set->count      = group->count;
     set->type       = setType;
-    set->properties = ak_heap_calloc(heap,
-                                     set,
-                                     sizeof(*set->properties) * propertyCount);
+    set->properties = ak_heap_aligned_calloc(
+      heap,
+      set,
+      AK_ALIGNOF(AkMaterialProperty),
+      sizeof(*set->properties) * propertyCount);
     if (!set->properties)
       continue;
     if (kind != AK_3MF_PROPERTY_GROUP_TEXTURE2D) {

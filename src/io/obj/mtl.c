@@ -184,7 +184,10 @@ wobj_colorInput(WOState             * __restrict wst,
                 AkTextureChannels                channels) {
   AkMaterialInput *input;
 
-  input             = ak_heap_calloc(wst->heap, parent, sizeof(*input));
+  input             = ak_heap_aligned_calloc(wst->heap,
+                                              parent,
+                                              AK_ALIGNOF(AkMaterialInput),
+                                              sizeof(*input));
   input->semantic   = semantic;
   input->source     = AK_MATERIAL_INPUT_CONSTANT;
   input->valueType  = AK_MATERIAL_VALUE_COLOR;
@@ -214,7 +217,10 @@ wobj_scalarInput(WOState             * __restrict wst,
                  AkTextureChannels                channels) {
   AkMaterialInput *input;
 
-  input             = ak_heap_calloc(wst->heap, parent, sizeof(*input));
+  input             = ak_heap_aligned_calloc(wst->heap,
+                                              parent,
+                                              AK_ALIGNOF(AkMaterialInput),
+                                              sizeof(*input));
   input->semantic   = semantic;
   input->source     = AK_MATERIAL_INPUT_CONSTANT;
   input->valueType  = AK_MATERIAL_VALUE_FLOAT;

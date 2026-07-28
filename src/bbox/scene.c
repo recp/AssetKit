@@ -56,15 +56,18 @@ ak_bbox_node(AkHeap  * __restrict heap,
     return;
 
   if (!node->matrix)
-    node->matrix = ak_heap_alloc(heap,
-                                 node,
-                                 sizeof(*node->matrix));
+    node->matrix = ak_heap_aligned_alloc(heap,
+                                         node,
+                                         AK_ALIGNOF(AkMatrix),
+                                         sizeof(*node->matrix));
 
   if (cacheWorld) {
     if (!node->matrixWorld)
-      node->matrixWorld = ak_heap_alloc(heap,
-                                        node,
-                                        sizeof(*node->matrixWorld));
+      node->matrixWorld = ak_heap_aligned_alloc(
+        heap,
+        node,
+        AK_ALIGNOF(AkMatrix),
+        sizeof(*node->matrixWorld));
     matrixWorld = node->matrixWorld->val;
   } else {
     matrixWorld = matrixWorldStack;

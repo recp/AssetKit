@@ -101,7 +101,11 @@ gltf_materialEnsureVolume(AkGLTFState       * __restrict gst,
   if (feature)
     return feature;
 
-  feature = ak_heap_calloc(gst->heap, surface, sizeof(*feature));
+  feature = ak_heap_aligned_calloc(
+    gst->heap,
+    surface,
+    AK_ALIGNOF(AkMaterialVolumeFeature),
+    sizeof(*feature));
   feature->base.type               = AK_MATERIAL_FEATURE_VOLUME;
   feature->attenuationColor.vec[0] = 1.0f;
   feature->attenuationColor.vec[1] = 1.0f;
@@ -137,7 +141,11 @@ gltf_materialInput(AkGLTFState          * __restrict gst,
   AkMaterialInput *input;
 
   if (!(input = *slot)) {
-    input             = ak_heap_calloc(gst->heap, parent, sizeof(*input));
+    input             = ak_heap_aligned_calloc(
+      gst->heap,
+      parent,
+      AK_ALIGNOF(AkMaterialInput),
+      sizeof(*input));
     input->semantic   = semantic;
     input->source     = AK_MATERIAL_INPUT_CONSTANT;
     input->valueType  = valueType;

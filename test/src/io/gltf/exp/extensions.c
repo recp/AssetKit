@@ -58,8 +58,8 @@ TEST_IMPL(gltf_export_material_extensions) {
   surface         = ak_heap_calloc(heap, mat, sizeof(*surface));
   clearcoat       = ak_heap_calloc(heap, surface, sizeof(*clearcoat));
   specular        = ak_heap_calloc(heap, surface, sizeof(*specular));
-  clearcoatFactor = ak_heap_calloc(heap, clearcoat, sizeof(*clearcoatFactor));
-  specularColor   = ak_heap_calloc(heap, specular, sizeof(*specularColor));
+  clearcoatFactor = ak_test_material_input(heap, clearcoat);
+  specularColor = ak_test_material_input(heap, specular);
 
   mat->surface                = surface;
   surface->type               = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
@@ -150,9 +150,9 @@ TEST_IMPL(gltf_export_material_specular_glossiness) {
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
   sg        = ak_heap_calloc(heap, surface, sizeof(*sg));
-  diffuse   = ak_heap_calloc(heap, sg, sizeof(*diffuse));
-  specular  = ak_heap_calloc(heap, sg, sizeof(*specular));
-  glossiness = ak_heap_calloc(heap, sg, sizeof(*glossiness));
+  diffuse = ak_test_material_input(heap, sg);
+  specular  = ak_test_material_input(heap, sg);
+  glossiness = ak_test_material_input(heap, sg);
 
   surface->type             = AK_MATERIAL_TYPE_PBR_SPECULAR_GLOSSINESS;
   surface->ior              = 1.5f;
@@ -247,7 +247,7 @@ TEST_IMPL(gltf_export_material_volume_scatter) {
   mat        = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface    = ak_heap_calloc(heap, mat, sizeof(*surface));
   subsurface = ak_heap_calloc(heap, surface, sizeof(*subsurface));
-  color      = ak_heap_calloc(heap, subsurface, sizeof(*color));
+  color = ak_test_material_input(heap, subsurface);
 
   surface->type             = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
   surface->ior              = 1.5f;
@@ -621,7 +621,7 @@ TEST_IMPL(gltf_export_preserved_object_extension) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   ASSERT(mat != NULL);
   ASSERT(surface != NULL);
   ASSERT(baseColor != NULL);
@@ -783,7 +783,7 @@ TEST_IMPL(gltf_export_preserved_object_extensions_across_kinds) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   sampler   = ak_heap_calloc(heap, doc, sizeof(*sampler));
@@ -944,7 +944,7 @@ TEST_IMPL(gltf_export_omits_unused_material_variants) {
 
   badSlotMat     = ak_heap_calloc(heap, doc, sizeof(*badSlotMat));
   badSlotSurface = ak_heap_calloc(heap, badSlotMat, sizeof(*badSlotSurface));
-  baseColor      = ak_heap_calloc(heap, badSlotSurface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, badSlotSurface);
   texref         = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture        = ak_heap_calloc(heap, doc, sizeof(*texture));
   image          = ak_heap_calloc(heap, doc, sizeof(*image));

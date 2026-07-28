@@ -31,7 +31,10 @@ dae_skin(DAEState * __restrict dst,
   bool         foundBindShape;
 
   heap           = dst->heap;
-  skin           = ak_heap_calloc(heap, memp, sizeof(*skin));
+  skin           = ak_heap_aligned_calloc(heap,
+                                          memp,
+                                          AK_ALIGNOF(AkSkin),
+                                          sizeof(*skin));
   skindae        = ak_heap_calloc(heap, skin, sizeof(*skindae));
   foundBindShape = false;
   

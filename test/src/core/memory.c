@@ -124,6 +124,7 @@ TEST_IMPL(heap) {
     void *mem;
 
     mem = ak_heap_calloc(heap, NULL, 16);
+    ASSERT(((uintptr_t)mem & 7u) == 0u);
     ak_heap_getStats(heap, &stats);
     ASSERT(stats.allocCalls == 1);
     ASSERT(stats.callocCalls == 1);
@@ -153,30 +154,53 @@ TEST_IMPL(heap) {
   ASSERT(ak_heap_data(heap) == &data);
 
   {
+    uint32_t *aligned;
+
+    aligned = ak_heap_aligned_calloc(heap, NULL, 32, sizeof(*aligned));
+    ASSERT(((uintptr_t)aligned & 31u) == 0u);
+    *aligned = 42u;
+    aligned = ak_heap_realloc(heap, NULL, aligned, 1024 * 1024);
+    ASSERT(((uintptr_t)aligned & 31u) == 0u);
+    ASSERT(*aligned == 42u);
+    ak_free(aligned);
+  }
+
+  {
     void *parent;
     void *otherParent;
     void *firstChild;
     void *secondChild;
+    void *thirdChild;
     void *grandchild;
 
     parent      = ak_heap_calloc(heap, NULL, 16);
     otherParent = ak_heap_calloc(heap, NULL, 16);
     firstChild  = ak_heap_calloc(heap, parent, 16);
     secondChild = ak_heap_calloc(heap, parent, 16);
+    thirdChild  = ak_heap_calloc(heap, parent, 16);
     grandchild  = ak_heap_calloc(heap, firstChild, 16);
 
     ASSERT(ak_mem_parent(firstChild) == parent);
     ASSERT(ak_mem_parent(secondChild) == parent);
+    ASSERT(ak_mem_parent(thirdChild) == parent);
     ASSERT(ak_mem_parent(grandchild) == firstChild);
+
+    secondChild = ak_heap_realloc(heap, parent, secondChild, 1024 * 1024);
+    ASSERT(ak_mem_parent(secondChild) == parent);
 
     parent = ak_heap_realloc(heap, NULL, parent, 1024 * 1024);
     ASSERT(ak_mem_parent(firstChild) == parent);
     ASSERT(ak_mem_parent(secondChild) == parent);
+    ASSERT(ak_mem_parent(thirdChild) == parent);
     ASSERT(ak_mem_parent(grandchild) == firstChild);
 
-    ak_mem_setp(secondChild, otherParent);
-    ASSERT(ak_mem_parent(secondChild) == otherParent);
-    ASSERT(ak_mem_parent(firstChild) == parent);
+    ak_mem_setp(firstChild, otherParent);
+    ASSERT(ak_mem_parent(firstChild) == otherParent);
+    ASSERT(ak_mem_parent(grandchild) == firstChild);
+    ASSERT(ak_mem_parent(secondChild) == parent);
+
+    ak_free(secondChild);
+    ASSERT(ak_mem_parent(thirdChild) == parent);
 
     ak_free(parent);
     ak_free(otherParent);

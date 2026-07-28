@@ -42,7 +42,10 @@ gltf_skin(json_t * __restrict jskin,
     char    skinid[16];
     
     jskinVal = jskin->value;
-    skin     = ak_heap_calloc(heap, doc, sizeof(*skin));
+    skin     = ak_heap_aligned_calloc(heap,
+                                      doc,
+                                      AK_ALIGNOF(AkSkin),
+                                      sizeof(*skin));
 
     gltf_imp_skin_id(skinid, skinIndex);
     ak_heap_setId(heap,
@@ -60,8 +63,11 @@ gltf_skin(json_t * __restrict jskin,
         if ((acc = gltf_accessor_at(gst, json_int32(jskinVal, -1)))
             && (buff = acc->buffer)) {
           pbuff = (void *)((char *)buff->data + acc->byteOffset);
-          skin->invBindPoses = ak_heap_alloc(heap, skin,
-                                             acc->count * sizeof(mat4));
+          skin->invBindPoses = ak_heap_aligned_alloc(heap,
+                                                     skin,
+                                                     AK_ALIGNOF(AkFloat4x4),
+                                                     acc->count
+                                                       * sizeof(mat4));
           
           for (size_t k = 0; k < acc->count * 16; k++) {
             *((float *)skin->invBindPoses + k) = *(pbuff + k);

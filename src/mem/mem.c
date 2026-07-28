@@ -125,6 +125,91 @@ ak__heap_stats_free(AkHeap * __restrict heap) {
     heap->stats.liveNodes--;
 }
 
+static
+AkHeapNode *
+ak__heap_node_alloc(AkHeapAllocator * __restrict allocator,
+                    size_t                       size,
+                    size_t                       alignment) {
+  AkHeapAlignedPrefix *prefix;
+  AkHeapNode          *node;
+  uintptr_t            payload;
+  void                *allocation;
+  size_t               total;
+
+  assert(alignment > 0
+         && (alignment & (alignment - 1)) == 0
+         && "alignment must be a non-zero power of two");
+
+  if (alignment <= 8) {
+    assert(size <= SIZE_MAX - ak__heapnd_sz
+           && "allocation size overflow");
+    node = allocator->malloc(ak__align(ak__heapnd_sz + size));
+    assert(node && "malloc failed");
+    node->flags = 0;
+    return node;
+  }
+
+  assert(size <= SIZE_MAX
+                   - ak__heapnd_sz
+                   - sizeof(*prefix)
+                   - (alignment - 1)
+         && "aligned allocation size overflow");
+
+  total      = ak__heapnd_sz
+             + size
+             + sizeof(*prefix)
+             + alignment - 1;
+  allocation = allocator->malloc(total);
+  assert(allocation && "malloc failed");
+
+  payload = (uintptr_t)allocation
+          + sizeof(*prefix)
+          + ak__heapnd_sz;
+  payload = (payload + alignment - 1) & ~(uintptr_t)(alignment - 1);
+  node    = (AkHeapNode *)(payload - ak__heapnd_sz);
+  prefix  = (AkHeapAlignedPrefix *)((char *)node - sizeof(*prefix));
+
+  prefix->allocation = allocation;
+  prefix->size       = size;
+  prefix->alignment  = alignment;
+  node->flags        = AK__HEAP_NODE_FLAGS_ALIGNED;
+
+  return node;
+}
+
+static
+void
+ak__heap_node_free(AkHeapAllocator * __restrict allocator,
+                   AkHeapNode      * __restrict node) {
+  if (node->flags & AK__HEAP_NODE_FLAGS_ALIGNED) {
+    AkHeapAlignedPrefix *prefix;
+    prefix = (AkHeapAlignedPrefix *)((char *)node - sizeof(*prefix));
+    allocator->free(prefix->allocation);
+    return;
+  }
+
+  allocator->free(node);
+}
+
+static
+void
+ak__heap_node_unlink(AkHeap     * __restrict heap,
+                     AkHeapNode * __restrict heapNode) {
+  if (heapNode->prev)
+    heapNode->prev->next = heapNode->next;
+  else if (heapNode->parent)
+    ak_heap_chld_set(heapNode->parent, heapNode->next);
+  else
+    heap->root = heapNode->next;
+
+  if (heapNode->next)
+    heapNode->next->prev = heapNode->prev;
+
+  heapNode->parent = NULL;
+  heapNode->prev   = NULL;
+  heapNode->next   = NULL;
+}
+
 AK_EXPORT
 char*
 ak_heap_strdup(AkHeap * __restrict heap,
@@ -377,26 +462,23 @@ ak_heap_destroy(AkHeap * __restrict heap) {
 
 AK_EXPORT
 void*
-ak_heap_alloc(AkHeap * __restrict heap,
-              void   * __restrict parent,
-              size_t              size) {
+ak_heap_aligned_alloc(AkHeap * __restrict heap,
+                      void   * __restrict parent,
+                      size_t              alignment,
+                      size_t              size) {
   AkHeapNode *currNode;
   AkHeapNode *parentNode;
-  size_t      memsize;
 
   assert((!parent || heap->heapid == ak__alignof(parent)->heapid)
          && "parent and child mem must use same heap");
 
-  memsize  = ak__heapnd_sz + size;
-  memsize  = ak__align(memsize);
-  currNode = heap->allocator->malloc(memsize);
-  assert(currNode && "malloc failed");
+  currNode = ak__heap_node_alloc(heap->allocator, size, alignment);
 
-  currNode->flags  = 0;
   currNode->typeid = 0;
   currNode->chld   = NULL;
   currNode->heapid = heap->heapid;
   currNode->parent = NULL;
+  currNode->prev   = NULL;
   ak__heap_stats_alloc(heap, size);
 
   if (parent) {
@@ -409,18 +491,40 @@ ak_heap_alloc(AkHeap * __restrict heap,
     ak_heap_chld_set(parentNode, currNode);
     if (chldNode)
       chldNode->prev = currNode;
-
     currNode->next = chldNode;
   } else {
     if (heap->root)
       heap->root->prev = currNode;
-
     currNode->next = heap->root;
-    currNode->prev = NULL;
     heap->root     = currNode;
   }
 
   return ak__alignas(currNode);
+}
+
+AK_EXPORT
+void*
+ak_heap_alloc(AkHeap * __restrict heap,
+              void   * __restrict parent,
+              size_t              size) {
+  return ak_heap_aligned_alloc(heap, parent, 8, size);
+}
+
+AK_EXPORT
+void*
+ak_heap_aligned_calloc(AkHeap * __restrict heap,
+                       void   * __restrict parent,
+                       size_t              alignment,
+                       size_t              size) {
+  void *memptr;
+
+  heap->stats.callocCalls++;
+  heap->stats.callocBytes += (uint64_t)size;
+
+  memptr = ak_heap_aligned_alloc(heap, parent, alignment, size);
+  memset(memptr, '\0', size);
+
+  return memptr;
 }
 
 AK_EXPORT
@@ -433,9 +537,7 @@ ak_heap_calloc(AkHeap * __restrict heap,
   heap->stats.callocCalls++;
   heap->stats.callocBytes += (uint64_t)size;
 
-  memptr = ak_heap_alloc(heap,
-                         parent,
-                         size);
+  memptr = ak_heap_aligned_alloc(heap, parent, 8, size);
   memset(memptr, '\0', size);
 
   return memptr;
@@ -447,9 +549,12 @@ ak_heap_realloc(AkHeap * __restrict heap,
                 void   * __restrict parent,
                 void   * __restrict memptr,
                 size_t              newsize) {
+  AkHeapAlignedPrefix *prefix;
   AkHeapNode *oldNode;
   AkHeapNode *newNode;
   AkHeapNode *chld;
+  bool        wasTrash;
+  size_t      copySize;
   size_t      userNewSize;
 
   userNewSize = newsize;
@@ -462,34 +567,39 @@ ak_heap_realloc(AkHeap * __restrict heap,
                          newsize);
 
   oldNode = ak__alignof(memptr);
+  wasTrash = heap->trash == oldNode;
 
   if (newsize == 0) {
     ak_heap_free(heap, oldNode);
     return NULL;
   }
 
-  newsize = ak__heapnd_sz + newsize;
-  newsize = ak__align(newsize);
-  newNode = heap->allocator->realloc(oldNode, newsize);
-  assert(newNode && "realloc failed");
+  if (oldNode->flags & AK__HEAP_NODE_FLAGS_ALIGNED) {
+    prefix  = (AkHeapAlignedPrefix *)((char *)oldNode - sizeof(*prefix));
+    newNode = ak__heap_node_alloc(heap->allocator,
+                                  userNewSize,
+                                  prefix->alignment);
+    copySize = prefix->size < userNewSize ? prefix->size : userNewSize;
+    memcpy(newNode, oldNode, ak__heapnd_sz + copySize);
+    heap->allocator->free(prefix->allocation);
+  } else {
+    newsize = ak__heapnd_sz + newsize;
+    newsize = ak__align(newsize);
+    newNode = heap->allocator->realloc(oldNode, newsize);
+    assert(newNode && "realloc failed");
+  }
 
   if (heap->root == oldNode)
     heap->root = newNode;
 
-  if (heap->trash == oldNode)
+  if (wasTrash)
     heap->trash = newNode;
 
-  chld = newNode->chld;
-  if (chld) {
+  if (newNode->chld) {
     if (newNode->flags & AK_HEAP_NODE_FLAGS_EXT) {
       AkHeapNodeExt *exnode;
       exnode       = newNode->chld;
       exnode->node = newNode;
-
-      if (exnode->chld)
-        exnode->chld->prev = newNode;
-    } else {
-      chld->prev = newNode;
     }
 
     chld = ak_heap_chld(newNode);
@@ -499,17 +609,15 @@ ak_heap_realloc(AkHeap * __restrict heap,
     }
   }
 
+  if (newNode->prev)
+    newNode->prev->next = newNode;
+  else if (newNode->parent)
+    ak_heap_chld_set(newNode->parent, newNode);
+  else if (!wasTrash)
+    heap->root = newNode;
+
   if (newNode->next)
     newNode->next->prev = newNode;
-
-  if (newNode->prev) {
-    chld = ak_heap_chld(newNode->prev);
-
-    if (chld == oldNode)
-      ak_heap_chld_set(newNode->prev, newNode);
-    else
-      newNode->prev->next = newNode;
-  }
 
   return ak__alignas(newNode);
 }
@@ -532,10 +640,9 @@ ak_heap_chld_set(AkHeapNode * __restrict heapNode,
   else
     heapNode->chld = chldNode;
 
-  if (chldNode)
-  {
+  if (chldNode) {
     chldNode->parent = heapNode;
-    chldNode->prev   = heapNode;
+    chldNode->prev   = NULL;
   }
 }
 
@@ -554,27 +661,10 @@ ak_heap_setp(AkHeapNode * __restrict heapNode,
   oldheap = ak_heap_lt_find(heapNode->heapid);
   newheap = ak_heap_lt_find(newParent->heapid);
 
-  if (heapNode->prev) {
-    if (ak_heap_chld(heapNode->prev) == heapNode)
-      ak_heap_chld_set(heapNode->prev, heapNode->next);
-    else
-      heapNode->prev->next = heapNode->next;
-
-    if (heapNode->next)
-      heapNode->next->prev = heapNode->prev;
-
-    heapNode->prev = NULL;
-  } else if (heapNode == oldheap->root) { /* root->prev = NULL */
-    oldheap->root = heapNode->next;
-
-    if (heapNode->next)
-      heapNode->next->prev = NULL;
-  }
-
-  heapNode->next = NULL;
-
   if (heapNode == oldheap->trash)
     oldheap->trash = heapNode->next;
+  else
+    ak__heap_node_unlink(oldheap, heapNode);
 
   /* move all ids to new heap (if it is different) */
   if (newParent->heapid != heapNode->heapid)
@@ -582,7 +672,6 @@ ak_heap_setp(AkHeapNode * __restrict heapNode,
 
   heapNode->next = ak_heap_chld(newParent);
   ak_heap_chld_set(newParent, heapNode);
-
   if (heapNode->next)
     heapNode->next->prev = heapNode;
 }
@@ -659,9 +748,6 @@ AK_EXPORT
 void
 ak_heap_free(AkHeap     * __restrict heap,
              AkHeapNode * __restrict heapNode) {
-  AkHeapAllocator * __restrict alc;
-  alc = heap->allocator;
-
   if (heapNode->flags & AK_HEAP_NODE_FLAGS_EXT)
     ak_heap_ext_free(heap, heapNode);
 
@@ -701,7 +787,7 @@ ak_heap_free(AkHeap     * __restrict heap,
       }
 
       ak__heap_stats_free(heap);
-      alc->free(toFree);
+      ak__heap_node_free(heap->allocator, toFree);
       toFree = nextFree;
 
       /* empty trash */
@@ -713,24 +799,10 @@ ak_heap_free(AkHeap     * __restrict heap,
     } while (toFree);
   }
 
-  if (heapNode->prev) {
-    if (ak_heap_chld(heapNode->prev) == heapNode)
-      ak_heap_chld_set(heapNode->prev, heapNode->next);
-    else
-      heapNode->prev->next = heapNode->next;
-  }
-
-  /* heap->root == heapNode
-     we know that root->prev always is NULL */
-  else {
-    heap->root = heapNode->next;
-  }
-
-  if (heapNode->next)
-    heapNode->next->prev = heapNode->prev;
+  ak__heap_node_unlink(heap, heapNode);
 
   ak__heap_stats_free(heap);
-  alc->free(heapNode);
+  ak__heap_node_free(heap->allocator, heapNode);
 }
 
 AK_EXPORT
@@ -1130,9 +1202,10 @@ ak_objAlloc(AkHeap * __restrict heap,
 
   assert(typeSize > 0 && "invalid parameter value");
 
-  obj = ak_heap_alloc(heap,
-                      memParent,
-                      sizeof(*obj) + typeSize);
+  obj = ak_heap_aligned_alloc(heap,
+                              memParent,
+                              AK_ALIGNOF(AkFloat4),
+                              sizeof(*obj) + typeSize);
 
   obj->size  = typeSize;
   obj->type  = typeEnum;

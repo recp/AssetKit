@@ -63,7 +63,10 @@ dae_sampler(DAEState * __restrict dst,
     } else if (DAE_XML_TAG_EQ(xml, border_color)) {
       AkColor *color;
 
-      color = ak_heap_calloc(heap, samp, sizeof(*color));
+      color = ak_heap_aligned_calloc(heap,
+                                     samp,
+                                     AK_ALIGNOF(AkColor),
+                                     sizeof(*color));
       dae_color(xml, samp, true, false, color);
       
       samp->borderColor = color;

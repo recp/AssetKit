@@ -564,7 +564,10 @@ ak__materialInputAlloc(AkHeap      * __restrict heap,
                        const char  * __restrict semantic) {
   AkMaterialInput *input;
 
-  input           = ak_heap_calloc(heap, parent, sizeof(*input));
+  input           = ak_heap_aligned_calloc(heap,
+                                            parent,
+                                            AK_ALIGNOF(AkMaterialInput),
+                                            sizeof(*input));
   input->semantic = semantic;
   input->source   = AK_MATERIAL_INPUT_CONSTANT;
 

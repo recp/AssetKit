@@ -331,7 +331,10 @@ dae_instance_skin_from_controller(DAEState             * __restrict dst,
   matrixBase   = (char *)matrixBuff->data + matrixAcc->byteOffset;
 
   joints = ak_heap_alloc(dst->heap, instCtlr, sizeof(*joints) * count);
-  invm   = ak_heap_alloc(dst->heap, ctlr->data, sizeof(*invm) * count);
+  invm   = ak_heap_aligned_alloc(dst->heap,
+                                 ctlr->data,
+                                 AK_ALIGNOF(AkFloat4x4),
+                                 sizeof(*invm) * count);
   if (!joints || !invm)
     return NULL;
 

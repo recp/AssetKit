@@ -30,6 +30,8 @@
 #define ak__alignof(p) ((AkHeapNode *)(((char *)p) - ak__heapnd_sz))
 #define ak__alignas(m) ((void *)(((char *)m) + ak__heapnd_sz))
 
+#define AK__HEAP_NODE_FLAGS_ALIGNED (1u << 13)
+
 #define AK__BST_LEFT  0
 #define AK__BST_RIGHT 1
 
@@ -74,15 +76,15 @@ typedef struct AkMemoryMapNode {
   (((AkHeapNodeExt *)((char *)X - offsetof(AkHeapNodeExt, data)))->node)
 
 /*
- - prev - AkHeapNode - next -
+ parent - prev - AkHeapNode - next sibling
                |
     AkHeapNode o AkHeapNodeExt
                |
-             chld
+          first child
                |               */
 struct AkHeapNode {
   AkHeapNode *parent;
-  AkHeapNode *prev; /* parent for first child, otherwise left sibling */
+  AkHeapNode *prev; /* left sibling */
   AkHeapNode *next; /* right sibling */
   void       *chld; /* first child */
   uint32_t    heapid;
@@ -91,13 +93,37 @@ struct AkHeapNode {
   char        data[];
 };
 
+typedef struct AkHeapAlignedPrefix {
+  void   *allocation;
+  size_t  size;
+  size_t  alignment;
+} AkHeapAlignedPrefix;
+
+#if UINTPTR_MAX > UINT32_MAX
+#  define AK__HEAP_NODE_EXPECTED_SIZE 40
+#else
+#  define AK__HEAP_NODE_EXPECTED_SIZE 24
+#endif
+
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+_Static_assert(sizeof(AkHeapNode) == AK__HEAP_NODE_EXPECTED_SIZE,
+               "AkHeapNode header size changed");
+_Static_assert(offsetof(AkHeapNode, data) == AK__HEAP_NODE_EXPECTED_SIZE,
+               "AkHeapNode payload offset changed");
+#else
+typedef char AkHeapNodeSizeChanged[
+  sizeof(AkHeapNode) == AK__HEAP_NODE_EXPECTED_SIZE ? 1 : -1
+];
+typedef char AkHeapNodePayloadOffsetChanged[
+  offsetof(AkHeapNode, data) == AK__HEAP_NODE_EXPECTED_SIZE ? 1 : -1
+];
+#endif
+
 
 /*
- - prev - AkHeapNode - next -
-              |
         AkHeapNodeExt - data
               |
-            chld
+          first child
               |
 
 data: data must contain items with these order with these data types

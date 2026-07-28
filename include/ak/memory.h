@@ -185,11 +185,28 @@ ak_heap_alloc(AkHeap * __restrict heap,
               void   * __restrict parent,
               size_t size);
 
+/* Use for types whose alignment is greater than the heap's 8-byte default.
+   Alignment must be a non-zero power of two. */
+AK_EXPORT
+void*
+ak_heap_aligned_alloc(AkHeap * __restrict heap,
+                      void   * __restrict parent,
+                      size_t              alignment,
+                      size_t              size);
+
 AK_EXPORT
 void*
 ak_heap_calloc(AkHeap * __restrict heap,
                void   * __restrict parent,
                size_t size);
+
+/* Zero-initialized counterpart of ak_heap_aligned_alloc. */
+AK_EXPORT
+void*
+ak_heap_aligned_calloc(AkHeap * __restrict heap,
+                       void   * __restrict parent,
+                       size_t              alignment,
+                       size_t              size);
 
 AK_EXPORT
 void*

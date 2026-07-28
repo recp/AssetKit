@@ -32,7 +32,10 @@ dae_colorOrTexSet(DAEState    * __restrict dst,
 
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, color)) {
-      clr->color = ak_heap_calloc(heap, memp, sizeof(*clr->color));
+      clr->color = ak_heap_aligned_calloc(heap,
+                                          memp,
+                                          AK_ALIGNOF(AkColor),
+                                          sizeof(*clr->color));
       dae_color(xml, clr->color, true, false, clr->color);
     } else if (DAE_XML_TAG_EQ8(xml, texture)) {
       AkDAETextureRef *tex;

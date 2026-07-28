@@ -56,10 +56,10 @@ TEST_IMPL(gltf_export_primitive_material) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
-  opacity   = ak_heap_calloc(heap, surface, sizeof(*opacity));
-  metallic  = ak_heap_calloc(heap, surface, sizeof(*metallic));
-  roughness = ak_heap_calloc(heap, surface, sizeof(*roughness));
+  baseColor = ak_test_material_input(heap, surface);
+  opacity = ak_test_material_input(heap, surface);
+  metallic = ak_test_material_input(heap, surface);
+  roughness = ak_test_material_input(heap, surface);
 
   mat->name        = "mat_red";
   mat->surface     = surface;
@@ -151,7 +151,7 @@ TEST_IMPL(gltf_export_material_extras) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   extra     = ak_heap_calloc(heap, mat, sizeof(*extra));
   note      = ak_heap_calloc(heap, extra, sizeof(*note));
   ASSERT(mat != NULL);
@@ -386,7 +386,7 @@ TEST_IMPL(gltf_export_material_texture_uri) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   sampler   = ak_heap_calloc(heap, doc, sizeof(*sampler));
@@ -522,8 +522,8 @@ TEST_IMPL(gltf_export_material_metallic_roughness_texture_channels) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  metallic  = ak_heap_calloc(heap, surface, sizeof(*metallic));
-  roughness = ak_heap_calloc(heap, surface, sizeof(*roughness));
+  metallic = ak_test_material_input(heap, surface);
+  roughness = ak_test_material_input(heap, surface);
   metalRef  = ak_heap_calloc(heap, metallic, sizeof(*metalRef));
   roughRef  = ak_heap_calloc(heap, roughness, sizeof(*roughRef));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));

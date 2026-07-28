@@ -78,15 +78,27 @@ dae_light(DAEState * __restrict dst,
       xtech = xml->val;
   
       if (DAE_XML_TAG_EQ8(xtech, ambient)) {
-        lightb       = ak_heap_calloc(heap, light, sizeof(AkAmbientLight));
+        lightb       = ak_heap_aligned_calloc(
+          heap,
+          light,
+          AK_ALIGNOF(AkAmbientLight),
+          sizeof(AkAmbientLight));
         lightb->type = AK_LIGHT_TYPE_AMBIENT;
       } else if (DAE_XML_TAG_EQ(xtech, directional)) {
-        lightb       = ak_heap_calloc(heap, light, sizeof(AkDirectionalLight));
+        lightb       = ak_heap_aligned_calloc(
+          heap,
+          light,
+          AK_ALIGNOF(AkDirectionalLight),
+          sizeof(AkDirectionalLight));
         lightb->type = AK_LIGHT_TYPE_DIRECTIONAL;
       } else if (DAE_XML_TAG_EQ8(xtech, point)) {
         AkPointLight *point;
 
-        point                  = ak_heap_calloc(heap, light, sizeof(*point));
+        point                  = ak_heap_aligned_calloc(
+          heap,
+          light,
+          AK_ALIGNOF(AkPointLight),
+          sizeof(*point));
         point->base.type       = AK_LIGHT_TYPE_POINT;
         point->attenuation.constant = 1.0f;
         lightb                 = &point->base;
@@ -109,7 +121,10 @@ dae_light(DAEState * __restrict dst,
       } else if (DAE_XML_TAG_EQ8(xtech, spot)) {
         AkSpotLight *spot;
 
-        spot            = ak_heap_calloc(heap, light, sizeof(*spot));
+        spot            = ak_heap_aligned_calloc(heap,
+                                                 light,
+                                                 AK_ALIGNOF(AkSpotLight),
+                                                 sizeof(*spot));
         spot->base.type = AK_LIGHT_TYPE_SPOT;
         lightb          = &spot->base;
 

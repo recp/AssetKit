@@ -60,8 +60,10 @@
 #  define AK_INLINE   __forceinline
 #  define AK_NOINLINE __declspec(noinline)
 #  define AK_ALIGN(X) __declspec(align(X))
+#  define AK_ALIGNOF(T) __alignof(T)
 #else
 #  define AK_ALIGN(X) __attribute((aligned(X)))
+#  define AK_ALIGNOF(T) __alignof__(T)
 #  define AK_INLINE   static inline __attribute((always_inline))
 #  define AK_NOINLINE __attribute__((noinline))
 #endif

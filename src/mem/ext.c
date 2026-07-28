@@ -35,6 +35,10 @@ uint32_t
 ak_heap_ext_size(uint16_t flags) {
   uint32_t sz, flag, i, ctz;
 
+  flags &= AK_HEAP_NODE_FLAGS_EXT_ALL;
+  if (!flags)
+    return 0;
+
   sz   = 0;
   ctz  = (31 - ak_bitw_clz(flags));
   flag = 1 << ctz;

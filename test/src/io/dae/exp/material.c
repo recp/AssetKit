@@ -90,11 +90,11 @@ TEST_IMPL(dae_export_material_texture_smoke) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
-  emissive  = ak_heap_calloc(heap, surface, sizeof(*emissive));
-  metallic  = ak_heap_calloc(heap, surface, sizeof(*metallic));
-  opacity   = ak_heap_calloc(heap, surface, sizeof(*opacity));
-  roughness = ak_heap_calloc(heap, surface, sizeof(*roughness));
+  baseColor = ak_test_material_input(heap, surface);
+  emissive = ak_test_material_input(heap, surface);
+  metallic = ak_test_material_input(heap, surface);
+  opacity = ak_test_material_input(heap, surface);
+  roughness = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   emissiveRef = ak_heap_calloc(heap, emissive, sizeof(*emissiveRef));
   opacityRef  = ak_heap_calloc(heap, opacity, sizeof(*opacityRef));
@@ -253,7 +253,7 @@ TEST_IMPL(dae_export_material_skips_unused_images) {
 
   mat          = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface      = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor    = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref       = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture      = ak_heap_calloc(heap, doc, sizeof(*texture));
   usedImage    = ak_heap_calloc(heap, doc, sizeof(*usedImage));
@@ -330,9 +330,9 @@ TEST_IMPL(dae_export_material_scalar_channels_smoke) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
-  opacity   = ak_heap_calloc(heap, surface, sizeof(*opacity));
-  emissive  = ak_heap_calloc(heap, surface, sizeof(*emissive));
+  baseColor = ak_test_material_input(heap, surface);
+  opacity = ak_test_material_input(heap, surface);
+  emissive = ak_test_material_input(heap, surface);
   ASSERT(mat != NULL);
   ASSERT(surface != NULL);
   ASSERT(baseColor != NULL);
@@ -413,9 +413,9 @@ TEST_IMPL(dae_export_material_pbr_matte_uses_lambert) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
-  metallic  = ak_heap_calloc(heap, surface, sizeof(*metallic));
-  roughness = ak_heap_calloc(heap, surface, sizeof(*roughness));
+  baseColor = ak_test_material_input(heap, surface);
+  metallic = ak_test_material_input(heap, surface);
+  roughness = ak_test_material_input(heap, surface);
   ASSERT(mat != NULL);
   ASSERT(surface != NULL);
   ASSERT(baseColor != NULL);
@@ -485,9 +485,9 @@ TEST_IMPL(dae_export_material_technique_types) {
   surfaceConstant = ak_heap_calloc(heap, matConstant, sizeof(*surfaceConstant));
   surfaceLambert  = ak_heap_calloc(heap, matLambert, sizeof(*surfaceLambert));
   surfaceBlinn    = ak_heap_calloc(heap, matBlinn, sizeof(*surfaceBlinn));
-  colorConstant   = ak_heap_calloc(heap, surfaceConstant, sizeof(*colorConstant));
-  colorLambert    = ak_heap_calloc(heap, surfaceLambert, sizeof(*colorLambert));
-  colorBlinn      = ak_heap_calloc(heap, surfaceBlinn, sizeof(*colorBlinn));
+  colorConstant = ak_test_material_input(heap, surfaceConstant);
+  colorLambert = ak_test_material_input(heap, surfaceLambert);
+  colorBlinn = ak_test_material_input(heap, surfaceBlinn);
   ASSERT(matConstant != NULL);
   ASSERT(matLambert != NULL);
   ASSERT(matBlinn != NULL);
@@ -646,7 +646,7 @@ TEST_IMPL(dae_export_rejects_unmapped_texture_image) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -696,7 +696,7 @@ TEST_IMPL(dae_export_ignores_texture_ref_without_image) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   ASSERT(mat != NULL);

@@ -103,18 +103,15 @@ TEST_IMPL(obj_export_triangle_smoke) {
   clearcoat = ak_heap_calloc(heap, surface, sizeof(*clearcoat));
   sheen     = ak_heap_calloc(heap, surface, sizeof(*sheen));
   anisotropy = ak_heap_calloc(heap, surface, sizeof(*anisotropy));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
-  clearcoatFactor = ak_heap_calloc(heap, clearcoat, sizeof(*clearcoatFactor));
-  clearcoatRoughness = ak_heap_calloc(heap, clearcoat,
-                                      sizeof(*clearcoatRoughness));
-  sheenFactor = ak_heap_calloc(heap, sheen, sizeof(*sheenFactor));
-  anisotropyStrength = ak_heap_calloc(heap, anisotropy,
-                                      sizeof(*anisotropyStrength));
-  anisotropyRotation = ak_heap_calloc(heap, anisotropy,
-                                      sizeof(*anisotropyRotation));
-  metallic  = ak_heap_calloc(heap, surface, sizeof(*metallic));
-  opacity   = ak_heap_calloc(heap, surface, sizeof(*opacity));
-  roughness = ak_heap_calloc(heap, surface, sizeof(*roughness));
+  baseColor = ak_test_material_input(heap, surface);
+  clearcoatFactor = ak_test_material_input(heap, clearcoat);
+  clearcoatRoughness = ak_test_material_input(heap, clearcoat);
+  sheenFactor = ak_test_material_input(heap, sheen);
+  anisotropyStrength = ak_test_material_input(heap, anisotropy);
+  anisotropyRotation = ak_test_material_input(heap, anisotropy);
+  metallic = ak_test_material_input(heap, surface);
+  opacity = ak_test_material_input(heap, surface);
+  roughness = ak_test_material_input(heap, surface);
 
   ASSERT(mat != NULL);
   ASSERT(surface != NULL);
@@ -492,7 +489,7 @@ TEST_IMPL(obj_export_missing_texture_map_is_best_effort) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   sampler   = ak_heap_calloc(heap, doc, sizeof(*sampler));
@@ -633,9 +630,9 @@ TEST_IMPL(obj_export_material_texture_copy) {
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
   classic   = ak_heap_calloc(heap, surface, sizeof(*classic));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
-  metallic  = ak_heap_calloc(heap, surface, sizeof(*metallic));
-  roughness = ak_heap_calloc(heap, surface, sizeof(*roughness));
+  baseColor = ak_test_material_input(heap, surface);
+  metallic = ak_test_material_input(heap, surface);
+  roughness = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   metalRef  = ak_heap_calloc(heap, metallic, sizeof(*metalRef));
   roughRef  = ak_heap_calloc(heap, roughness, sizeof(*roughRef));
@@ -819,7 +816,7 @@ TEST_IMPL(obj_export_material_absolute_texture_copy) {
 
   mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   sampler   = ak_heap_calloc(heap, doc, sizeof(*sampler));
@@ -959,9 +956,8 @@ TEST_IMPL(obj_export_skips_unused_material_textures) {
   unusedMat       = ak_heap_calloc(heap, doc, sizeof(*unusedMat));
   usedSurface     = ak_heap_calloc(heap, usedMat, sizeof(*usedSurface));
   unusedSurface   = ak_heap_calloc(heap, unusedMat, sizeof(*unusedSurface));
-  usedBaseColor   = ak_heap_calloc(heap, usedSurface, sizeof(*usedBaseColor));
-  unusedBaseColor = ak_heap_calloc(heap, unusedSurface,
-                                   sizeof(*unusedBaseColor));
+  usedBaseColor = ak_test_material_input(heap, usedSurface);
+  unusedBaseColor = ak_test_material_input(heap, unusedSurface);
   texref          = ak_heap_calloc(heap, unusedBaseColor, sizeof(*texref));
   texture         = ak_heap_calloc(heap, doc, sizeof(*texture));
   sampler         = ak_heap_calloc(heap, doc, sizeof(*sampler));

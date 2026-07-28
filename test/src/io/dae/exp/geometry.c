@@ -327,7 +327,7 @@ TEST_IMPL(dae_export_brep_nurbs_roundtrip) {
   source       = ak_heap_calloc(heap, image, sizeof(*source));
   mat          = ak_heap_calloc(heap, doc, sizeof(*mat));
   surface      = ak_heap_calloc(heap, mat, sizeof(*surface));
-  baseColor    = ak_heap_calloc(heap, surface, sizeof(*baseColor));
+  baseColor = ak_test_material_input(heap, surface);
   texref       = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   texture      = ak_heap_calloc(heap, doc, sizeof(*texture));
   sampler      = ak_heap_calloc(heap, texture, sizeof(*sampler));

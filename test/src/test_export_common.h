@@ -41,6 +41,16 @@
   const char *binPath = "./" STEM "/model.bin"
 
 static inline
+AkMaterialInput*
+ak_test_material_input(AkHeap *heap,
+                       void   *parent) {
+  return ak_heap_aligned_calloc(heap,
+                                parent,
+                                AK_ALIGNOF(AkMaterialInput),
+                                sizeof(AkMaterialInput));
+}
+
+static inline
 bool
 ak_test_path_join(char       *dst,
                   size_t      dstCap,
