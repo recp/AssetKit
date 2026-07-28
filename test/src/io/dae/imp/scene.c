@@ -458,6 +458,8 @@ TEST_IMPL(dae14_broken_texture_ref_recovers_unique_image_and_path) {
   ASSERT(textureRef->texture->image == exactImage);
   ASSERT(exactImage->source != NULL);
   ASSERT(exactImage->source->resolvedPath == NULL);
+  ASSERT(strcmp(ak_imageResolvePath(exactImage), exactTexturePath) == 0);
+  ASSERT(strcmp(exactImage->source->resolvedPath, exactTexturePath) == 0);
 
   material = ak_getObjectById(doc, "mat_ambiguous");
   ASSERT(material && material->surface && material->surface->baseColor);

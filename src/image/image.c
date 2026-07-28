@@ -44,6 +44,43 @@ ak_imageInitLoader(AkImageLoadFromFileFn   fromFile,
   ak__img_conf.loadFromMemory       = fromMemory;
 }
 
+AK_EXPORT
+const char*
+ak_imageResolvePath(AkImage * __restrict image) {
+  AkHeap        *heap;
+  AkDoc         *doc;
+  AkImageSource *source;
+  char           pathbuf[PATH_MAX];
+  char           uribuf[PATH_MAX];
+  const char    *uriPath;
+  const char    *path;
+
+  if (!image)
+    return NULL;
+
+  source = ak_imageSource(image);
+  if (!source || source->type != AK_IMAGE_SOURCE_URI || !source->uri)
+    return NULL;
+  if (source->resolvedPath && *source->resolvedPath)
+    return source->resolvedPath;
+
+  uriPath = source->uri;
+  if (ak_str_has_char_fast(uriPath, '%')) {
+    if (!io_uri_decode_path(uriPath, uribuf, sizeof(uribuf)))
+      return NULL;
+    uriPath = uribuf;
+  }
+
+  heap = ak_heap_getheap(image);
+  doc  = ak_heap_data(heap);
+  path = ak_fullpathn(doc, uriPath, pathbuf, sizeof(pathbuf));
+  if (!path)
+    path = uriPath;
+
+  source->resolvedPath = ak_strdup(source, path);
+  return source->resolvedPath;
+}
+
 AK_HIDE
 bool
 ak_imageCanLoad(AkImage * __restrict image) {
@@ -96,36 +133,14 @@ ak_imageLoad(AkImage * __restrict image) {
   if (source) {
     switch (source->type) {
     case AK_IMAGE_SOURCE_URI: {
-      char        pathbuf[PATH_MAX];
-      char        uribuf[PATH_MAX];
-      const char *uriPath;
       const char *path;
 
       if (!source->uri || !ak__img_conf.loadFromFile)
         return;
 
-      if (source->resolvedPath && *source->resolvedPath) {
-        path = source->resolvedPath;
-        image->data = ak__img_conf.loadFromFile(heap, image, path, flipImage);
-        break;
-      }
-
-      uriPath = source->uri;
-      if (ak_str_has_char_fast(source->uri, '%')) {
-        if (!io_uri_decode_path(source->uri, uribuf, sizeof(uribuf)))
-          return;
-        uriPath = uribuf;
-      }
-
-      if (doc && doc->inf && doc->inf->dir) {
-        path = ak_fullpathn(doc, uriPath, pathbuf, sizeof(pathbuf));
-        if (!path)
-          return;
-      } else {
-        path = uriPath;
-      }
-
-      source->resolvedPath = ak_strdup(source, path);
+      path = ak_imageResolvePath(image);
+      if (!path)
+        return;
       image->data          = ak__img_conf.loadFromFile(heap, image, path, flipImage);
       break;
     }

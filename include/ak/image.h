@@ -176,6 +176,14 @@ typedef struct AkImage {
   bool            flipOnLoad;
 } AkImage;
 
+/**
+ * Resolves and caches the filesystem path for a URI-backed image without
+ * decoding the image. Returns NULL for non-URI sources or unresolvable paths.
+ */
+AK_EXPORT
+const char*
+ak_imageResolvePath(AkImage * __restrict image);
+
 AK_EXPORT
 void
 ak_imageLoad(AkImage * __restrict image);
