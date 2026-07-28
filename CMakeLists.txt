@@ -336,6 +336,10 @@ set(LIBDEFLATE_ZLIB_SUPPORT OFF CACHE BOOL "Build libdeflate zlib wrapper suppor
 set(LIBDEFLATE_GZIP_SUPPORT ON CACHE BOOL "Build libdeflate gzip/CRC support" FORCE)
 set(LIBDEFLATE_BUILD_GZIP OFF CACHE BOOL "Build libdeflate gzip program" FORCE)
 set(LIBDEFLATE_BUILD_TESTS OFF CACHE BOOL "Build libdeflate tests" FORCE)
+if(NOT AK_IS_SHARED_TARGET)
+  set(LIBDEFLATE_INSTALL ON CACHE BOOL
+      "Install libdeflate required by static AssetKit exports" FORCE)
+endif()
 add_subdirectory(deps/libdeflate EXCLUDE_FROM_ALL)
 set_target_properties(libdeflate_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
