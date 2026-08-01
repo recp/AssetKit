@@ -1477,6 +1477,60 @@ TEST_IMPL(gltf_load_short_buffer_uri) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(load_failure_clears_destination) {
+  AkDoc       *doc;
+  AkResult     result;
+  char         dirTemplate[PATH_MAX];
+  char        *tmpdir;
+  char         gltfPath[PATH_MAX];
+  const char  *tmpBase;
+  FILE        *file;
+
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-load-failure-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(gltfPath, sizeof(gltfPath), "%s/unsupported.gltf", tmpdir);
+  file = fopen(gltfPath, "wb");
+  ASSERT(file != NULL);
+  ASSERT(fputs("{\n"
+               "  \"asset\": {\"version\": \"2.0\"},\n"
+               "  \"extensionsRequired\": [\"AK_test_unsupported\"]\n"
+               "}\n",
+               file) >= 0);
+  ASSERT(fclose(file) == 0);
+
+  doc    = (AkDoc *)(uintptr_t)1;
+  result = ak_load(&doc, gltfPath, AK_FILE_TYPE_GLTF);
+  ASSERT(result == AK_EBADF);
+  ASSERT(doc == NULL);
+
+  doc    = (AkDoc *)(uintptr_t)1;
+  result = ak_load(&doc,
+                   "/assetkit-test-path-that-does-not-exist/model.gltf",
+                   AK_FILE_TYPE_GLTF);
+  ASSERT(result != AK_OK);
+  ASSERT(doc == NULL);
+
+  ASSERT(ak_load(NULL, gltfPath, AK_FILE_TYPE_GLTF) == AK_EINVAL);
+
+  doc = (AkDoc *)(uintptr_t)1;
+  ASSERT(ak_load(&doc, NULL, AK_FILE_TYPE_GLTF) == AK_EINVAL);
+  ASSERT(doc == NULL);
+
+  unlink(gltfPath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(parallel_dae_float_array_parse) {
   AkDoc           *doc;
   AkMeshPrimitive *prim;

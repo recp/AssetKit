@@ -591,6 +591,13 @@ ak_load(AkDoc ** __restrict dest, const char * __restrict url, ...) {
   int         file_type;
   int         _err_no;
 
+  if (!dest)
+    return AK_EINVAL;
+
+  *dest = NULL;
+  if (!url)
+    return AK_EINVAL;
+
   va_list pref_args;
   va_start(pref_args, url);
   file_type = va_arg(pref_args, int);
