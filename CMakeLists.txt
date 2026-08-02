@@ -435,7 +435,10 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_DRACO_DECODER)
       cmake_policy(SET CMP0114 NEW)
     endif()
 
-    set(AK_DRACO_INSTALL_DIR "${AK_DEPS_ROOT}/draco/install")
+    set(AK_DRACO_SOURCE_DIR
+        "${CMAKE_CURRENT_BINARY_DIR}/assetkit_draco-src")
+    set(AK_DRACO_INSTALL_DIR
+        "${CMAKE_CURRENT_BINARY_DIR}/assetkit_draco-install")
     set(AK_DRACO_INCLUDE_DIR "${AK_DRACO_INSTALL_DIR}/include")
     set(AK_DRACO_CMAKE_ARGS
         -Wno-dev
@@ -461,6 +464,14 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_DRACO_DECODER)
       list(APPEND AK_DRACO_CMAKE_ARGS
            -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
     endif()
+    if(CMAKE_SYSTEM_NAME)
+      list(APPEND AK_DRACO_CMAKE_ARGS
+           -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME})
+    endif()
+    if(APPLE AND CMAKE_OSX_SYSROOT)
+      list(APPEND AK_DRACO_CMAKE_ARGS
+           -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT})
+    endif()
     if(APPLE AND CMAKE_OSX_ARCHITECTURES)
       string(REPLACE ";" "|" AK_DRACO_OSX_ARCHITECTURES
              "${CMAKE_OSX_ARCHITECTURES}")
@@ -478,8 +489,9 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_DRACO_DECODER)
         GIT_TAG main
         GIT_SHALLOW TRUE
         GIT_SUBMODULES ""
-        SOURCE_DIR "${AK_DEPS_ROOT}/draco"
-        BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_draco-build"
+        UPDATE_DISCONNECTED TRUE
+        SOURCE_DIR "${AK_DRACO_SOURCE_DIR}"
+        BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_draco-local-build"
         INSTALL_DIR "${AK_DRACO_INSTALL_DIR}"
         BUILD_BYPRODUCTS "${AK_DRACO_LIBRARY}"
         LIST_SEPARATOR "|"
@@ -522,7 +534,8 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_DRACO_DECODER)
                         CXX_STANDARD 11
                         CXX_STANDARD_REQUIRED YES
                         CXX_VISIBILITY_PRESET hidden
-                        VISIBILITY_INLINES_HIDDEN YES)
+                        VISIBILITY_INLINES_HIDDEN YES
+                        XCODE_ATTRIBUTE_SKIP_INSTALL YES)
   if(AK_INSTALL_RPATH)
     set_target_properties(assetkit_draco PROPERTIES
                           INSTALL_RPATH "${AK_INSTALL_RPATH}")
@@ -558,7 +571,8 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_MESHOPT_DECODER)
         GIT_REPOSITORY https://github.com/zeux/meshoptimizer.git
         GIT_TAG master
         GIT_SHALLOW TRUE
-        SOURCE_DIR "${AK_DEPS_ROOT}/meshoptimizer")
+        UPDATE_DISCONNECTED TRUE
+        SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_meshoptimizer-src")
     FetchContent_GetProperties(assetkit_meshoptimizer_dep)
     if(NOT assetkit_meshoptimizer_dep_POPULATED)
       FetchContent_Populate(assetkit_meshoptimizer_dep)
@@ -595,7 +609,8 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_MESHOPT_DECODER)
                         CXX_STANDARD 11
                         CXX_STANDARD_REQUIRED YES
                         CXX_VISIBILITY_PRESET hidden
-                        VISIBILITY_INLINES_HIDDEN YES)
+                        VISIBILITY_INLINES_HIDDEN YES
+                        XCODE_ATTRIBUTE_SKIP_INSTALL YES)
   if(AK_INSTALL_RPATH)
     set_target_properties(assetkit_meshoptimizer PROPERTIES
                           INSTALL_RPATH "${AK_INSTALL_RPATH}")
@@ -647,10 +662,7 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
   if((NOT AK_SPZ_INCLUDE_DIR OR NOT AK_SPZ_LIBRARY) AND AK_FETCH_DEPS)
     include(FetchContent)
 
-    set(AK_SPZ_SOURCE_DIR "${AK_DEPS_ROOT}/spz")
-    if(EXISTS "${AK_SPZ_SOURCE_DIR}" AND NOT EXISTS "${AK_SPZ_SOURCE_DIR}/CMakeLists.txt")
-      set(AK_SPZ_SOURCE_DIR "${AK_DEPS_ROOT}/spz-src")
-    endif()
+    set(AK_SPZ_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_spz-src")
     set(SPZ_BUILD_TOOLS OFF CACHE BOOL "Build SPZ command-line tools" FORCE)
     set(SPZ_BUILD_PYTHON_BINDINGS OFF CACHE BOOL "Build SPZ Python bindings" FORCE)
     set(SPZ_BUILD_EXTENSIONS OFF CACHE BOOL "Build SPZ extensions support" FORCE)
@@ -679,6 +691,7 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
         GIT_TAG main
         GIT_SHALLOW TRUE
         GIT_SUBMODULES ""
+        UPDATE_DISCONNECTED TRUE
         SOURCE_DIR "${AK_SPZ_SOURCE_DIR}")
     FetchContent_GetProperties(assetkit_spz_dep)
     if(NOT assetkit_spz_dep_POPULATED)
@@ -756,7 +769,8 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
                           CXX_STANDARD 17
                           CXX_STANDARD_REQUIRED YES
                           CXX_VISIBILITY_PRESET hidden
-                          VISIBILITY_INLINES_HIDDEN YES)
+                          VISIBILITY_INLINES_HIDDEN YES
+                          XCODE_ATTRIBUTE_SKIP_INSTALL YES)
     if(AK_INSTALL_RPATH)
       set_target_properties(assetkit_spz PROPERTIES
                             INSTALL_RPATH "${AK_INSTALL_RPATH}")
@@ -811,8 +825,15 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
       cmake_policy(SET CMP0114 NEW)
     endif()
 
-    set(AK_KTX2_INSTALL_DIR "${AK_DEPS_ROOT}/ktx/install")
-    set(AK_KTX2_INCLUDE_DIR "${AK_KTX2_INSTALL_DIR}/include")
+    set(AK_KTX2_SOURCE_DIR
+        "${CMAKE_CURRENT_BINARY_DIR}/assetkit_ktx2-src")
+    set(AK_KTX2_INSTALL_DIR
+        "${CMAKE_CURRENT_BINARY_DIR}/assetkit_ktx2-install")
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+      set(AK_KTX2_INCLUDE_DIR "${AK_KTX2_INSTALL_DIR}/lib/ktx.framework/Headers")
+    else()
+      set(AK_KTX2_INCLUDE_DIR "${AK_KTX2_INSTALL_DIR}/include")
+    endif()
     set(AK_KTX2_CMAKE_ARGS
         -Wno-dev
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -822,8 +843,12 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
         -DKTX_FEATURE_TOOLS=OFF
         -DKTX_FEATURE_DOC=OFF
         -DKTX_FEATURE_LOADTEST_APPS=OFF
-        -DBASISU_SSE=ON
         -DBUILD_SHARED_LIBS=OFF)
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+      list(APPEND AK_KTX2_CMAKE_ARGS -DBASISU_SSE=OFF)
+    else()
+      list(APPEND AK_KTX2_CMAKE_ARGS -DBASISU_SSE=ON)
+    endif()
     if(MSVC)
       list(APPEND AK_KTX2_CMAKE_ARGS
            -DCMAKE_SHARED_LINKER_FLAGS=/ignore:4006
@@ -835,13 +860,23 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
       list(APPEND AK_KTX2_CMAKE_ARGS
            -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
     endif()
+    if(CMAKE_SYSTEM_NAME)
+      list(APPEND AK_KTX2_CMAKE_ARGS
+           -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME})
+    endif()
+    if(APPLE AND CMAKE_OSX_SYSROOT)
+      list(APPEND AK_KTX2_CMAKE_ARGS
+           -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT})
+    endif()
     if(APPLE AND CMAKE_OSX_ARCHITECTURES)
       string(REPLACE ";" "|" AK_KTX2_OSX_ARCHITECTURES
              "${CMAKE_OSX_ARCHITECTURES}")
       list(APPEND AK_KTX2_CMAKE_ARGS
            -DCMAKE_OSX_ARCHITECTURES:STRING=${AK_KTX2_OSX_ARCHITECTURES})
     endif()
-    if(WIN32)
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+      set(AK_KTX2_LIBRARY "${AK_KTX2_INSTALL_DIR}/lib/ktx.framework/ktx")
+    elseif(WIN32)
       set(AK_KTX2_LIBRARY "${AK_KTX2_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/ktx.lib")
     else()
       set(AK_KTX2_LIBRARY "${AK_KTX2_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libktx.a")
@@ -850,8 +885,10 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
     ExternalProject_Add(assetkit_ktx2_dep
         GIT_REPOSITORY https://github.com/KhronosGroup/KTX-Software.git
         GIT_TAG main
-        SOURCE_DIR "${AK_DEPS_ROOT}/ktx"
-        BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_ktx2-build"
+        GIT_SHALLOW TRUE
+        UPDATE_DISCONNECTED TRUE
+        SOURCE_DIR "${AK_KTX2_SOURCE_DIR}"
+        BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_ktx2-local-build"
         INSTALL_DIR "${AK_KTX2_INSTALL_DIR}"
         BUILD_BYPRODUCTS "${AK_KTX2_LIBRARY}"
         LIST_SEPARATOR "|"
@@ -893,7 +930,8 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
                           CXX_STANDARD 17
                           CXX_STANDARD_REQUIRED YES
                           CXX_VISIBILITY_PRESET hidden
-                          VISIBILITY_INLINES_HIDDEN YES)
+                          VISIBILITY_INLINES_HIDDEN YES
+                          XCODE_ATTRIBUTE_SKIP_INSTALL YES)
     if(AK_INSTALL_RPATH)
       set_target_properties(assetkit_ktx2 PROPERTIES
                             INSTALL_RPATH "${AK_INSTALL_RPATH}")

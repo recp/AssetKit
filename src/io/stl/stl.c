@@ -172,6 +172,7 @@ stl_header_color(const char * __restrict header, vec4 color) {
       const unsigned char *rgba;
 
       rgba     = (const unsigned char *)(const void *)(header + i + 6);
+      /* Binary STL color conventions do not define a transfer function. */
       color[0] = (float)rgba[0] / 255.0f;
       color[1] = (float)rgba[1] / 255.0f;
       color[2] = (float)rgba[2] / 255.0f;

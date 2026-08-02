@@ -15,6 +15,7 @@
  */
 
 #include "common.h"
+#include "../../../color.h"
 
 static
 void
@@ -464,9 +465,9 @@ ak_3mf_vertex_color(AK3MFRows       * __restrict rows,
   colorIndex = io_primitive_input_index(prim, colorInput, vertexIndex);
   row        = ak_3mf_rows_get(rows, colorIndex);
 
-  rgba[0] = ak_3mf_color_u8(ak_3mf_color_component(rows, row, 0u, 1.0f));
-  rgba[1] = ak_3mf_color_u8(ak_3mf_color_component(rows, row, 1u, 1.0f));
-  rgba[2] = ak_3mf_color_u8(ak_3mf_color_component(rows, row, 2u, 1.0f));
+  rgba[0] = ak_linear_to_srgb8_fast(ak_3mf_color_component(rows, row, 0u, 1.0f));
+  rgba[1] = ak_linear_to_srgb8_fast(ak_3mf_color_component(rows, row, 1u, 1.0f));
+  rgba[2] = ak_linear_to_srgb8_fast(ak_3mf_color_component(rows, row, 2u, 1.0f));
   rgba[3] = ak_3mf_color_u8(ak_3mf_color_component(rows, row, 3u, 1.0f));
 }
 

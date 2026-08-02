@@ -488,19 +488,10 @@ ply_color_component(PLYExpRows * __restrict rows,
 }
 
 static
-float
-ply_linear_to_srgb(float value) {
-  if (value <= 0.0031308f)
-    return value * 12.92f;
-
-  return 1.055f * powf(value, 1.0f / 2.4f) - 0.055f;
-}
-
-static
 uint8_t
 ply_color_u8(float value, bool srgb) {
   if (srgb)
-    value = ply_linear_to_srgb(value);
+    return ak_linear_to_srgb8_fast(value);
 
   if (value < 0.0f)
     value = 0.0f;
@@ -516,14 +507,14 @@ ply_vertex_color(PLYExpState * __restrict st,
                  PLYExpPrim  * __restrict pc,
                  uint32_t                  vertexIndex,
                  bool                      direct,
-                 uint8_t                   out[4]) {
+                 float                     out[4]) {
   const float *row;
   uint32_t     colorIndex;
 
-  out[0] = 255u;
-  out[1] = 255u;
-  out[2] = 255u;
-  out[3] = 255u;
+  out[0] = 1.0f;
+  out[1] = 1.0f;
+  out[2] = 1.0f;
+  out[3] = 1.0f;
   if (!pc->hasColorRows)
     return;
 
@@ -532,16 +523,11 @@ ply_vertex_color(PLYExpState * __restrict st,
                : io_primitive_input_index(pc->prim, pc->colorInput, vertexIndex);
   row = ply_rows_get(&pc->colorRows, colorIndex);
 
-  out[0] = ply_color_u8(ply_color_component(&pc->colorRows, row, 0u, 1.0f),
-                        st->colorSrgb);
-  out[1] = ply_color_u8(ply_color_component(&pc->colorRows, row, 1u, 1.0f),
-                        st->colorSrgb);
-  out[2] = ply_color_u8(ply_color_component(&pc->colorRows, row, 2u, 1.0f),
-                        st->colorSrgb);
-  if (st->hasAlpha) {
-    out[3] = ply_color_u8(ply_color_component(&pc->colorRows, row, 3u, 1.0f),
-                          false);
-  }
+  out[0] = ply_color_component(&pc->colorRows, row, 0u, 1.0f);
+  out[1] = ply_color_component(&pc->colorRows, row, 1u, 1.0f);
+  out[2] = ply_color_component(&pc->colorRows, row, 2u, 1.0f);
+  if (st->hasAlpha)
+    out[3] = ply_color_component(&pc->colorRows, row, 3u, 1.0f);
 }
 
 static
@@ -554,7 +540,7 @@ ply_write_vertex_record(PLYExpState * __restrict st,
   vec3    pos;
   vec3    normal;
   float   uv[2];
-  uint8_t color[4];
+  float   color[4];
 
   ply_vertex_position(pc, vertexIndex, direct, pos);
 
@@ -586,14 +572,26 @@ ply_write_vertex_record(PLYExpState * __restrict st,
     if (st->hasColors) {
       ply_vertex_color(st, pc, vertexIndex, direct, color);
       ply_w_ch(&st->w, ' ');
-      ply_w_u8_ascii(&st->w, color[0]);
-      ply_w_ch(&st->w, ' ');
-      ply_w_u8_ascii(&st->w, color[1]);
-      ply_w_ch(&st->w, ' ');
-      ply_w_u8_ascii(&st->w, color[2]);
-      if (st->hasAlpha) {
+      if (st->colorSrgb) {
+        ply_w_u8_ascii(&st->w, ply_color_u8(color[0], true));
         ply_w_ch(&st->w, ' ');
-        ply_w_u8_ascii(&st->w, color[3]);
+        ply_w_u8_ascii(&st->w, ply_color_u8(color[1], true));
+        ply_w_ch(&st->w, ' ');
+        ply_w_u8_ascii(&st->w, ply_color_u8(color[2], true));
+        if (st->hasAlpha) {
+          ply_w_ch(&st->w, ' ');
+          ply_w_u8_ascii(&st->w, ply_color_u8(color[3], false));
+        }
+      } else {
+        ply_w_float_ascii(&st->w, color[0]);
+        ply_w_ch(&st->w, ' ');
+        ply_w_float_ascii(&st->w, color[1]);
+        ply_w_ch(&st->w, ' ');
+        ply_w_float_ascii(&st->w, color[2]);
+        if (st->hasAlpha) {
+          ply_w_ch(&st->w, ' ');
+          ply_w_float_ascii(&st->w, color[3]);
+        }
       }
     }
 
@@ -602,7 +600,7 @@ ply_write_vertex_record(PLYExpState * __restrict st,
   }
 
   {
-    unsigned char  out[40];
+    unsigned char  out[56];
     unsigned char *p = out;
 
     if (!ply_store_f32le(&p, pos[0])
@@ -633,11 +631,19 @@ ply_write_vertex_record(PLYExpState * __restrict st,
 
     if (st->hasColors) {
       ply_vertex_color(st, pc, vertexIndex, direct, color);
-      *p++ = color[0];
-      *p++ = color[1];
-      *p++ = color[2];
-      if (st->hasAlpha)
-        *p++ = color[3];
+      if (st->colorSrgb) {
+        *p++ = ply_color_u8(color[0], true);
+        *p++ = ply_color_u8(color[1], true);
+        *p++ = ply_color_u8(color[2], true);
+        if (st->hasAlpha)
+          *p++ = ply_color_u8(color[3], false);
+      } else if (!ply_store_f32le(&p, color[0])
+                 || !ply_store_f32le(&p, color[1])
+                 || !ply_store_f32le(&p, color[2])
+                 || (st->hasAlpha && !ply_store_f32le(&p, color[3]))) {
+        st->w.result = AK_ERR;
+        return;
+      }
     }
 
     ply_w_raw_small(&st->w, out, (size_t)(p - out));
@@ -1403,12 +1409,21 @@ ply_write_header(PLYExpState * __restrict st) {
     ply_w_lit(&st->w, "property float s\nproperty float t\n");
 
   if (st->hasColors) {
-    ply_w_lit(&st->w,
-              "property uchar red\n"
-              "property uchar green\n"
-              "property uchar blue\n");
-    if (st->hasAlpha)
-      ply_w_lit(&st->w, "property uchar alpha\n");
+    if (st->colorSrgb) {
+      ply_w_lit(&st->w,
+                "property uchar red\n"
+                "property uchar green\n"
+                "property uchar blue\n");
+      if (st->hasAlpha)
+        ply_w_lit(&st->w, "property uchar alpha\n");
+    } else {
+      ply_w_lit(&st->w,
+                "property float red\n"
+                "property float green\n"
+                "property float blue\n");
+      if (st->hasAlpha)
+        ply_w_lit(&st->w, "property float alpha\n");
+    }
   }
 
   ply_w_lit(&st->w, "element face ");

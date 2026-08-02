@@ -594,10 +594,12 @@ ak__materialInputFromColorDesc(AkHeap       * __restrict heap,
                       && desc->texture->channels != AK_TEXTURE_CHANNEL_NONE
                         ? desc->texture->channels
                         : channels;
-  input->colorSpace = desc->texture
-                      && desc->texture->colorSpace != AK_TEXTURE_COLORSPACE_UNSPECIFIED
-                        ? desc->texture->colorSpace
-                        : colorSpace;
+  input->colorSpace = !desc->texture
+                      ? AK_TEXTURE_COLORSPACE_LINEAR
+                      : desc->texture->colorSpace
+                        != AK_TEXTURE_COLORSPACE_UNSPECIFIED
+                          ? desc->texture->colorSpace
+                          : colorSpace;
   input->valueType  = AK_MATERIAL_VALUE_COLOR;
 
   if (desc->color) {
@@ -631,7 +633,9 @@ ak__materialInputFromScalarTexture(AkHeap             * __restrict heap,
   input             = ak__materialInputAlloc(heap, parent, semantic);
   input->texture    = texture;
   input->channels   = channels;
-  input->colorSpace = colorSpace;
+  input->colorSpace = texture
+                      ? colorSpace
+                      : AK_TEXTURE_COLORSPACE_LINEAR;
   input->valueType  = AK_MATERIAL_VALUE_FLOAT;
   input->value[0]   = value;
 
@@ -639,6 +643,24 @@ ak__materialInputFromScalarTexture(AkHeap             * __restrict heap,
     input->source = AK_MATERIAL_INPUT_TEXTURE;
 
   return input;
+}
+
+static
+void
+ak__materialInputColorSRGBToLinear(AkMaterialInput * __restrict input) {
+  if (!input || input->texture)
+    return;
+
+  switch (input->valueType) {
+    case AK_MATERIAL_VALUE_COLOR:
+    case AK_MATERIAL_VALUE_FLOAT3:
+    case AK_MATERIAL_VALUE_FLOAT4:
+      ak_sRGB_linear(&input->color);
+      input->colorSpace = AK_TEXTURE_COLORSPACE_LINEAR;
+      break;
+    default:
+      break;
+  }
 }
 
 static
@@ -758,7 +780,7 @@ ak_materialDefaultVertexColorAlpha(AkDoc * __restrict doc, bool alphaBlend) {
   input->source       = AK_MATERIAL_INPUT_VERTEX_COLOR;
   input->valueType    = AK_MATERIAL_VALUE_COLOR;
   input->channels     = AK_TEXTURE_CHANNEL_RGBA;
-  input->colorSpace   = AK_TEXTURE_COLORSPACE_SRGB;
+  input->colorSpace   = AK_TEXTURE_COLORSPACE_LINEAR;
   input->color.rgba.R = 1.0f;
   input->color.rgba.G = 1.0f;
   input->color.rgba.B = 1.0f;
@@ -799,7 +821,8 @@ AK_HIDE
 AkMaterialSurface*
 ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
                                       void                * __restrict parent,
-                                      AkTechniqueFxCommon * __restrict common) {
+                                      AkTechniqueFxCommon * __restrict common,
+                                      bool                              constantColorsAreSRGB) {
   AkMaterialSurface       *surface;
   AkMaterialClassicFeature *classic;
 
@@ -835,6 +858,8 @@ ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
                                                         AK_TEXTURE_COLORSPACE_SRGB,
                                                         AK_TEXTURE_CHANNEL_RGBA);
   }
+  if (constantColorsAreSRGB)
+    ak__materialInputColorSRGBToLinear(surface->baseColor);
 
   if (common->emission)
     surface->emissive = ak__materialInputFromColorDesc(heap,
@@ -843,6 +868,8 @@ ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
                                                        &common->emission->color,
                                                        AK_TEXTURE_COLORSPACE_SRGB,
                                                        AK_TEXTURE_CHANNEL_RGB);
+  if (constantColorsAreSRGB)
+    ak__materialInputColorSRGBToLinear(surface->emissive);
 
   if (common->emission)
     surface->emissiveStrength = common->emission->strength;
@@ -904,6 +931,12 @@ ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
                                        AK_TEXTURE_COLORSPACE_SRGB,
                                        AK_TEXTURE_CHANNEL_RGB)
       : NULL;
+
+    if (constantColorsAreSRGB) {
+      ak__materialInputColorSRGBToLinear(classic->ambient);
+      ak__materialInputColorSRGBToLinear(classic->specular);
+      ak__materialInputColorSRGBToLinear(classic->reflective);
+    }
 
     classic->transparency = common->transparent
       ? ak__materialInputFromColorDesc(heap,

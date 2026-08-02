@@ -165,9 +165,9 @@ TEST_IMPL(ply_export_ascii_attributes_smoke) {
 
   ASSERT(ak_test_file_contains(plyPath, "format ascii 1.0"));
   ASSERT(ak_test_file_contains(plyPath, "property float s"));
-  ASSERT(ak_test_file_contains(plyPath, "property uchar red"));
-  ASSERT(ak_test_file_contains(plyPath, "property uchar alpha"));
-  ASSERT(ak_test_file_contains(plyPath, "2 3 4 0 0 255 0 0 255"));
+  ASSERT(ak_test_file_contains(plyPath, "property float red"));
+  ASSERT(ak_test_file_contains(plyPath, "property float alpha"));
+  ASSERT(ak_test_file_contains(plyPath, "2 3 4 0 0 1 0 0 1"));
   ASSERT(ak_test_file_contains(plyPath, "3 0 1 2"));
 
   roundTrip = NULL;

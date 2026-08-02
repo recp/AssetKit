@@ -53,6 +53,11 @@ typedef struct AkColorRGBA {
   AkFloat A;
 } AkColorRGBA;
 
+/* Canonical document-space color payload. Unless a field explicitly states
+   otherwise, RGB is linear-sRGB (sRGB primaries and D65 white point with a
+   linear transfer function), and alpha is linear coverage. Encoded texture
+   pixels keep their own AkTextureColorSpace and are not pre-decoded into this
+   payload. */
 typedef union AkColor {
   AK_ALIGN(16) AkColorRGBA rgba;
   AK_ALIGN(16) AkFloat4    vec;

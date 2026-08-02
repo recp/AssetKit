@@ -109,6 +109,8 @@ typedef struct AkMaterialInput {
   uint32_t                  index;
   AkMaterialInputFlags      flags;
   AkTextureChannels         channels;
+  /* Texture sampling space. Constant colors are linear-sRGB; scalar values
+     are linear data. */
   AkTextureColorSpace       colorSpace;
   AkMaterialInputSource     source;
   AkMaterialInputValue      valueType;

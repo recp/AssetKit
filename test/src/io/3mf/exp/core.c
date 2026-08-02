@@ -1246,10 +1246,10 @@ ak_test_make_3mf_color_triangle_doc(void) {
   AkMeshPrimitive *prim;
   AkInput        *colorInput;
   AkGeometry     *geom;
-  const uint8_t colors[12] = {
-    255u, 0u,   0u,   255u,
-    0u,   255u, 0u,   255u,
-    0u,   0u,   255u, 128u
+  const float colors[12] = {
+    ak_sRGB_linearf(128.0f / 255.0f), 0.0f, 0.0f, 1.0f,
+    0.0f, 1.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 1.0f, 128.0f / 255.0f
   };
 
   doc = ak_test_make_3mf_triangle_doc();
@@ -1270,14 +1270,13 @@ ak_test_make_3mf_color_triangle_doc(void) {
   colorInput->semantic = AK_INPUT_COLOR;
   colorInput->set      = 0;
   colorInput->index    = 0;
-  colorInput->accessor = ak_test_make_ubyte_accessor(heap,
+  colorInput->accessor = ak_test_make_float_accessor(heap,
                                                      colorInput,
                                                      colors,
                                                      4,
                                                      3);
   if (!colorInput->accessor)
     return NULL;
-  colorInput->accessor->normalized = false;
   colorInput->next = prim->input;
   prim->input      = colorInput;
   prim->inputCount++;
@@ -1407,9 +1406,9 @@ ak_test_3mf_material_color_near(AkMaterial *material,
   if (!baseColor || baseColor->source != AK_MATERIAL_INPUT_CONSTANT)
     return false;
 
-  return fabs(baseColor->color.rgba.R - r) < 0.001f
-         && fabs(baseColor->color.rgba.G - g) < 0.001f
-         && fabs(baseColor->color.rgba.B - b) < 0.001f
+  return fabs(baseColor->color.rgba.R - ak_sRGB_linearf(r)) < 0.001f
+         && fabs(baseColor->color.rgba.G - ak_sRGB_linearf(g)) < 0.001f
+         && fabs(baseColor->color.rgba.B - ak_sRGB_linearf(b)) < 0.001f
          && fabs(baseColor->color.rgba.A - 1.0f) < 0.001f;
 }
 
@@ -1698,8 +1697,12 @@ TEST_IMPL(three_mf_export_color_triangle_roundtrip) {
   colorAcc = colorInput->accessor;
   ASSERT(colorAcc != NULL);
   ASSERT(colorAcc->componentType == AKT_UBYTE);
+  ASSERT(colorAcc->normalized);
+  ASSERT(colorAcc->originallyNormalized);
   ASSERT(colorAcc->componentSize == AK_COMPONENT_SIZE_VEC4);
   ASSERT(colorAcc->count == 3);
+  ASSERT(((uint8_t *)colorAcc->buffer->data)[0] == 55u);
+  ASSERT(((uint8_t *)colorAcc->buffer->data)[3] == 255u);
   ASSERT(prim->material != NULL);
 
   ak_test_export_cleanup(outDir);
@@ -2091,9 +2094,12 @@ TEST_IMPL(three_mf_import_materials_extension_groups) {
   ASSERT(compositeSet->properties[0].baseColor != NULL);
   ASSERT(multiSet->properties[0].baseColor != NULL);
   ASSERT(textureSet->properties[0].baseColor == NULL);
-  ASSERT(fabs(compositeSet->properties[0].displayColor.rgba.R - (64.0f / 255.0f)) < 0.01f);
-  ASSERT(fabs(compositeSet->properties[0].displayColor.rgba.B - (191.0f / 255.0f)) < 0.01f);
-  ASSERT(fabs(multiSet->properties[0].displayColor.rgba.G - (128.0f / 255.0f)) < 0.01f);
+  ASSERT(fabs(compositeSet->properties[0].displayColor.rgba.R
+              - ak_sRGB_linearf(64.0f / 255.0f)) < 0.01f);
+  ASSERT(fabs(compositeSet->properties[0].displayColor.rgba.B
+              - ak_sRGB_linearf(191.0f / 255.0f)) < 0.01f);
+  ASSERT(fabs(multiSet->properties[0].displayColor.rgba.G
+              - ak_sRGB_linearf(128.0f / 255.0f)) < 0.01f);
   ASSERT(ak_test_3mf_count_primitive_inputs(doc, AK_INPUT_COLOR) == 1);
   ASSERT(ak_test_3mf_count_primitive_inputs(doc, AK_INPUT_TEXCOORD) == 1);
 

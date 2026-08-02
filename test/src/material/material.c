@@ -196,11 +196,19 @@ test_write_gltf_alpha_modes(const char *path) {
         "\"pbrMetallicRoughness\":{\"baseColorFactor\":[1,1,1,0.5]}},"
         "{\"name\":\"mask_alpha\",\"alphaMode\":\"MASK\",\"alphaCutoff\":0.33,"
         "\"pbrMetallicRoughness\":{\"baseColorFactor\":[1,1,1,0.5]}},"
+        "{\"name\":\"textured_roles\","
+        "\"pbrMetallicRoughness\":{\"baseColorTexture\":{\"index\":0},"
+        "\"metallicRoughnessTexture\":{\"index\":1}}},"
+        "{\"name\":\"specular_glossiness_texture\","
+        "\"extensions\":{\"KHR_materials_pbrSpecularGlossiness\":{"
+        "\"specularGlossinessTexture\":{\"index\":0}}}},"
         "{\"name\":\"volume_scatter\","
         "\"extras\":{\"authorNote\":\"preserve only when requested\"},"
         "\"extensions\":{\"KHR_materials_volume_scatter\":{"
         "\"multiscatterColor\":[0.1,0.2,0.3],\"scatterAnisotropy\":0.4}}}"
         "],"
+        "\"images\":[{\"uri\":\"pixel.png\"}],"
+        "\"textures\":[{\"source\":0},{\"source\":0}],"
         "\"scenes\":[{\"nodes\":[]}],"
         "\"scene\":0"
         "}\n",
@@ -585,16 +593,17 @@ TEST_IMPL(material_dae_adapter) {
 
   rgbOne = test_material_by_name(doc, "rgb_one");
   ASSERT(rgbOne && rgbOne->surface && rgbOne->surface->baseColor);
-  ASSERT(rgbOne->surface->baseColor->color.rgba.R > 0.199f);
-  ASSERT(rgbOne->surface->baseColor->color.rgba.R < 0.201f);
-  ASSERT(rgbOne->surface->baseColor->color.rgba.G > 0.299f);
-  ASSERT(rgbOne->surface->baseColor->color.rgba.G < 0.301f);
-  ASSERT(rgbOne->surface->baseColor->color.rgba.B > 0.399f);
-  ASSERT(rgbOne->surface->baseColor->color.rgba.B < 0.401f);
-  ASSERT(test_material_opacity(rgbOne, AK_TEXTURE_CHANNEL_RGB, 0.285f, 0.287f, false, false));
+  ASSERT(rgbOne->surface->baseColor->colorSpace == AK_TEXTURE_COLORSPACE_LINEAR);
+  ASSERT(fabsf(rgbOne->surface->baseColor->color.rgba.R
+               - ak_sRGB_linearf(0.2f)) < 0.001f);
+  ASSERT(fabsf(rgbOne->surface->baseColor->color.rgba.G
+               - ak_sRGB_linearf(0.3f)) < 0.001f);
+  ASSERT(fabsf(rgbOne->surface->baseColor->color.rgba.B
+               - ak_sRGB_linearf(0.4f)) < 0.001f);
+  ASSERT(test_material_opacity(rgbOne, AK_TEXTURE_CHANNEL_RGB, 0.068f, 0.070f, false, false));
 
   rgbZero = test_material_by_name(doc, "rgb_zero");
-  ASSERT(test_material_opacity(rgbZero, AK_TEXTURE_CHANNEL_RGB, 0.713f, 0.715f, false, false));
+  ASSERT(test_material_opacity(rgbZero, AK_TEXTURE_CHANNEL_RGB, 0.930f, 0.932f, false, false));
 
   texAOne = test_material_by_name(doc, "tex_a_one");
   ASSERT(test_material_opacity(texAOne, AK_TEXTURE_CHANNEL_A, 0.499f, 0.501f, true, false));
@@ -612,6 +621,7 @@ TEST_IMPL(material_dae_adapter) {
   ASSERT(diffuseTex && diffuseTex->surface && diffuseTex->surface->baseColor);
   ASSERT(diffuseTex->surface->baseColor->source == AK_MATERIAL_INPUT_TEXTURE);
   ASSERT(diffuseTex->surface->baseColor->channels == AK_TEXTURE_CHANNEL_RGB);
+  ASSERT(diffuseTex->surface->baseColor->colorSpace == AK_TEXTURE_COLORSPACE_SRGB);
   ASSERT(ak_extra(edge));
   ASSERT(test_tree_has_name(ak_extra(edge), "profile_COMMON"));
   ASSERT(test_tree_has_name(ak_extra(edge), "technique"));
@@ -632,10 +642,13 @@ TEST_IMPL(material_gltf_alpha_modes) {
   AkMaterial  *explicitOpaque;
   AkMaterial  *blend;
   AkMaterial  *mask;
+  AkMaterial  *textured;
+  AkMaterial  *specularGlossiness;
   AkMaterial  *scatter;
   AkDoc       *docWithExtras;
   AkMaterial  *scatterWithExtras;
   AkMaterialSubsurfaceFeature *subsurface;
+  AkMaterialSpecularGlossinessFeature *sg;
   char          dirTemplate[PATH_MAX];
   char         *tmpdir;
   char          gltfPath[PATH_MAX];
@@ -680,6 +693,29 @@ TEST_IMPL(material_gltf_alpha_modes) {
   ASSERT(!(mask->surface->flags & AK_MATERIAL_FLAG_ALPHA_BLEND));
   ASSERT(mask->surface->alphaCutoff > 0.329f);
   ASSERT(mask->surface->alphaCutoff < 0.331f);
+
+  ASSERT(opaque->surface->baseColor->colorSpace == AK_TEXTURE_COLORSPACE_LINEAR);
+  ASSERT(opaque->surface->metallic->colorSpace == AK_TEXTURE_COLORSPACE_LINEAR);
+  ASSERT(opaque->surface->roughness->colorSpace == AK_TEXTURE_COLORSPACE_LINEAR);
+
+  textured = test_material_by_name(doc, "textured_roles");
+  ASSERT(textured && textured->surface);
+  ASSERT(textured->surface->baseColor->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(textured->surface->baseColor->colorSpace == AK_TEXTURE_COLORSPACE_SRGB);
+  ASSERT(textured->surface->metallic->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(textured->surface->metallic->colorSpace == AK_TEXTURE_COLORSPACE_LINEAR);
+  ASSERT(textured->surface->roughness->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(textured->surface->roughness->colorSpace == AK_TEXTURE_COLORSPACE_LINEAR);
+
+  specularGlossiness = test_material_by_name(doc, "specular_glossiness_texture");
+  ASSERT(specularGlossiness && specularGlossiness->surface);
+  sg = (void*)ak_materialFeature(specularGlossiness->surface,
+                                 AK_MATERIAL_FEATURE_SPECULAR_GLOSSINESS);
+  ASSERT(sg && sg->specular && sg->glossiness);
+  ASSERT(sg->specular->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(sg->specular->colorSpace == AK_TEXTURE_COLORSPACE_SRGB);
+  ASSERT(sg->glossiness->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(sg->glossiness->colorSpace == AK_TEXTURE_COLORSPACE_LINEAR);
 
   scatter = test_material_by_name(doc, "volume_scatter");
   ASSERT(scatter && scatter->surface);

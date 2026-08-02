@@ -62,9 +62,11 @@ tests
 *.userprefs
 *.orig
 cmake-build-debug
+/CMakeFiles/
 win/x64/*
 win/x86/*
 build/
+/build-apple/
 /deps/draco/
 /deps/meshoptimizer/
 /deps/spz/

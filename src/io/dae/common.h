@@ -262,6 +262,8 @@ typedef AK_ALIGN(16) struct DAEState {
   size_t           indexParseJobCount;
   size_t           indexParseJobCapacity;
   AkCOLLADAVersion version;
+  bool             sceneKitAuthoringChecked;
+  bool             sceneKitAuthored;
   bool             stop;
 } DAEState;
 

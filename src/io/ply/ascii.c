@@ -125,6 +125,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
           for (j = 0; j < stride; j++)
             p = ply_ascii_parse_float_token(p, &b[j]);
 
+          ply_normalize_color_row(pst, b);
           b += stride;
 
           NEXT_LINE
@@ -151,6 +152,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
             prop = prop->next;
           }
 
+          ply_normalize_color_row(pst, b);
           b += stride;
 
           NEXT_LINE

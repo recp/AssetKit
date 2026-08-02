@@ -409,7 +409,6 @@ gltf_animEnsureMaterialInput(AkGLTFState          * __restrict gst,
                              AkMaterialInput     ** __restrict slot,
                              const char           * __restrict semantic,
                              AkMaterialInputValue              valueType,
-                             AkTextureColorSpace               colorSpace,
                              AkTextureChannels                 channels) {
   AkMaterialInput *input;
 
@@ -424,7 +423,7 @@ gltf_animEnsureMaterialInput(AkGLTFState          * __restrict gst,
     input->semantic   = semantic;
     input->source     = AK_MATERIAL_INPUT_CONSTANT;
     input->valueType  = valueType;
-    input->colorSpace = colorSpace;
+    input->colorSpace = AK_TEXTURE_COLORSPACE_LINEAR;
     input->channels   = channels;
     *slot             = input;
   } else {
@@ -434,7 +433,6 @@ gltf_animEnsureMaterialInput(AkGLTFState          * __restrict gst,
       input->valueType = valueType;
     if (input->channels == AK_TEXTURE_CHANNEL_NONE)
       input->channels = channels;
-    input->colorSpace = colorSpace;
   }
 
   return input;
@@ -448,7 +446,7 @@ gltf_animEnsureScalarInput(AkGLTFState          * __restrict gst,
                            const char           * __restrict semantic,
                            float                             defaultValue,
                            AkTextureRef         * __restrict texture,
-                           AkTextureColorSpace               colorSpace,
+                           AkTextureColorSpace               textureColorSpace,
                            AkTextureChannels                 channels) {
   AkMaterialInput *input;
   bool             created;
@@ -459,7 +457,6 @@ gltf_animEnsureScalarInput(AkGLTFState          * __restrict gst,
                                        slot,
                                        semantic,
                                        AK_MATERIAL_VALUE_FLOAT,
-                                       colorSpace,
                                        channels);
   if (!input)
     return NULL;
@@ -471,6 +468,9 @@ gltf_animEnsureScalarInput(AkGLTFState          * __restrict gst,
     input->texture = texture;
     input->source  = AK_MATERIAL_INPUT_TEXTURE;
   }
+  input->colorSpace = input->texture
+                      ? textureColorSpace
+                      : AK_TEXTURE_COLORSPACE_LINEAR;
 
   return input;
 }
@@ -486,7 +486,7 @@ gltf_animEnsureColorInput(AkGLTFState          * __restrict gst,
                           float                             b,
                           float                             a,
                           AkTextureRef         * __restrict texture,
-                          AkTextureColorSpace               colorSpace,
+                          AkTextureColorSpace               textureColorSpace,
                           AkTextureChannels                 channels) {
   AkMaterialInput *input;
   bool             created;
@@ -497,7 +497,6 @@ gltf_animEnsureColorInput(AkGLTFState          * __restrict gst,
                                        slot,
                                        semantic,
                                        AK_MATERIAL_VALUE_COLOR,
-                                       colorSpace,
                                        channels);
   if (!input)
     return NULL;
@@ -513,6 +512,9 @@ gltf_animEnsureColorInput(AkGLTFState          * __restrict gst,
     input->texture = texture;
     input->source  = AK_MATERIAL_INPUT_TEXTURE;
   }
+  input->colorSpace = input->texture
+                      ? textureColorSpace
+                      : AK_TEXTURE_COLORSPACE_LINEAR;
 
   return input;
 }
@@ -683,11 +685,13 @@ gltf_animResolveMaterialPBR(AkGLTFState          * __restrict gst,
     if (input && tex) {
       input->texture = tex;
       input->source  = AK_MATERIAL_INPUT_TEXTURE;
+      input->colorSpace = AK_TEXTURE_COLORSPACE_LINEAR;
       input->channels = AK_TEXTURE_CHANNEL_B;
     }
     if (roughInput && tex) {
       roughInput->texture = tex;
       roughInput->source  = AK_MATERIAL_INPUT_TEXTURE;
+      roughInput->colorSpace = AK_TEXTURE_COLORSPACE_LINEAR;
       roughInput->channels = AK_TEXTURE_CHANNEL_G;
     }
     return gltf_animResolveTexTransform(gst, ch, tex, p, end);

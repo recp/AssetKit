@@ -494,6 +494,8 @@ wobj_append_color(WOState  * __restrict wst,
                               wst->dc_pos->itemcount > 0
                               ? wst->dc_pos->itemcount - 1
                               : 0);
+    /* The de-facto OBJ vertex-color extension does not define a transfer
+       function. Preserve the numeric RGB values as scene-linear. */
     color[0] = values[start];
     color[1] = values[start + 1];
     color[2] = values[start + 2];

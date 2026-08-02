@@ -48,6 +48,27 @@ Runtime metadata and extension notes:
 - [Extras and extension data](EXTRAS.md)
 - [glTF extensions and optional decoders](EXTENSIONS.md)
 
+### Color-space contract
+
+In AssetKit documentation and APIs, an unqualified **linear** color means
+**linear-sRGB**: the sRGB primaries and D65 white point with a linear transfer
+function.
+
+- `AkColor`, material constants and factors, vertex and face colors, and light
+  colors are linear-sRGB unless an API explicitly documents another space.
+- Color space and storage are independent. A canonical linear-sRGB value may
+  remain in normalized integer storage such as RGBA8; `linear` does not imply
+  `float`. Consumers must honor `AkAccessor.componentType` and `normalized`.
+- `AkMaterialInput.colorSpace` and `AkTextureRef.colorSpace` describe encoded
+  texture/image sampling data only. Color textures such as base color and
+  emissive use `AK_TEXTURE_COLORSPACE_SRGB`; data textures such as normal,
+  metallic, roughness, and occlusion use `AK_TEXTURE_COLORSPACE_LINEAR`.
+- Alpha, coverage, and scalar data are linear values and never receive an sRGB
+  transfer function.
+- Importers perform a transfer conversion only when the source format declares
+  or unambiguously identifies encoded sRGB values. Consumers receive the
+  canonical values above and must not apply a second conversion.
+
 ## 💪 Supported Formats
 
 * [ ] Asset Exchange (todo) http://github.com/AssetExchange/spec

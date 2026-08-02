@@ -191,7 +191,7 @@ wobj_colorInput(WOState             * __restrict wst,
   input->semantic   = semantic;
   input->source     = AK_MATERIAL_INPUT_CONSTANT;
   input->valueType  = AK_MATERIAL_VALUE_COLOR;
-  input->colorSpace = colorSpace;
+  input->colorSpace = map ? colorSpace : AK_TEXTURE_COLORSPACE_LINEAR;
   input->channels   = channels;
   input->color.rgba.A = 1.0f;
 
@@ -225,7 +225,7 @@ wobj_scalarInput(WOState             * __restrict wst,
   input->source     = AK_MATERIAL_INPUT_CONSTANT;
   input->valueType  = AK_MATERIAL_VALUE_FLOAT;
   input->value[0]   = value;
-  input->colorSpace = colorSpace;
+  input->colorSpace = map ? colorSpace : AK_TEXTURE_COLORSPACE_LINEAR;
   input->channels   = channels;
 
   if (map) {

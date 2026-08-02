@@ -67,6 +67,63 @@ ak_test_float_near(float a, float b) {
   return fabsf(a - b) < 0.0001f;
 }
 
+static
+AkMeshPrimitive*
+ak_test_animation_first_primitive(AkDoc *doc) {
+  AkGeometry *geometry;
+
+  for (geometry = doc ? doc->lib.geometries.first : NULL;
+       geometry;
+       geometry = geometry->next) {
+    AkMesh *mesh;
+
+    if (!geometry->gdata || geometry->gdata->type != AK_GEOMETRY_MESH)
+      continue;
+    mesh = ak_objGet(geometry->gdata);
+    if (mesh && mesh->primitive)
+      return mesh->primitive;
+  }
+  return NULL;
+}
+
+static
+AkInput*
+ak_test_animation_input(AkMeshPrimitive *primitive,
+                        AkInputSemantic  semantic) {
+  AkInput *input;
+
+  for (input = primitive ? primitive->input : NULL; input; input = input->next) {
+    if (input->semantic == semantic)
+      return input;
+  }
+  return NULL;
+}
+
+static
+float
+ak_test_animation_accessor_f32(AkAccessor *accessor,
+                               uint32_t    row,
+                               uint32_t    component) {
+  const char *base;
+  size_t      stride;
+
+  base   = (const char *)accessor->buffer->data + accessor->byteOffset;
+  stride = accessor->byteStride
+           ? accessor->byteStride
+           : (size_t)accessor->componentCount * sizeof(float);
+  return *(const float *)(const void *)(base + (size_t)row * stride
+                                       + (size_t)component * sizeof(float));
+}
+
+static
+float
+ak_test_srgb_to_linear_derivative(float channel) {
+  if (channel <= 0.04045f)
+    return 1.0f / 12.92f;
+  return (2.4f / 1.055f)
+         * powf((channel + 0.055f) / 1.055f, 1.4f);
+}
+
 TEST_IMPL(dae_export_animation_roundtrip) {
   AkHeap      *heap;
   AkDoc       *doc;
@@ -1302,6 +1359,147 @@ TEST_IMPL(dae_load_invalid_morph_target_skips_morph_channel) {
   ak_free(doc);
   unlink(outDae);
   rmdir(outDir);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(dae_scenekit_color_carriers_are_linear) {
+  AkDoc           *doc;
+  AkMeshPrimitive *primitive;
+  AkInput         *colorInput;
+  AkAccessor      *colorAccessor;
+  AkAnimation     *animation;
+  AkChannel       *channel;
+  AkAnimSampler   *sampler;
+  AkAccessor      *outputAccessor;
+  AkAccessor      *inTangentAccessor;
+  AkAccessor      *outTangentAccessor;
+  AkLight         *light;
+  char             dirTemplate[PATH_MAX];
+  char            *tmpdir;
+  char             daePath[PATH_MAX];
+  const char      *tmpBase;
+
+  doc     = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-scenekit-colors-XXXXXX"));
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+  ASSERT(ak_test_path_join(daePath,
+                           sizeof(daePath),
+                           tmpdir,
+                           "scenekit_colors.dae"));
+  ASSERT(ak_test_write_dae_scenekit_color_carriers(daePath));
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_DAE) == AK_OK && doc);
+
+  primitive = ak_test_animation_first_primitive(doc);
+  ASSERT(primitive != NULL);
+  colorInput = ak_test_animation_input(primitive, AK_INPUT_COLOR);
+  ASSERT(colorInput != NULL && colorInput->accessor != NULL);
+  colorAccessor = colorInput->accessor;
+  ASSERT(fabsf(ak_test_animation_accessor_f32(colorAccessor, 0u, 0u)
+               - ak_sRGB_linearf(0.4f)) < 0.0001f);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(colorAccessor, 0u, 1u)
+               - ak_sRGB_linearf(0.1f)) < 0.0001f);
+  ASSERT(ak_test_animation_accessor_f32(colorAccessor, 1u, 3u) == 0.5f);
+
+  light = doc->lib.lights.first;
+  ASSERT(light != NULL && light->data != NULL);
+  ASSERT(fabsf(light->data->color.rgba.R - ak_sRGB_linearf(0.4f)) < 0.0001f);
+  ASSERT(fabsf(light->data->color.rgba.G - ak_sRGB_linearf(0.1f)) < 0.0001f);
+  ASSERT(light->data->color.rgba.A == 1.0f);
+
+  channel = NULL;
+  animation = ak_test_find_animation_with_channel(doc->lib.animations.first,
+                                                   "light/color",
+                                                   &channel);
+  ASSERT(animation != NULL && channel != NULL);
+  ASSERT(channel->targetType == AK_TARGET_COLOR);
+  ASSERT(channel->resolvedTarget != NULL);
+  ASSERT(channel->resolvedTarget->target != NULL);
+  ASSERT(!channel->resolvedTarget->isPartial);
+
+  sampler = ak_test_channel_sampler(channel);
+  ASSERT(sampler != NULL && sampler->outputInput != NULL);
+  outputAccessor = sampler->outputInput->accessor;
+  ASSERT(outputAccessor != NULL);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(outputAccessor, 0u, 0u)
+               - ak_sRGB_linearf(0.4f)) < 0.0001f);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(outputAccessor, 1u, 2u)
+               - ak_sRGB_linearf(0.4f)) < 0.0001f);
+  ASSERT(ak_test_animation_accessor_f32(outputAccessor, 1u, 3u) == 0.5f);
+
+  animation = ak_test_find_animation_with_channel(doc->lib.animations.first,
+                                                   "bezier-light/color",
+                                                   &channel);
+  ASSERT(animation != NULL && channel != NULL);
+  ASSERT(channel->targetType == AK_TARGET_COLOR);
+  sampler = ak_test_channel_sampler(channel);
+  ASSERT(sampler != NULL
+         && sampler->outputInput != NULL
+         && sampler->inTangentInput != NULL
+         && sampler->outTangentInput != NULL);
+  outputAccessor     = sampler->outputInput->accessor;
+  inTangentAccessor = sampler->inTangentInput->accessor;
+  outTangentAccessor = sampler->outTangentInput->accessor;
+  ASSERT(outputAccessor != NULL
+         && inTangentAccessor != NULL
+         && outTangentAccessor != NULL);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(outputAccessor, 0u, 0u)
+               - ak_sRGB_linearf(0.4f)) < 0.0001f);
+  ASSERT(ak_test_animation_accessor_f32(inTangentAccessor, 0u, 0u) == -0.1f);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(inTangentAccessor, 0u, 1u)
+               - ak_sRGB_linearf(0.3f)) < 0.0001f);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(inTangentAccessor, 1u, 3u)
+               - ak_sRGB_linearf(0.3f)) < 0.0001f);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(inTangentAccessor, 0u, 4u)
+               - 0.9f) < 0.0001f);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(outTangentAccessor, 0u, 0u)
+               - 0.2f) < 0.0001f);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(outTangentAccessor, 0u, 1u)
+               - ak_sRGB_linearf(0.6f)) < 0.0001f);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(outTangentAccessor, 1u, 4u)
+               - 0.6f) < 0.0001f);
+
+  animation = ak_test_find_animation_with_channel(doc->lib.animations.first,
+                                                   "hermite-light/color.R",
+                                                   &channel);
+  ASSERT(animation != NULL && channel != NULL);
+  ASSERT(channel->targetType == AK_TARGET_FLOAT);
+  ASSERT(channel->resolvedTarget != NULL
+         && channel->resolvedTarget->isPartial
+         && channel->resolvedTarget->off == 0u);
+  sampler = ak_test_channel_sampler(channel);
+  ASSERT(sampler != NULL
+         && sampler->outputInput != NULL
+         && sampler->inTangentInput != NULL
+         && sampler->outTangentInput != NULL);
+  outputAccessor      = sampler->outputInput->accessor;
+  inTangentAccessor   = sampler->inTangentInput->accessor;
+  outTangentAccessor  = sampler->outTangentInput->accessor;
+  ASSERT(outputAccessor != NULL
+         && inTangentAccessor != NULL
+         && outTangentAccessor != NULL);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(outputAccessor, 0u, 0u)
+               - ak_sRGB_linearf(0.4f)) < 0.0001f);
+  ASSERT(ak_test_animation_accessor_f32(inTangentAccessor, 0u, 0u) == -0.25f);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(inTangentAccessor, 0u, 1u)
+               - 0.5f * ak_test_srgb_to_linear_derivative(0.4f)) < 0.0001f);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(inTangentAccessor, 1u, 1u)
+               - 0.25f * ak_test_srgb_to_linear_derivative(0.2f)) < 0.0001f);
+  ASSERT(ak_test_animation_accessor_f32(outTangentAccessor, 1u, 0u) == 1.25f);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(outTangentAccessor, 0u, 1u)
+               - 0.75f * ak_test_srgb_to_linear_derivative(0.4f)) < 0.0001f);
+
+  ak_free(doc);
   unlink(daePath);
   rmdir(tmpdir);
 

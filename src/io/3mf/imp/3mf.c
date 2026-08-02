@@ -24,6 +24,7 @@
 #include "../../common/zip.h"
 #include "../../../mem/common.h"
 #include "../../../mat/internal.h"
+#include "../../../color.h"
 #include "../../../string_fast.h"
 #include "../../../strpool.h"
 #include "../../../thread.h"
@@ -2125,10 +2126,10 @@ ak_3mf_material_color_input(AkHeap     * __restrict heap,
   input->source      = AK_MATERIAL_INPUT_CONSTANT;
   input->valueType   = AK_MATERIAL_VALUE_COLOR;
   input->channels    = AK_TEXTURE_CHANNEL_RGBA;
-  input->colorSpace  = AK_TEXTURE_COLORSPACE_SRGB;
-  input->color.rgba.R = rgba[0] / 255.0f;
-  input->color.rgba.G = rgba[1] / 255.0f;
-  input->color.rgba.B = rgba[2] / 255.0f;
+  input->colorSpace  = AK_TEXTURE_COLORSPACE_LINEAR;
+  input->color.rgba.R = ak_srgb8_to_linearf_fast(rgba[0]);
+  input->color.rgba.G = ak_srgb8_to_linearf_fast(rgba[1]);
+  input->color.rgba.B = ak_srgb8_to_linearf_fast(rgba[2]);
   input->color.rgba.A = rgba[3] / 255.0f;
 
   return input;
@@ -2275,11 +2276,8 @@ ak_3mf_property_set_color(AkHeap             * __restrict heap,
     return;
 
   memcpy(color, rgba, sizeof(color));
-  prop->displayColor.rgba.R = color[0] / 255.0f;
-  prop->displayColor.rgba.G = color[1] / 255.0f;
-  prop->displayColor.rgba.B = color[2] / 255.0f;
-  prop->displayColor.rgba.A = color[3] / 255.0f;
   prop->baseColor           = ak_3mf_material_color_input(heap, parent, color);
+  prop->displayColor        = prop->baseColor->color;
   prop->metallic            = ak_3mf_material_scalar_input(heap,
                                                            parent,
                                                            _s_ak_metallic,
@@ -3927,8 +3925,12 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
                                            p[j],
                                            uv);
         }
-        if (colors)
-          memcpy(colors + i * 4u, rgba, 4u);
+        if (colors) {
+          colors[i * 4u]      = ak_srgb8_to_linear8_fast(rgba[0]);
+          colors[i * 4u + 1u] = ak_srgb8_to_linear8_fast(rgba[1]);
+          colors[i * 4u + 2u] = ak_srgb8_to_linear8_fast(rgba[2]);
+          colors[i * 4u + 3u] = rgba[3];
+        }
         if (texcoords)
           memcpy(texcoords + i * 2u, uv, sizeof(uv));
         i++;
@@ -4027,9 +4029,8 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
                       colorBuff);
     if (!colorAcc)
       return NULL;
-    colorAcc->bytesPerComponent = sizeof(uint8_t);
-    colorAcc->byteStride        = 4u;
-    colorAcc->fillByteSize      = 4u;
+    colorAcc->normalized         = true;
+    colorAcc->originallyNormalized = true;
     AK_LIB_PREPEND(doc->lib.accessors, colorAcc, next);
 
     io_input(heap, prim, colorAcc, AK_INPUT_COLOR, _s_COLOR, 0u);

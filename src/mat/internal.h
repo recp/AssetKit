@@ -23,7 +23,8 @@ AK_HIDE
 AkMaterialSurface*
 ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
                                       void                * __restrict parent,
-                                      AkTechniqueFxCommon * __restrict common);
+                                      AkTechniqueFxCommon * __restrict common,
+                                      bool                              constantColorsAreSRGB);
 
 AK_HIDE
 AkMaterial*

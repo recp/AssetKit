@@ -103,6 +103,12 @@ typedef struct PLYState {
   AkUInt         edgeIndexMax;
   AkTypeId       indexComponentType;
   AkTypeId       edgeIndexComponentType;
+  float          colorScale;
+  uint32_t       colorSlot;
+  uint32_t       colorComponentCount;
+  bool           colorSrgb;
+  bool           colorLookup8;
+  bool           normalizeColors;
 } PLYState;
 
 #define SKIP_SPACES                                                           \

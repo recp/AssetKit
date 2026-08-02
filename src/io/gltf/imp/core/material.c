@@ -62,8 +62,8 @@ gltf_materialEnsureClearcoat(AkGLTFState       * __restrict gst,
   if (feature)
     return feature;
 
-  feature = ak_heap_calloc(gst->heap, surface, sizeof(*feature));
-  feature->base.type = AK_MATERIAL_FEATURE_CLEARCOAT;
+  feature              = ak_heap_calloc(gst->heap, surface, sizeof(*feature));
+  feature->base.type   = AK_MATERIAL_FEATURE_CLEARCOAT;
   feature->normalScale = 1.0f;
   gltf_materialFeaturePush(surface, &feature->base);
 
@@ -81,9 +81,9 @@ gltf_materialEnsureIridescence(AkGLTFState       * __restrict gst,
   if (feature)
     return feature;
 
-  feature = ak_heap_calloc(gst->heap, surface, sizeof(*feature));
+  feature            = ak_heap_calloc(gst->heap, surface, sizeof(*feature));
   feature->base.type = AK_MATERIAL_FEATURE_IRIDESCENCE;
-  feature->ior = 1.3f;
+  feature->ior       = 1.3f;
   feature->thicknessMinimum = 100.0f;
   feature->thicknessMaximum = 400.0f;
   gltf_materialFeaturePush(surface, &feature->base);
@@ -136,7 +136,6 @@ gltf_materialInput(AkGLTFState          * __restrict gst,
                    AkMaterialInput     ** __restrict slot,
                    const char           * __restrict semantic,
                    AkMaterialInputValue              valueType,
-                   AkTextureColorSpace               colorSpace,
                    AkTextureChannels                 channels) {
   AkMaterialInput *input;
 
@@ -149,12 +148,11 @@ gltf_materialInput(AkGLTFState          * __restrict gst,
     input->semantic   = semantic;
     input->source     = AK_MATERIAL_INPUT_CONSTANT;
     input->valueType  = valueType;
-    input->colorSpace = colorSpace;
+    input->colorSpace = AK_TEXTURE_COLORSPACE_LINEAR;
     input->channels   = channels;
     *slot = input;
   }
 
-  input->colorSpace = colorSpace;
   if (channels != AK_TEXTURE_CHANNEL_NONE)
     input->channels = channels;
 
@@ -169,7 +167,7 @@ gltf_materialScalar(AkGLTFState          * __restrict gst,
                     const char           * __restrict semantic,
                     float                             value,
                     AkTextureRef         * __restrict texture,
-                    AkTextureColorSpace               colorSpace,
+                    AkTextureColorSpace               textureColorSpace,
                     AkTextureChannels                 channels) {
   AkMaterialInput *input;
 
@@ -178,13 +176,15 @@ gltf_materialScalar(AkGLTFState          * __restrict gst,
                              slot,
                              semantic,
                              AK_MATERIAL_VALUE_FLOAT,
-                             colorSpace,
                              channels);
   input->value[0] = value;
   if (texture) {
     input->texture = texture;
     input->source  = AK_MATERIAL_INPUT_TEXTURE;
   }
+  input->colorSpace = input->texture
+                      ? textureColorSpace
+                      : AK_TEXTURE_COLORSPACE_LINEAR;
 
   return input;
 }
@@ -200,7 +200,7 @@ gltf_materialColor(AkGLTFState          * __restrict gst,
                    float                             b,
                    float                             a,
                    AkTextureRef         * __restrict texture,
-                   AkTextureColorSpace               colorSpace,
+                   AkTextureColorSpace               textureColorSpace,
                    AkTextureChannels                 channels) {
   AkMaterialInput *input;
 
@@ -209,7 +209,6 @@ gltf_materialColor(AkGLTFState          * __restrict gst,
                              slot,
                              semantic,
                              AK_MATERIAL_VALUE_COLOR,
-                             colorSpace,
                              channels);
   input->color.vec[0] = r;
   input->color.vec[1] = g;
@@ -221,6 +220,10 @@ gltf_materialColor(AkGLTFState          * __restrict gst,
     input->source  = AK_MATERIAL_INPUT_TEXTURE;
   }
 
+  input->colorSpace = input->texture
+                      ? textureColorSpace
+                      : AK_TEXTURE_COLORSPACE_LINEAR;
+
   return input;
 }
 
@@ -228,9 +231,9 @@ static
 void
 gltf_materialInitSurface(AkGLTFState       * __restrict gst,
                          AkMaterialSurface * __restrict surface) {
-  surface->type = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
-  surface->alphaCutoff = 0.5f;
-  surface->ior = 1.5f;
+  surface->type             = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
+  surface->alphaCutoff      = 0.5f;
+  surface->ior              = 1.5f;
   surface->emissiveStrength = 1.0f;
 
   gltf_materialColor(gst,
@@ -880,9 +883,11 @@ gltf_materialParseSpecularGlossiness(AkGLTFState       * __restrict gst,
                                 AK_TEXTURE_CHANNEL_RGBA);
       sg->specular->texture = tex;
       sg->specular->source  = AK_MATERIAL_INPUT_TEXTURE;
+      sg->specular->colorSpace = AK_TEXTURE_COLORSPACE_SRGB;
       sg->specular->channels = AK_TEXTURE_CHANNEL_RGB;
       sg->glossiness->texture = tex;
       sg->glossiness->source  = AK_MATERIAL_INPUT_TEXTURE;
+      sg->glossiness->colorSpace = AK_TEXTURE_COLORSPACE_LINEAR;
       sg->glossiness->channels = AK_TEXTURE_CHANNEL_A;
     }
     jval = jval->next;
@@ -1046,9 +1051,11 @@ gltf_materials(json_t * __restrict jmaterial,
                                       AK_TEXTURE_CHANNEL_GB);
             surface->metallic->texture = tex;
             surface->metallic->source  = AK_MATERIAL_INPUT_TEXTURE;
+            surface->metallic->colorSpace = AK_TEXTURE_COLORSPACE_LINEAR;
             surface->metallic->channels = AK_TEXTURE_CHANNEL_B;
             surface->roughness->texture = tex;
             surface->roughness->source  = AK_MATERIAL_INPUT_TEXTURE;
+            surface->roughness->colorSpace = AK_TEXTURE_COLORSPACE_LINEAR;
             surface->roughness->channels = AK_TEXTURE_CHANNEL_G;
           } else if (gltf_jsonKeyEqLen(jmrVal, _s_gltf_baseColorTex, 16)) {
             surface->baseColor->texture = gltf_materialTexRef(gst,
@@ -1057,6 +1064,7 @@ gltf_materials(json_t * __restrict jmaterial,
                                                               AK_TEXTURE_COLORSPACE_SRGB,
                                                               AK_TEXTURE_CHANNEL_RGBA);
             surface->baseColor->source = AK_MATERIAL_INPUT_TEXTURE;
+            surface->baseColor->colorSpace = AK_TEXTURE_COLORSPACE_SRGB;
           }
 
           jmrVal = jmrVal->next;

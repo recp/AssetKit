@@ -20,6 +20,18 @@
 #include "../common.h"
 
 AK_HIDE
+bool
+dae_scenekit_authored(AkDoc * __restrict doc);
+
+AK_HIDE
+void
+dae_scenekit_normalize_colors(DAEState * __restrict dst);
+
+AK_HIDE
+void
+dae_scenekit_normalize_animation_colors(DAEState * __restrict dst);
+
+AK_HIDE
 void
 dae_bugfix_scenekit_backfaces(DAEState * __restrict dst);
 

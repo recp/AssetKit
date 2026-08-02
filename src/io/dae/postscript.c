@@ -241,6 +241,7 @@ dae_postscript(DAEState * __restrict dst) {
   dae_fixAngles(dst);
   dae_fixup_accessors(dst);
   dae_pre_mesh(dst);
+  dae_scenekit_normalize_colors(dst);
   dae_bugfix_scenekit_backfaces(dst);
 
   /* fixup when finished,
@@ -272,6 +273,7 @@ dae_postscript(DAEState * __restrict dst) {
      instances exist (including the orphan-attach pass above). */
   if (dst->doc->lib.animations.first)
     dae_fixup_channel(dst);
+  dae_scenekit_normalize_animation_colors(dst);
 
   /* now set used coordSys */
   if (coordCvtType != AK_COORD_CVT_DISABLED)
@@ -514,7 +516,10 @@ dae_build_material_surfaces(DAEState * __restrict dst) {
 
     if (!material->surface
         && (common = ak_getProfileTechniqueCommon(effect))) {
-      material->surface = ak_materialSurfaceFromTechniqueCommon(dst->heap, material, common);
+      material->surface = ak_materialSurfaceFromTechniqueCommon(dst->heap,
+                                                                 material,
+                                                                 common,
+                                                                 false);
     }
   }
 }

@@ -682,6 +682,8 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
     elem = elem->next;
   }
 
+  ply_prepare_color_normalization(pst);
+
   /* parse */
   if (isAscii) {
     ply_ascii(p, pst);
@@ -801,6 +803,52 @@ ply_mesh_add_primitive(AkMesh          * __restrict mesh,
   mesh->primitiveCount++;
 }
 
+static float
+ply_color_integer_scale(AkTypeId type) {
+  switch (type) {
+    case AKT_UBYTE:  return 1.0f / 255.0f;
+    case AKT_USHORT: return 1.0f / 65535.0f;
+    case AKT_UINT:   return 1.0f / 4294967295.0f;
+    default:         return 1.0f;
+  }
+}
+
+static bool
+ply_color_source_is_integer(AkTypeId type) {
+  return type == AKT_UBYTE || type == AKT_USHORT || type == AKT_UINT;
+}
+
+AK_HIDE
+void
+ply_prepare_color_normalization(PLYState * __restrict pst) {
+  AkAccessor *acc;
+  uintptr_t   mode;
+  bool        srgb;
+
+  acc = pst ? pst->ac_rgb : NULL;
+  if (!acc || !acc->buffer || !acc->buffer->data)
+    return;
+
+  mode  = ak_opt_get(AK_OPT_PLY_IMPORT_COLOR_MODE);
+  pst->colorScale = ply_color_integer_scale(acc->originalComponentType);
+  if (mode == AK_PLY_IMPORT_COLOR_SRGB) {
+    srgb = true;
+  } else if (mode == AK_PLY_IMPORT_COLOR_LINEAR) {
+    srgb = false;
+  } else {
+    srgb = ply_color_source_is_integer(acc->originalComponentType);
+  }
+
+  pst->colorSlot           = (uint32_t)(acc->byteOffset / sizeof(float));
+  pst->colorComponentCount = acc->componentCount;
+  pst->colorSrgb           = srgb;
+  pst->colorLookup8        = srgb
+                             && acc->originalComponentType == AKT_UBYTE;
+  pst->normalizeColors     = srgb || pst->colorScale != 1.0f;
+  acc->originallyNormalized = ply_color_source_is_integer(
+                                acc->originalComponentType);
+}
+
 AK_HIDE
 void
 ply_finish(PLYState * __restrict pst) {
@@ -809,7 +857,7 @@ ply_finish(PLYState * __restrict pst) {
   AkMeshPrimitive    *prim;
 
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
-  
+
   mesh = ak_allocMeshEx(pst->heap, pst->doc, &geom, true);
 
   /* add to library */

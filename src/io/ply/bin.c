@@ -21,6 +21,14 @@
 #include "../../data.h"
 #include "../../endian.h"
 
+#if defined(__aarch64__) && defined(__ARM_NEON) \
+    && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#  include <arm_neon.h>
+#  define PLY_BIN_HAS_NEON_RGBA 1
+#else
+#  define PLY_BIN_HAS_NEON_RGBA 0
+#endif
+
 #define PLY_BIN_FAST_MAX_SLOTS 16
 
 typedef enum PLYBinFastKind {
@@ -28,6 +36,37 @@ typedef enum PLYBinFastKind {
   PLY_BIN_FAST_FLOAT,
   PLY_BIN_FAST_UBYTE
 } PLYBinFastKind;
+
+AK_INLINE
+void
+ply_bin_srgb_rgba_row(const char  * __restrict src,
+                      float       * __restrict dst,
+                      const float * __restrict table,
+                      float                    alphaScale) {
+#if PLY_BIN_HAS_NEON_RGBA
+  uint8x16_t  raw;
+  uint32_t    rgba;
+  float32x4_t color;
+
+  raw  = vld1q_u8((const uint8_t *)(const void *)src);
+  rgba = vgetq_lane_u32(vreinterpretq_u32_u8(raw), 3);
+
+  /* The second store replaces the four raw color bytes copied by the first.
+     This turns six scalar output stores into two 128-bit stores. */
+  vst1q_u8((uint8_t *)(void *)dst, raw);
+  color = vdupq_n_f32((float)(rgba >> 24) * alphaScale);
+  color = vsetq_lane_f32(table[rgba & 0xffu], color, 0);
+  color = vsetq_lane_f32(table[(rgba >> 8) & 0xffu], color, 1);
+  color = vsetq_lane_f32(table[(rgba >> 16) & 0xffu], color, 2);
+  vst1q_f32(dst + 3, color);
+#else
+  memcpy(dst, src, sizeof(float) * 3u);
+  dst[3] = table[(uint8_t)src[12]];
+  dst[4] = table[(uint8_t)src[13]];
+  dst[5] = table[(uint8_t)src[14]];
+  dst[6] = (float)(uint8_t)src[15] * alphaScale;
+#endif
+}
 
 AK_INLINE
 float
@@ -115,6 +154,7 @@ bool
 ply_bin_vertex_fast(char        ** __restrict src,
                     char         * __restrict end,
                     PLYElement   * __restrict elem,
+                    PLYState     * __restrict pst,
                     float        * __restrict dst,
                     uint32_t                   count,
                     uint32_t                   stride,
@@ -123,6 +163,7 @@ ply_bin_vertex_fast(char        ** __restrict src,
   size_t         offsets[PLY_BIN_FAST_MAX_SLOTS];
   size_t         inputStride, i, j;
   char          *p;
+  bool           nativeEndian;
 
   if (stride != elem->knownCount)
     return false;
@@ -132,6 +173,11 @@ ply_bin_vertex_fast(char        ** __restrict src,
     return false;
 
   p = *src;
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+  nativeEndian = le;
+#else
+  nativeEndian = !le;
+#endif
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
   if (le && inputStride == (size_t)stride * sizeof(float)) {
@@ -150,6 +196,10 @@ ply_bin_vertex_fast(char        ** __restrict src,
 
     if (allFloatContiguous) {
       memcpy(dst, p, (size_t)count * inputStride);
+      if (pst->normalizeColors) {
+        for (i = 0; i < count; i++)
+          ply_normalize_color_row(pst, dst + i * stride);
+      }
       *src = p + (size_t)count * inputStride;
       return true;
     }
@@ -174,6 +224,62 @@ ply_bin_vertex_fast(char        ** __restrict src,
     }
 
     if (packedColor) {
+      bool packedColorNormalization;
+
+      packedColorNormalization = pst->normalizeColors
+                                 && pst->colorSlot == 3u
+                                 && pst->colorComponentCount == stride - 3u;
+
+      if (packedColorNormalization && pst->colorLookup8 && nativeEndian) {
+        const float * __restrict table;
+
+        table = ak_srgb8_to_linear_table;
+        if (stride == 7u) {
+          const float alphaScale = 1.0f / 255.0f;
+
+#if defined(__clang__)
+#  pragma clang loop unroll_count(8)
+#elif defined(__GNUC__)
+#  pragma GCC unroll 8
+#endif
+          for (i = 0u; i < count; i++) {
+            ply_bin_srgb_rgba_row(p, dst, table, alphaScale);
+            p   += 16u;
+            dst += 7u;
+          }
+        } else {
+#if defined(__clang__)
+#  pragma clang loop unroll_count(8)
+#elif defined(__GNUC__)
+#  pragma GCC unroll 8
+#endif
+          for (i = 0; i < count; i++) {
+            memcpy(dst, p, sizeof(float) * 3u);
+            dst[3] = table[(uint8_t)p[12]];
+            dst[4] = table[(uint8_t)p[13]];
+            dst[5] = table[(uint8_t)p[14]];
+            p   += 15u;
+            dst += 6u;
+          }
+        }
+        *src = p;
+        return true;
+      }
+
+      if (packedColorNormalization && !pst->colorSrgb && nativeEndian) {
+        const float scale = pst->colorScale;
+
+        for (i = 0; i < count; i++) {
+          memcpy(dst, p, sizeof(float) * 3u);
+          for (j = 3; j < stride; j++)
+            dst[j] = (float)(uint8_t)p[offsets[j]] * scale;
+          p   += inputStride;
+          dst += stride;
+        }
+        *src = p;
+        return true;
+      }
+
       for (i = 0; i < count; i++) {
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         if (le) {
@@ -188,6 +294,7 @@ ply_bin_vertex_fast(char        ** __restrict src,
         }
         for (j = 3; j < stride; j++)
           dst[j] = (float)*(const uint8_t *)(const void *)(p + offsets[j]);
+        ply_normalize_color_row(pst, dst);
         p   += inputStride;
         dst += stride;
       }
@@ -209,6 +316,7 @@ ply_bin_vertex_fast(char        ** __restrict src,
           break;
       }
     }
+    ply_normalize_color_row(pst, dst);
     p   += inputStride;
     dst += stride;
   }
@@ -284,7 +392,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
       if (!elem->buff || elem->buff->length == 0)
         return;
 
-      if (!ply_bin_vertex_fast(&p, e, elem, b, elemc, stride, le)) {
+      if (!ply_bin_vertex_fast(&p, e, elem, pst, b, elemc, stride, le)) {
         while (i++ < elemc) {
           prop = elem->property;
           while (prop) {
@@ -300,6 +408,7 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
             prop = prop->next;
           }
 
+          ply_normalize_color_row(pst, b);
           b += stride;
         }
       }

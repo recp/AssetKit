@@ -583,7 +583,7 @@ ak_test_write_stl_binary_color_trailing(const char *path) {
   ok = ok && ak_test_write_u32le(file, 1);
   for (i = 0; i < 12; i++)
     ok = ok && ak_test_write_f32le(file, tri[i]);
-  ok = ok && ak_test_write_u16le(file, 0x001fu);
+  ok = ok && ak_test_write_u16le(file, 0x8000u);
   ok = ok && fwrite(trailing, 1, sizeof(trailing), file) == sizeof(trailing);
 
   return fclose(file) == 0 && ok;
@@ -614,7 +614,7 @@ ak_test_write_stl_binary_viscam_color(const char *path) {
   ok = ok && ak_test_write_u32le(file, 1);
   for (i = 0; i < 12; i++)
     ok = ok && ak_test_write_f32le(file, tri[i]);
-  ok = ok && ak_test_write_u16le(file, 0xFC00u);
+  ok = ok && ak_test_write_u16le(file, 0xC104u);
 
   return fclose(file) == 0 && ok;
 }
@@ -995,7 +995,7 @@ ak_test_write_ply_points(const char *path) {
         "property uchar blue\n"
         "property uchar alpha\n"
         "end_header\n"
-        "0 0 0 255 0 0 128\n"
+        "0 0 0 128 0 0 128\n"
         "1 0 0 0 255 0 255\n",
         file);
 
@@ -1900,6 +1900,7 @@ TEST_IMPL(format_edge_cases) {
   char             plyBinaryFacePropsPath[PATH_MAX];
   const char      *tmpBase;
   AkResult         loadResult;
+  uintptr_t        plyImportColorMode;
 
   tmpBase = getenv("TMPDIR");
   if (!tmpBase || !tmpBase[0])
@@ -2084,7 +2085,12 @@ TEST_IMPL(format_edge_cases) {
   acc = ak_test_input(prim, AK_INPUT_COLOR)->accessor;
   ASSERT(acc->componentSize == AK_COMPONENT_SIZE_VEC4);
   ASSERT(acc->count == 3);
-  ASSERT(ak_test_accessor_f32(acc, 0, 0) == 1.0f);
+  ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 0)
+               - (128.0f / 255.0f)) < 0.001f);
+  ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 1)
+               - (64.0f / 255.0f)) < 0.001f);
+  ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 2)
+               - (32.0f / 255.0f)) < 0.001f);
   ak_free(doc);
 
   doc = NULL;
@@ -2097,9 +2103,12 @@ TEST_IMPL(format_edge_cases) {
   acc = ak_test_input(prim, AK_INPUT_COLOR)->accessor;
   ASSERT(acc->componentSize == AK_COMPONENT_SIZE_VEC4);
   ASSERT(acc->count == 3);
-  ASSERT(ak_test_accessor_f32(acc, 0, 0) == 1.0f);
-  ASSERT(ak_test_accessor_f32(acc, 0, 1) == 0.0f);
-  ASSERT(ak_test_accessor_f32(acc, 0, 2) == 0.0f);
+  ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 0)
+               - (16.0f / 31.0f)) < 0.001f);
+  ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 1)
+               - (8.0f / 31.0f)) < 0.001f);
+  ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 2)
+               - (4.0f / 31.0f)) < 0.001f);
   ak_free(doc);
 
   doc = NULL;
@@ -2342,7 +2351,25 @@ TEST_IMPL(format_edge_cases) {
   acc = ak_test_input(prim, AK_INPUT_COLOR)->accessor;
   ASSERT(acc->componentSize == AK_COMPONENT_SIZE_VEC4);
   ASSERT(acc->originalComponentType == AKT_UBYTE);
-  ASSERT(ak_test_accessor_f32(acc, 0, 3) == 128.0f);
+  ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 0)
+               - (128.0f / 255.0f)) < 0.001f);
+  ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 3)
+               - (128.0f / 255.0f)) < 0.001f);
+  ak_free(doc);
+
+  doc                = NULL;
+  plyImportColorMode = ak_opt_get(AK_OPT_PLY_IMPORT_COLOR_MODE);
+  ak_opt_set(AK_OPT_PLY_IMPORT_COLOR_MODE, AK_PLY_IMPORT_COLOR_SRGB);
+  loadResult = ak_load(&doc, plyPointsPath, AK_FILE_TYPE_AUTO);
+  ak_opt_set(AK_OPT_PLY_IMPORT_COLOR_MODE, plyImportColorMode);
+  ASSERT(loadResult == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL);
+  acc = ak_test_input(prim, AK_INPUT_COLOR)->accessor;
+  ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 0)
+               - ak_sRGB_linearf(128.0f / 255.0f)) < 0.001f);
+  ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 3)
+               - (128.0f / 255.0f)) < 0.001f);
   ak_free(doc);
 
   doc = NULL;
