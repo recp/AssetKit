@@ -1397,7 +1397,9 @@ TEST_IMPL(dae_scenekit_color_carriers_are_linear) {
                            sizeof(daePath),
                            tmpdir,
                            "scenekit_colors.dae"));
-  ASSERT(ak_test_write_dae_scenekit_color_carriers(daePath));
+  ASSERT(ak_test_write_dae_srgb_color_carriers(
+           daePath,
+           "SceneKit Collada Exporter v1.0"));
   ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_DAE) == AK_OK && doc);
 
   primitive = ak_test_animation_first_primitive(doc);
@@ -1498,6 +1500,197 @@ TEST_IMPL(dae_scenekit_color_carriers_are_linear) {
   ASSERT(ak_test_animation_accessor_f32(outTangentAccessor, 1u, 0u) == 1.25f);
   ASSERT(fabsf(ak_test_animation_accessor_f32(outTangentAccessor, 0u, 1u)
                - 0.75f * ak_test_srgb_to_linear_derivative(0.4f)) < 0.0001f);
+
+  ak_free(doc);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(dae_sketchup_color_carriers_are_linear) {
+  AkDoc           *doc;
+  AkMeshPrimitive *primitive;
+  AkInput         *colorInput;
+  AkMaterial      *material;
+  AkLight         *light;
+  AkAnimation     *animation;
+  AkChannel       *channel;
+  AkAnimSampler   *sampler;
+  AkAccessor      *outputAccessor;
+  char             dirTemplate[PATH_MAX];
+  char            *tmpdir;
+  char             daePath[PATH_MAX];
+  const char      *tmpBase;
+
+  doc     = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-sketchup-colors-XXXXXX"));
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+  ASSERT(ak_test_path_join(daePath,
+                           sizeof(daePath),
+                           tmpdir,
+                           "sketchup_colors.dae"));
+  ASSERT(ak_test_write_dae_srgb_color_carriers(daePath, "SketchUp 17.0.1"));
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_DAE) == AK_OK && doc);
+
+  material = doc->lib.materials.first;
+  ASSERT(material != NULL
+         && material->surface != NULL
+         && material->surface->baseColor != NULL);
+  ASSERT(fabsf(material->surface->baseColor->color.rgba.R
+               - ak_sRGB_linearf(0.8823529f)) < 0.0001f);
+  ASSERT(fabsf(material->surface->baseColor->color.rgba.B
+               - ak_sRGB_linearf(0.7843137f)) < 0.0001f);
+  ASSERT(material->surface->baseColor->color.rgba.A == 1.0f);
+
+  primitive = ak_test_animation_first_primitive(doc);
+  ASSERT(primitive != NULL);
+  colorInput = ak_test_animation_input(primitive, AK_INPUT_COLOR);
+  ASSERT(colorInput != NULL && colorInput->accessor != NULL);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(colorInput->accessor, 0u, 0u)
+               - ak_sRGB_linearf(0.4f)) < 0.0001f);
+  ASSERT(ak_test_animation_accessor_f32(colorInput->accessor, 1u, 3u) == 0.5f);
+
+  light = doc->lib.lights.first;
+  ASSERT(light != NULL && light->data != NULL);
+  ASSERT(fabsf(light->data->color.rgba.R - ak_sRGB_linearf(0.4f)) < 0.0001f);
+  ASSERT(light->data->color.rgba.A == 1.0f);
+
+  channel = NULL;
+  animation = ak_test_find_animation_with_channel(doc->lib.animations.first,
+                                                   "light/color",
+                                                   &channel);
+  ASSERT(animation != NULL && channel != NULL);
+  sampler = ak_test_channel_sampler(channel);
+  ASSERT(sampler != NULL && sampler->outputInput != NULL);
+  outputAccessor = sampler->outputInput->accessor;
+  ASSERT(outputAccessor != NULL);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(outputAccessor, 0u, 0u)
+               - ak_sRGB_linearf(0.4f)) < 0.0001f);
+  ASSERT(ak_test_animation_accessor_f32(outputAccessor, 1u, 3u) == 0.5f);
+
+  ak_free(doc);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(dae_linear_color_carriers_stay_linear) {
+  AkDoc           *doc;
+  AkMeshPrimitive *primitive;
+  AkInput         *colorInput;
+  AkMaterial      *material;
+  AkLight         *light;
+  AkAnimation     *animation;
+  AkChannel       *channel;
+  AkAnimSampler   *sampler;
+  char             dirTemplate[PATH_MAX];
+  char            *tmpdir;
+  char             daePath[PATH_MAX];
+  const char      *tmpBase;
+
+  doc     = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-linear-colors-XXXXXX"));
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+  ASSERT(ak_test_path_join(daePath,
+                           sizeof(daePath),
+                           tmpdir,
+                           "linear_colors.dae"));
+  ASSERT(ak_test_write_dae_srgb_color_carriers(daePath, "Blender 5.0.0"));
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_DAE) == AK_OK && doc);
+
+  material = doc->lib.materials.first;
+  ASSERT(material != NULL
+         && material->surface != NULL
+         && material->surface->baseColor != NULL);
+  ASSERT(fabsf(material->surface->baseColor->color.rgba.R - 0.8823529f)
+         < 0.0001f);
+  ASSERT(fabsf(material->surface->baseColor->color.rgba.B - 0.7843137f)
+         < 0.0001f);
+
+  primitive = ak_test_animation_first_primitive(doc);
+  ASSERT(primitive != NULL);
+  colorInput = ak_test_animation_input(primitive, AK_INPUT_COLOR);
+  ASSERT(colorInput != NULL && colorInput->accessor != NULL);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(colorInput->accessor, 0u, 0u)
+               - 0.4f) < 0.0001f);
+
+  light = doc->lib.lights.first;
+  ASSERT(light != NULL && light->data != NULL);
+  ASSERT(fabsf(light->data->color.rgba.R - 0.4f) < 0.0001f);
+
+  channel = NULL;
+  animation = ak_test_find_animation_with_channel(doc->lib.animations.first,
+                                                   "light/color",
+                                                   &channel);
+  ASSERT(animation != NULL && channel != NULL);
+  sampler = ak_test_channel_sampler(channel);
+  ASSERT(sampler != NULL
+         && sampler->outputInput != NULL
+         && sampler->outputInput->accessor != NULL);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(sampler->outputInput->accessor,
+                                              0u,
+                                              0u)
+               - 0.4f) < 0.0001f);
+
+  ak_free(doc);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(dae_scenekit_profile_without_authoring_is_linear) {
+  AkDoc      *doc;
+  AkMaterial *material;
+  char        dirTemplate[PATH_MAX];
+  char       *tmpdir;
+  char        daePath[PATH_MAX];
+  const char *tmpBase;
+
+  doc     = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-scenekit-profile-XXXXXX"));
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+  ASSERT(ak_test_path_join(daePath,
+                           sizeof(daePath),
+                           tmpdir,
+                           "scenekit_profile.dae"));
+  ASSERT(ak_test_write_dae_srgb_color_carriers(daePath, NULL));
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_DAE) == AK_OK && doc);
+
+  material = doc->lib.materials.first;
+  ASSERT(material != NULL
+         && material->surface != NULL
+         && material->surface->baseColor != NULL);
+  ASSERT(fabsf(material->surface->baseColor->color.rgba.R
+               - ak_sRGB_linearf(0.8823529f)) < 0.0001f);
+  ASSERT(fabsf(material->surface->baseColor->color.rgba.B
+               - ak_sRGB_linearf(0.7843137f)) < 0.0001f);
 
   ak_free(doc);
   unlink(daePath);

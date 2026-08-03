@@ -38,14 +38,19 @@ typedef enum AkDaeExportIndexMode {
 
 typedef enum AkDaeExportVersion {
   /* Choose the lowest compatible COLLADA version. Currently 1.4.1 unless
-     the document contains B-rep data, which requires 1.5.0. */
+     the document contains B-rep data, which requires the 1.5 schema. */
   AK_DAE_EXPORT_VERSION_AUTO = 0,
 
-  /* Force COLLADA 1.4.1. Export fails for data that requires 1.5.0. */
+  /* Force COLLADA 1.4.1. Export fails for data that requires the 1.5 schema. */
   AK_DAE_EXPORT_VERSION_1_4  = 1,
 
-  /* Force COLLADA 1.5.0. */
-  AK_DAE_EXPORT_VERSION_1_5  = 2
+  /* Force the latest COLLADA 1.5 specification revision (1.5.1).
+     COLLADA 1.5.1 intentionally retains the 1.5.0 schema, namespace, and
+     document version attribute. */
+  AK_DAE_EXPORT_VERSION_1_5_1 = 2,
+
+  /* Backward-compatible name for AK_DAE_EXPORT_VERSION_1_5_1. */
+  AK_DAE_EXPORT_VERSION_1_5   = AK_DAE_EXPORT_VERSION_1_5_1
 } AkDaeExportVersion;
 
 typedef enum AkGltfExportVersion {
@@ -150,7 +155,7 @@ typedef enum AkOption {
   AK_OPT_DAE_EXPORT_INDEX_MODE        = 36, /* MULTI    */
 
   /* AkDaeExportVersion. Default AUTO writes COLLADA 1.4.1 unless the
-     content requires 1.5.0. */
+     content requires the 1.5 schema. */
   AK_OPT_DAE_EXPORT_VERSION           = 37, /* AUTO     */
 
   /* const char*. Exporter generator/authoring-tool string. */

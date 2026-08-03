@@ -64,7 +64,9 @@ TEST_IMPL(dae_export_triangle_smoke) {
   ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
   ASSERT(stat(daePath, &stDae) == 0);
   ASSERT(stDae.st_size > 0);
-  ASSERT(ak_test_file_contains(daePath, "<COLLADA"));
+  ASSERT(ak_test_file_contains(
+    daePath,
+    "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\""));
   ASSERT(ak_test_file_contains(daePath, "<library_geometries>"));
   ASSERT(ak_test_file_contains(daePath, "<triangles count=\"1\">"));
   ASSERT(ak_test_file_contains(daePath, "<instance_geometry url=\"#geom_0\">"));
@@ -239,12 +241,14 @@ TEST_IMPL(dae_export_version_option_texture_syntax) {
   ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
 
   oldVersion = ak_opt_get(AK_OPT_DAE_EXPORT_VERSION);
-  ak_opt_set(AK_OPT_DAE_EXPORT_VERSION, AK_DAE_EXPORT_VERSION_1_5);
+  ak_opt_set(AK_OPT_DAE_EXPORT_VERSION, AK_DAE_EXPORT_VERSION_1_5_1);
   exportResult = ak_export(doc, outDir, AK_FILE_TYPE_DAE);
   ak_opt_set(AK_OPT_DAE_EXPORT_VERSION, oldVersion);
 
   ASSERT(exportResult == AK_OK);
-  ASSERT(ak_test_file_contains(outDae, "version=\"1.5.0\""));
+  ASSERT(ak_test_file_contains(
+    outDae,
+    "<COLLADA xmlns=\"http://www.collada.org/2008/03/COLLADASchema\" version=\"1.5.0\""));
   ASSERT(ak_test_file_contains(outDae, "<init_from><ref>"));
   ASSERT(ak_test_file_contains(outDae,
                                "<sampler2D><instance_image url=\"#image_0\"/>"));

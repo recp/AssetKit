@@ -27,6 +27,22 @@ ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
                                       bool                              constantColorsAreSRGB);
 
 AK_HIDE
+void
+ak_materialSurfaceSetNormalFromColorDesc(AkHeap            * __restrict heap,
+                                         AkMaterialSurface * __restrict surface,
+                                         AkColorDesc       * __restrict desc,
+                                         float                          scale,
+                                         bool                           isHeight);
+
+AK_HIDE
+void
+ak_materialSurfaceAddSpecularFactorFromColorDesc(
+  AkHeap            * __restrict heap,
+  AkMaterialSurface * __restrict surface,
+  AkColorDesc       * __restrict desc,
+  float                          scale);
+
+AK_HIDE
 AkMaterial*
 ak_materialDefaultVertexColorAlpha(AkDoc * __restrict doc, bool alphaBlend);
 

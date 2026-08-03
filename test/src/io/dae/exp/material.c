@@ -30,15 +30,22 @@ TEST_IMPL(dae_export_material_texture_smoke) {
   AkMaterialInput   *baseColor;
   AkMaterialInput   *emissive;
   AkMaterialInput   *metallic;
+  AkMaterialInput   *normal;
   AkMaterialInput   *opacity;
   AkMaterialInput   *roughness;
+  AkMaterialInput   *specularFactor;
+  AkMaterialSpecularFeature *specularLevel;
   AkTextureRef      *texref;
   AkTextureRef      *emissiveRef;
+  AkTextureRef      *normalRef;
   AkTextureRef      *opacityRef;
+  AkTextureRef      *specularFactorRef;
   AkTexture         *texture;
   AkSampler         *sampler;
   AkImage           *image;
   AkImageSource     *source;
+  AkMaterialSurface *roundSurface;
+  AkMaterialSpecularFeature *roundSpecular;
   struct stat        stDae;
   const char        *outDir  = "./assetkit_export_dae_material_texture";
   const char        *daePath = "./assetkit_export_dae_material_texture/model.dae";
@@ -93,11 +100,17 @@ TEST_IMPL(dae_export_material_texture_smoke) {
   baseColor = ak_test_material_input(heap, surface);
   emissive = ak_test_material_input(heap, surface);
   metallic = ak_test_material_input(heap, surface);
+  normal = ak_test_material_input(heap, surface);
   opacity = ak_test_material_input(heap, surface);
   roughness = ak_test_material_input(heap, surface);
+  specularFactor = ak_test_material_input(heap, surface);
+  specularLevel = ak_heap_calloc(heap, surface, sizeof(*specularLevel));
   texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
   emissiveRef = ak_heap_calloc(heap, emissive, sizeof(*emissiveRef));
+  normalRef   = ak_heap_calloc(heap, normal, sizeof(*normalRef));
   opacityRef  = ak_heap_calloc(heap, opacity, sizeof(*opacityRef));
+  specularFactorRef = ak_heap_calloc(heap, specularFactor,
+                                     sizeof(*specularFactorRef));
   texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
   sampler   = ak_heap_calloc(heap, texture, sizeof(*sampler));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
@@ -107,11 +120,16 @@ TEST_IMPL(dae_export_material_texture_smoke) {
   ASSERT(baseColor != NULL);
   ASSERT(emissive != NULL);
   ASSERT(metallic != NULL);
+  ASSERT(normal != NULL);
   ASSERT(opacity != NULL);
   ASSERT(roughness != NULL);
+  ASSERT(specularFactor != NULL);
+  ASSERT(specularLevel != NULL);
   ASSERT(texref != NULL);
   ASSERT(emissiveRef != NULL);
+  ASSERT(normalRef != NULL);
   ASSERT(opacityRef != NULL);
+  ASSERT(specularFactorRef != NULL);
   ASSERT(texture != NULL);
   ASSERT(sampler != NULL);
   ASSERT(image != NULL);
@@ -132,8 +150,12 @@ TEST_IMPL(dae_export_material_texture_smoke) {
   texref->slot = 0;
   emissiveRef->texture = texture;
   emissiveRef->slot    = 1;
+  normalRef->texture   = texture;
+  normalRef->slot      = 0;
   opacityRef->texture  = texture;
   opacityRef->slot     = 1;
+  specularFactorRef->texture = texture;
+  specularFactorRef->slot    = 1;
 
   baseColor->source    = AK_MATERIAL_INPUT_TEXTURE;
   baseColor->valueType = AK_MATERIAL_VALUE_COLOR;
@@ -148,22 +170,37 @@ TEST_IMPL(dae_export_material_texture_smoke) {
   metallic->source     = AK_MATERIAL_INPUT_CONSTANT;
   metallic->valueType  = AK_MATERIAL_VALUE_FLOAT;
   metallic->value[0]   = 0.75f;
+  normal->source       = AK_MATERIAL_INPUT_TEXTURE;
+  normal->valueType    = AK_MATERIAL_VALUE_FLOAT;
+  normal->value[0]     = 0.65f;
+  normal->texture      = normalRef;
+  normal->flags        = AK_MATERIAL_INPUT_FLAG_HEIGHT;
   opacity->source      = AK_MATERIAL_INPUT_TEXTURE;
   opacity->valueType   = AK_MATERIAL_VALUE_FLOAT;
   opacity->texture     = opacityRef;
   roughness->source    = AK_MATERIAL_INPUT_CONSTANT;
   roughness->valueType = AK_MATERIAL_VALUE_FLOAT;
   roughness->value[0]  = 0.25f;
+  specularFactor->source    = AK_MATERIAL_INPUT_TEXTURE;
+  specularFactor->valueType = AK_MATERIAL_VALUE_FLOAT;
+  specularFactor->value[0]  = 0.8f;
+  specularFactor->texture   = specularFactorRef;
+  specularLevel->base.type  = AK_MATERIAL_FEATURE_SPECULAR;
+  specularLevel->factor     = specularFactor;
   mat->name            = "wood_mat";
   mat->surface         = surface;
   surface->type        = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
-  surface->flags       = AK_MATERIAL_FLAG_HAS_IOR;
+  surface->flags       = AK_MATERIAL_FLAG_HAS_IOR
+                         | AK_MATERIAL_FLAG_DOUBLE_SIDED;
   surface->ior         = 1.45f;
   surface->baseColor   = baseColor;
   surface->emissive    = emissive;
   surface->metallic    = metallic;
+  surface->normal      = normal;
   surface->opacity     = opacity;
   surface->roughness   = roughness;
+  surface->features    = &specularLevel->base;
+  surface->featureMask = 1u << AK_MATERIAL_FEATURE_SPECULAR;
   prim->material       = mat;
 
   doc->lib.geometries.first = geom;
@@ -201,6 +238,18 @@ TEST_IMPL(dae_export_material_texture_smoke) {
   ASSERT(ak_test_file_contains(daePath, "<shininess><float>30</float></shininess>"));
   ASSERT(ak_test_file_contains(daePath, "<reflective><color>"));
   ASSERT(ak_test_file_contains(daePath, "<reflectivity><float>"));
+  ASSERT(ak_test_file_contains(
+    daePath,
+    "<extra><technique profile=\"OpenCOLLADA3dsMax\">"));
+  ASSERT(ak_test_file_contains(
+    daePath,
+    "<specularLevel><texture texture=\"sampler_0_specular_level\" texcoord=\"TEXCOORD1\"><extra><technique profile=\"MAX3D\"><amount>0.8"));
+  ASSERT(ak_test_file_contains(
+    daePath,
+    "<bump bumptype=\"HEIGHTFIELD\"><texture texture=\"sampler_0_normal\" texcoord=\"TEXCOORD0\"><extra><technique profile=\"MAX3D\"><amount>0.649"));
+  ASSERT(ak_test_file_contains(
+    daePath,
+    "<extra><technique profile=\"MAX3D\"><double_sided>1</double_sided></technique></extra>"));
   ASSERT(ak_test_file_contains(daePath,
                                "<index_of_refraction><float>1.45"));
   ASSERT(ak_test_file_contains(daePath,
@@ -219,6 +268,21 @@ TEST_IMPL(dae_export_material_texture_smoke) {
   ASSERT(roundTrip->scene != NULL);
   ASSERT(roundTrip->scene->node != NULL);
   ASSERT(roundTrip->scene->node->chld != NULL);
+  roundSurface = roundTrip->lib.materials.first->surface;
+  ASSERT(roundSurface && roundSurface->normal);
+  ASSERT(roundSurface->normal->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(roundSurface->normal->colorSpace == AK_TEXTURE_COLORSPACE_LINEAR);
+  ASSERT(roundSurface->normal->channels == AK_TEXTURE_CHANNEL_R);
+  ASSERT(roundSurface->normal->flags & AK_MATERIAL_INPUT_FLAG_HEIGHT);
+  ASSERT(fabsf(roundSurface->normal->value[0] - 0.65f) < 0.001f);
+  ASSERT(roundSurface->flags & AK_MATERIAL_FLAG_DOUBLE_SIDED);
+  roundSpecular = (AkMaterialSpecularFeature *)ak_materialFeature(
+                    roundSurface, AK_MATERIAL_FEATURE_SPECULAR);
+  ASSERT(roundSpecular && roundSpecular->factor);
+  ASSERT(roundSpecular->factor->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(roundSpecular->factor->colorSpace == AK_TEXTURE_COLORSPACE_LINEAR);
+  ASSERT(roundSpecular->factor->channels == AK_TEXTURE_CHANNEL_R);
+  ASSERT(fabsf(roundSpecular->factor->value[0] - 0.8f) < 0.001f);
 
   ak_free(roundTrip);
   ak_heap_destroy(heap);

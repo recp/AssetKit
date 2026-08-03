@@ -36,7 +36,13 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
 
 static
 void
-dae_techniqueFxSceneKitExtra(DAEState            * __restrict dst,
+dae_techniqueFxBump(DAEState            * __restrict dst,
+                    xml_t               * __restrict xml,
+                    AkTechniqueFxCommon * __restrict techn);
+
+static
+void
+dae_techniqueFxSpecularLevel(DAEState            * __restrict dst,
                              xml_t               * __restrict xml,
                              AkTechniqueFxCommon * __restrict techn);
 
@@ -55,7 +61,9 @@ dae_techniqueFx(DAEState * __restrict dst,
                 void     * __restrict memp) {
   AkHeap              *heap;
   AkTechniqueFx       *techn;
+  xml_t               *items;
   AkMaterialType       m;
+  bool                 pendingExtras;
 
   heap  = dst->heap;
   techn = ak_heap_calloc(heap, memp, sizeof(*techn));
@@ -64,7 +72,9 @@ dae_techniqueFx(DAEState * __restrict dst,
   xmla_setid(xml, heap, techn);
   sid_set(xml, heap, techn);
 
-  xml = xml->val;
+  items = xml->val;
+  xml   = items;
+  pendingExtras = false;
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, techn, NULL);
@@ -78,10 +88,22 @@ dae_techniqueFx(DAEState * __restrict dst,
       /* migration from 1.4 */
       dae14_fxMigrateImg(dst, xml, NULL);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
-      dae_techniqueFxSceneKitExtra(dst, xml, techn->common);
+      if (techn->common)
+        dae_techniqueFxExtra(dst, xml, techn->common);
+      else
+        pendingExtras = true;
       techn->extra = tree_fromxml(heap, techn, xml);
     }
     xml = xml->next;
+  }
+
+  /* Only malformed or exporter-specific ordering needs a deferred scan.
+     The ordinary path keeps the original single pass. */
+  if (pendingExtras) {
+    for (xml = items; xml; xml = xml->next) {
+      if (DAE_XML_TAG_EQ8(xml, extra))
+        dae_techniqueFxExtra(dst, xml, techn->common);
+    }
   }
 
   return techn;
@@ -122,29 +144,147 @@ dae_transparentTextureChannels(AkOpaque opaque) {
 
 static
 void
-dae_techniqueFxSceneKitExtra(DAEState            * __restrict dst,
+dae_techniqueFxSpecularLevel(DAEState            * __restrict dst,
                              xml_t               * __restrict xml,
                              AkTechniqueFxCommon * __restrict techn) {
+  AkDAEMaterialVendor *materialVendor;
+  AkDAETextureRef    *tex;
+  AkDAETextureVendor *vendor;
+
+  if (!xml || !techn)
+    return;
+
+  materialVendor = dae_materialVendor(dst, techn);
+  if (materialVendor && materialVendor->specularLevel)
+    return;
+  if (!materialVendor) {
+    if (!dst->materialVendorMap)
+      dst->materialVendorMap = rb_newtree_ptr();
+    if (!dst->materialVendorMap)
+      return;
+    materialVendor = ak_heap_calloc(dst->heap, techn,
+                                    sizeof(*materialVendor));
+    if (!materialVendor)
+      return;
+    materialVendor->normalScale = 1.0f;
+    materialVendor->specularLevelScale = 1.0f;
+    rb_insert(dst->materialVendorMap, techn, materialVendor);
+  }
+
+  materialVendor->specularLevel = dae_colorOrTex(dst, xml, techn);
+  dae_colorDescTextureUsage(dst, materialVendor->specularLevel,
+                            AK_TEXTURE_COLORSPACE_LINEAR,
+                            AK_TEXTURE_CHANNEL_R);
+  if (materialVendor->specularLevel && dst->texmap) {
+    tex = rb_find(dst->texmap, materialVendor->specularLevel);
+    vendor = dae_textureVendor(dst, tex);
+    if (vendor && vendor->hasWeight)
+      materialVendor->specularLevelScale = vendor->weight;
+  }
+}
+
+static
+void
+dae_techniqueFxBump(DAEState            * __restrict dst,
+                    xml_t               * __restrict xml,
+                    AkTechniqueFxCommon * __restrict techn) {
+  AkDAEMaterialVendor *materialVendor;
+  AkDAETextureRef    *tex;
+  AkDAETextureVendor *vendor;
+  xml_attr_t         *bumpType;
+
+  if (!xml || !techn)
+    return;
+
+  materialVendor = dae_materialVendor(dst, techn);
+  if (materialVendor && materialVendor->normal)
+    return;
+  if (!materialVendor) {
+    if (!dst->materialVendorMap)
+      dst->materialVendorMap = rb_newtree_ptr();
+    if (!dst->materialVendorMap)
+      return;
+    materialVendor = ak_heap_calloc(dst->heap, techn,
+                                    sizeof(*materialVendor));
+    if (!materialVendor)
+      return;
+    materialVendor->normalScale = 1.0f;
+    materialVendor->specularLevelScale = 1.0f;
+    rb_insert(dst->materialVendorMap, techn, materialVendor);
+  }
+
+  bumpType = DAE_XMLA(xml, bumptype);
+  materialVendor->normalIsHeight = dae_xmlAttrEq(bumpType,
+                                                 _s_dae_heightfield,
+                                                 _s_dae_heightfield_len);
+  materialVendor->normal = dae_colorOrTex(dst, xml, techn);
+  dae_colorDescTextureUsage(dst, materialVendor->normal,
+                            AK_TEXTURE_COLORSPACE_LINEAR,
+                            materialVendor->normalIsHeight
+                              ? AK_TEXTURE_CHANNEL_R
+                              : AK_TEXTURE_CHANNEL_RGB);
+  if (materialVendor->normal && dst->texmap) {
+    tex = rb_find(dst->texmap, materialVendor->normal);
+    vendor = dae_textureVendor(dst, tex);
+    if (vendor && vendor->hasWeight)
+      materialVendor->normalScale = vendor->weight;
+  }
+}
+
+static
+bool
+dae_techniqueFxMaterialExtraProfile(const xml_attr_t * __restrict profile) {
+  return dae_xmlAttrEq(profile, _s_dae_fcollada, _s_dae_fcollada_len)
+         || dae_xmlAttrEq(profile, _s_dae_maya, _s_dae_maya_len)
+         || dae_xmlAttrEq(profile, _s_dae_opencollada3dsmax,
+                          _s_dae_opencollada3dsmax_len)
+         || dae_xmlAttrEq(profile, _s_dae_max3d, _s_dae_max3d_len)
+         || dae_xmlAttrEq(profile, _s_dae_okino, _s_dae_okino_len)
+         || dae_xmlAttrEq(profile, _s_dae_googleearth,
+                          _s_dae_googleearth_len)
+         || dae_xmlAttrEq(profile, _s_dae_googleearthMixed,
+                          _s_dae_googleearthMixed_len);
+}
+
+AK_HIDE
+void
+dae_techniqueFxExtra(DAEState            * __restrict dst,
+                     xml_t               * __restrict xml,
+                     AkTechniqueFxCommon * __restrict techn) {
   xml_t *technique, *item;
+  xml_attr_t *profile;
 
   if (!xml || !techn)
     return;
 
   for (technique = xml->val; technique; technique = technique->next) {
-    if (!DAE_XML_TAG_EQ(technique, technique)
-        || !dae_xmlAttrEq(DAE_XMLA8(technique, profile), "SceneKit", 8))
+    bool sceneKitProfile;
+
+    if (!DAE_XML_TAG_EQ(technique, technique))
       continue;
 
-    for (item = technique->val; item; item = item->next) {
-      if (!xml_tag_eqsz(item, "constant_diffuse", sizeof("constant_diffuse") - 1))
-        continue;
+    profile         = DAE_XMLA8(technique, profile);
+    sceneKitProfile = dae_xmlAttrEq(profile, "SceneKit", 8);
+    if (sceneKitProfile)
+      dst->sceneKitProfileSeen = true;
 
-      if (!techn->constantDiffuse) {
+    for (item = technique->val; item; item = item->next) {
+      if (sceneKitProfile
+          && xml_tag_eqsz(item, "constant_diffuse",
+                          sizeof("constant_diffuse") - 1)
+          && !techn->constantDiffuse) {
         techn->constantDiffuse = dae_colorOrTex(dst, item, techn);
-        dae_colorDescTextureUsage(dst, techn->constantDiffuse, AK_TEXTURE_COLORSPACE_SRGB,
+        dae_colorDescTextureUsage(dst, techn->constantDiffuse,
+                                  AK_TEXTURE_COLORSPACE_SRGB,
                                   AK_TEXTURE_CHANNEL_RGBA);
+      } else if (dae_techniqueFxMaterialExtraProfile(profile)) {
+        if (DAE_XML_TAG_EQ4(item, bump))
+          dae_techniqueFxBump(dst, item, techn);
+        else if (DAE_XML_TAG_EQ(item, specularLevel))
+          dae_techniqueFxSpecularLevel(dst, item, techn);
+        else if (DAE_XML_TAG_EQ(item, double_sided))
+          techn->doubleSided = xml_bool(item, false);
       }
-      return;
     }
   }
 }
@@ -202,6 +342,10 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       dae_colorDescTextureUsage(dst, specularProp->color,
                                 AK_TEXTURE_COLORSPACE_SRGB,
                                 AK_TEXTURE_CHANNEL_RGB);
+    } else if (DAE_XML_TAG_EQ4(xml, bump)) {
+      dae_techniqueFxBump(dst, xml, techn);
+    } else if (DAE_XML_TAG_EQ(xml, specularLevel)) {
+      dae_techniqueFxSpecularLevel(dst, xml, techn);
     } else if (DAE_XML_TAG_EQ(xml, reflective)) {
       if (!techn->reflective)
         techn->reflective = ak_heap_calloc(heap, techn, sizeof(*techn->reflective));
@@ -258,7 +402,7 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       techn->ior = dae_float(dst, xml, techn,
                              offsetof(AkTechniqueFxCommon, ior), 0.0f);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
-      dae_techniqueFxSceneKitExtra(dst, xml, techn);
+      dae_techniqueFxExtra(dst, xml, techn);
     }
     xml = xml->next;
   }

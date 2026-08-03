@@ -17,10 +17,133 @@
 #include "light.h"
 #include "asset.h"
 #include "color.h"
+#include "../../../string_fast.h"
 
 #define AK_DEFAULT_LIGHT_DIR {0.0f, 0.0f, -1.0f}
 /* DAE attenuation has no finite cutoff; use 1% intensity as a range hint. */
 #define AK_DAE_ATTENUATION_RANGE_EPSILON 0.01f
+
+static
+float
+dae_lightRangeFromAttenuation(AkLightAttenuation * __restrict attenuation);
+
+static
+bool
+dae_lightProfileEq(const xml_attr_t * __restrict attr,
+                   const char       * __restrict value,
+                   size_t                        len) {
+  return attr && ak_str_eq_fast(attr->val, attr->valsize, value, len);
+}
+
+static
+float
+dae_lightVendorAngle(xml_t * __restrict xml, float fallback) {
+  float angle;
+
+  angle = glm_rad(xml_float(xml, glm_deg(fallback)));
+  return glm_clamp(angle, 0.0f, GLM_PI_2f);
+}
+
+static
+void
+dae_lightVendorTechnique(xml_t    * __restrict technique,
+                         AkLight  * __restrict light) {
+  AkLightBase        *base;
+  AkPointLight       *point;
+  AkSpotLight        *spot;
+  AkLightAttenuation *attenuation;
+  xml_attr_t         *profile;
+  xml_t              *item;
+  float               innerAngle;
+  float               outerAngle;
+  float               penumbraAngle;
+  bool                hasInnerAngle;
+  bool                hasOuterAngle;
+  bool                hasPenumbraAngle;
+
+  if (!technique || !light || !(base = light->data))
+    return;
+
+  profile = DAE_XMLA8(technique, profile);
+  if (!dae_lightProfileEq(profile, _s_dae_fcollada, _s_dae_fcollada_len)
+      && !dae_lightProfileEq(profile, _s_dae_max3d, _s_dae_max3d_len)
+      && !dae_lightProfileEq(profile, _s_dae_opencollada3dsmax,
+                             _s_dae_opencollada3dsmax_len))
+    return;
+
+  point = base->type == AK_LIGHT_TYPE_POINT ? (AkPointLight *)base : NULL;
+  spot = base->type == AK_LIGHT_TYPE_SPOT ? (AkSpotLight *)base : NULL;
+  attenuation = point ? &point->attenuation
+                      : (spot ? &spot->attenuation : NULL);
+  innerAngle = spot ? spot->innerConeAngle : 0.0f;
+  outerAngle = spot ? spot->outerConeAngle : 0.0f;
+  penumbraAngle = 0.0f;
+  hasInnerAngle = false;
+  hasOuterAngle = false;
+  hasPenumbraAngle = false;
+
+  for (item = technique->val; item; item = item->next) {
+    if (DAE_XML_TAG_EQ(item, intensity)) {
+      base->intensity = xml_float(item, 1.0f);
+    } else if (attenuation && DAE_XML_TAG_EQ(item, const_attn)) {
+      attenuation->constant = xml_float(item, attenuation->constant);
+    } else if (attenuation && DAE_XML_TAG_EQ(item, linear_attn)) {
+      attenuation->linear = xml_float(item, attenuation->linear);
+    } else if (attenuation && DAE_XML_TAG_EQ(item, quad_attn)) {
+      attenuation->quadratic = xml_float(item, attenuation->quadratic);
+    } else if (spot && DAE_XML_TAG_EQ(item, falloff_angle)) {
+      innerAngle = dae_lightVendorAngle(item, innerAngle);
+      hasInnerAngle = true;
+    } else if (spot && DAE_XML_TAG_EQ(item, falloff_exp)) {
+      spot->coneFalloffExponent = xml_float(item,
+                                             spot->coneFalloffExponent);
+    } else if (spot && DAE_XML_TAG_EQ(item, hotspot_beam)) {
+      innerAngle = dae_lightVendorAngle(item, innerAngle);
+      hasInnerAngle = true;
+    } else if (spot && (DAE_XML_TAG_EQ(item, outer_cone)
+                        || DAE_XML_TAG_EQ(item, falloff)
+                        || DAE_XML_TAG_EQ(item, decay_falloff))) {
+      outerAngle = dae_lightVendorAngle(item, outerAngle);
+      hasOuterAngle = true;
+    } else if (spot && DAE_XML_TAG_EQ(item, penumbra_angle)) {
+      penumbraAngle = glm_rad(xml_float(item, 0.0f));
+      hasPenumbraAngle = true;
+    }
+  }
+
+  if (spot) {
+    if (hasInnerAngle)
+      spot->innerConeAngle = innerAngle;
+    if (hasOuterAngle)
+      spot->outerConeAngle = outerAngle;
+    else if (hasPenumbraAngle)
+      spot->outerConeAngle = spot->innerConeAngle + penumbraAngle;
+
+    if (hasOuterAngle || hasPenumbraAngle) {
+      spot->outerConeAngle = glm_clamp(spot->outerConeAngle,
+                                       spot->innerConeAngle,
+                                       GLM_PI_2f);
+    }
+  }
+
+  if (attenuation)
+    base->range = dae_lightRangeFromAttenuation(attenuation);
+}
+
+static
+void
+dae_lightVendorExtra(xml_t   * __restrict extra,
+                     AkLight * __restrict light) {
+  xml_t *technique;
+
+  if (!extra || !light)
+    return;
+
+  for (technique = extra->val; technique; technique = technique->next) {
+    if (DAE_XML_TAG_EQ(technique, technique))
+      dae_lightVendorTechnique(technique, light);
+  }
+}
 
 static
 float
@@ -58,6 +181,8 @@ dae_light(DAEState * __restrict dst,
           void     * __restrict memp) {
   AkLight     *light;
   AkHeap      *heap;
+  xml_t       *items;
+  bool         pendingVendor;
 
   heap        = dst->heap;
   light       = ak_heap_calloc(heap, memp, sizeof(*light));
@@ -66,7 +191,9 @@ dae_light(DAEState * __restrict dst,
   
   xmla_setid(xml, heap, light);
 
-  xml = xml->val;
+  items = xml->val;
+  xml   = items;
+  pendingVendor = false;
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, light, NULL);
@@ -184,12 +311,30 @@ dae_light(DAEState * __restrict dst,
                         lightb->direction);
         }
       }
+    } else if (DAE_XML_TAG_EQ(xml, technique)) {
+      if (light->data)
+        dae_lightVendorTechnique(xml, light);
+      else
+        pendingVendor = true;
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
+      if (light->data)
+        dae_lightVendorExtra(xml, light);
+      else
+        pendingVendor = true;
       light->extra = tree_fromxml(heap, light, xml);
     }
 
   nxt:
     xml = xml->next;
+  }
+
+  if (pendingVendor && light->data) {
+    for (xml = items; xml; xml = xml->next) {
+      if (DAE_XML_TAG_EQ(xml, technique))
+        dae_lightVendorTechnique(xml, light);
+      else if (DAE_XML_TAG_EQ8(xml, extra))
+        dae_lightVendorExtra(xml, light);
+    }
   }
   
   return light;

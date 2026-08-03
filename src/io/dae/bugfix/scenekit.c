@@ -68,16 +68,62 @@ dae_scenekit_authored(AkDoc * __restrict doc) {
 }
 
 static
+void
+dae_authoring_state_inspect(DAEState * __restrict dst) {
+  AkContributor *contr;
+  bool           authoringToolSeen;
+
+  if (!dst
+      || (dst->sceneKitAuthoringChecked
+          && dst->colorSRGBAuthoringChecked))
+    return;
+
+  dst->sceneKitAuthored = false;
+  dst->colorSRGBAuthored = false;
+  authoringToolSeen = false;
+  if (dst->doc && dst->doc->inf) {
+    for (contr = dst->doc->inf->base.contributor; contr; contr = contr->next) {
+      if (!contr->authoringTool || !contr->authoringTool[0])
+        continue;
+
+      authoringToolSeen = true;
+      if (dae_strcase_contains(contr->authoringTool, "scenekit")) {
+        dst->sceneKitAuthored = true;
+        dst->colorSRGBAuthored = true;
+        break;
+      }
+      if (dae_strcase_contains(contr->authoringTool, "sketchup"))
+        dst->colorSRGBAuthored = true;
+    }
+  }
+
+  if (!authoringToolSeen && dst->sceneKitProfileSeen) {
+    dst->sceneKitAuthored  = true;
+    dst->colorSRGBAuthored = true;
+  }
+
+  dst->sceneKitAuthoringChecked = true;
+  dst->colorSRGBAuthoringChecked = true;
+}
+
+static
 bool
 dae_scenekit_state_authored(DAEState * __restrict dst) {
   if (!dst || !dst->doc)
     return false;
 
-  if (!dst->sceneKitAuthoringChecked) {
-    dst->sceneKitAuthored        = dae_scenekit_authored(dst->doc);
-    dst->sceneKitAuthoringChecked = true;
-  }
+  dae_authoring_state_inspect(dst);
   return dst->sceneKitAuthored;
+}
+
+static
+bool
+dae_srgb_color_authored(DAEState * __restrict dst) {
+  if (!dst || !dst->doc)
+    return false;
+
+  dae_authoring_state_inspect(dst);
+  return dst->colorSRGBAuthored;
 }
 
 static
@@ -351,13 +397,14 @@ dae_scenekit_normalize_mesh_colors(AkDoc * __restrict doc) {
 
 AK_HIDE
 void
-dae_scenekit_normalize_colors(DAEState * __restrict dst) {
+dae_normalize_srgb_colors(DAEState * __restrict dst) {
   AkLight *light;
 
-  if (!dae_scenekit_state_authored(dst))
+  if (!dae_srgb_color_authored(dst))
     return;
 
-  dae_scenekit_normalize_mesh_colors(dst->doc);
+  if (dst->hasMeshColorInputs)
+    dae_scenekit_normalize_mesh_colors(dst->doc);
 
   for (light = dst->doc->lib.lights.first; light; light = light->next) {
     if (light->data)
@@ -848,7 +895,7 @@ dae_scenekit_animation_channel_count(AkAnimation * __restrict animation) {
 
 AK_HIDE
 void
-dae_scenekit_normalize_animation_colors(DAEState * __restrict dst) {
+dae_normalize_srgb_animation_colors(DAEState * __restrict dst) {
   AkAccessor  *stackSlots[128] = {0};
   AkAccessor **slots;
   AkContext    context;
@@ -859,7 +906,7 @@ dae_scenekit_normalize_animation_colors(DAEState * __restrict dst) {
   if (!dst
       || !dst->doc
       || !dst->doc->lib.animations.first
-      || !dae_scenekit_state_authored(dst))
+      || !dae_srgb_color_authored(dst))
     return;
 
   channelCount = dae_scenekit_animation_channel_count(

@@ -646,6 +646,42 @@ ak__materialInputFromScalarTexture(AkHeap             * __restrict heap,
 }
 
 static
+AkMaterialInput*
+ak__materialInputFromScalarDesc(AkHeap       * __restrict heap,
+                                void         * __restrict parent,
+                                const char   * __restrict semantic,
+                                AkColorDesc  * __restrict desc,
+                                float                     fallback,
+                                AkTextureColorSpace       colorSpace,
+                                AkTextureChannels         channels) {
+  AkMaterialInput *input;
+  float            value;
+
+  if (!desc || (!desc->color && !desc->texture && !desc->param))
+    return NULL;
+
+  value = desc->color ? desc->color->rgba.R : fallback;
+  input = ak__materialInputFromScalarTexture(heap,
+                                             parent,
+                                             semantic,
+                                             value,
+                                             desc->texture,
+                                             colorSpace,
+                                             desc->texture
+                                               && desc->texture->channels
+                                                  != AK_TEXTURE_CHANNEL_NONE
+                                               ? desc->texture->channels
+                                               : channels);
+  if (desc->param) {
+    input->sourceName = desc->param->ref;
+    if (!desc->texture)
+      input->source = AK_MATERIAL_INPUT_PARAM;
+  }
+
+  return input;
+}
+
+static
 void
 ak__materialInputColorSRGBToLinear(AkMaterialInput * __restrict input) {
   if (!input || input->texture)
@@ -960,6 +996,54 @@ ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
   }
 
   return surface;
+}
+
+AK_HIDE
+void
+ak_materialSurfaceSetNormalFromColorDesc(AkHeap            * __restrict heap,
+                                         AkMaterialSurface * __restrict surface,
+                                         AkColorDesc       * __restrict desc,
+                                         float                          scale,
+                                         bool                           isHeight) {
+  if (!heap || !surface || !desc || surface->normal)
+    return;
+
+  surface->normal = ak__materialInputFromScalarDesc(
+                      heap,
+                      surface,
+                      _s_ak_normal,
+                      desc,
+                      scale,
+                      AK_TEXTURE_COLORSPACE_LINEAR,
+                      isHeight ? AK_TEXTURE_CHANNEL_R
+                               : AK_TEXTURE_CHANNEL_RGB);
+  if (surface->normal && isHeight)
+    surface->normal->flags |= AK_MATERIAL_INPUT_FLAG_HEIGHT;
+}
+
+AK_HIDE
+void
+ak_materialSurfaceAddSpecularFactorFromColorDesc(
+  AkHeap            * __restrict heap,
+  AkMaterialSurface * __restrict surface,
+  AkColorDesc       * __restrict desc,
+  float                          scale) {
+  AkMaterialSpecularFeature *specular;
+
+  if (!heap || !surface || !desc)
+    return;
+
+  specular            = ak_heap_calloc(heap, surface, sizeof(*specular));
+  specular->base.type = AK_MATERIAL_FEATURE_SPECULAR;
+  specular->factor    = ak__materialInputFromScalarDesc(
+                          heap,
+                          specular,
+                          _s_ak_specular,
+                          desc,
+                          scale,
+                          AK_TEXTURE_COLORSPACE_LINEAR,
+                          AK_TEXTURE_CHANNEL_R);
+  ak__materialFeaturePush(surface, &specular->base);
 }
 
 AK_EXPORT

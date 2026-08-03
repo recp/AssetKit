@@ -16,6 +16,7 @@
 
 #include "effect.h"
 #include "profile.h"
+#include "techn.h"
 
 #include "../core/asset.h"
 #include "../core/techn.h"
@@ -30,6 +31,8 @@ dae_effect(DAEState * __restrict dst,
            void     * __restrict memp) {
   AkHeap   *heap;
   AkEffect *effect;
+  xml_t    *items;
+  bool      pendingExtras;
 
   heap   = dst->heap;
   effect = ak_heap_calloc(heap, memp, sizeof(*effect));
@@ -39,7 +42,9 @@ dae_effect(DAEState * __restrict dst,
 
   effect->name = DAE_XMLA_STRDUP8(xml, heap, name, effect);
 
-  xml = xml->val;
+  items = xml->val;
+  xml   = items;
+  pendingExtras = false;
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, effect, NULL);
@@ -65,9 +70,20 @@ dae_effect(DAEState * __restrict dst,
       /* migration from 1.4 */
       dae14_fxMigrateImg(dst, xml, NULL);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
+      if (effect->profile && effect->profile->technique)
+        dae_techniqueFxExtra(dst, xml, effect->profile->technique->common);
+      else
+        pendingExtras = true;
       effect->extra = tree_fromxml(heap, effect, xml);
     }
     xml = xml->next;
+  }
+
+  if (pendingExtras && effect->profile && effect->profile->technique) {
+    for (xml = items; xml; xml = xml->next) {
+      if (DAE_XML_TAG_EQ8(xml, extra))
+        dae_techniqueFxExtra(dst, xml, effect->profile->technique->common);
+    }
   }
 
   return effect;

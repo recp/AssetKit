@@ -35,6 +35,7 @@ dae_prepare_material_dependencies(DAEExpState * __restrict st,
                                   AkMaterial  * __restrict mat) {
   AkMaterialSurface *surface;
   AkMaterialClassicFeature *classic;
+  AkMaterialSpecularFeature *specular;
 
   if (!mat)
     return true;
@@ -42,6 +43,8 @@ dae_prepare_material_dependencies(DAEExpState * __restrict st,
   surface = mat->surface;
   classic = (AkMaterialClassicFeature *)ak_materialFeature(
               surface, AK_MATERIAL_FEATURE_CLASSIC);
+  specular = (AkMaterialSpecularFeature *)ak_materialFeature(
+               surface, AK_MATERIAL_FEATURE_SPECULAR);
 
   return dae_prepare_texture_image(st, dae_material_base_texture(surface))
          && dae_prepare_texture_image(
@@ -49,7 +52,13 @@ dae_prepare_material_dependencies(DAEExpState * __restrict st,
               dae_material_input_texture(surface ? surface->emissive : NULL))
          && dae_prepare_texture_image(
               st,
+              dae_material_input_texture(surface ? surface->normal : NULL))
+         && dae_prepare_texture_image(
+              st,
               dae_material_input_texture(classic ? classic->specular : NULL))
+         && dae_prepare_texture_image(
+              st,
+              dae_material_input_texture(specular ? specular->factor : NULL))
          && dae_prepare_texture_image(
               st,
               dae_material_input_texture(surface ? surface->opacity : NULL))
@@ -570,16 +579,92 @@ dae_write_texture_newparam(DAEExpState * __restrict st,
 
 static
 void
-dae_write_texture_value(DAEExpWriter * __restrict w,
-                        uint32_t                  matIdx,
-                        DAEExpName                suffix,
-                        AkTextureRef * __restrict texref) {
+dae_write_vendor_float_tag(DAEExpWriter * __restrict w,
+                           DAEExpName                 tag,
+                           float                      value) {
+  dae_w_ch(w, '<');
+  dae_w_name(w, tag);
+  dae_w_ch(w, '>');
+  dae_w_float_fast(w, value);
+  dae_w_lit(w, "</");
+  dae_w_name(w, tag);
+  dae_w_ch(w, '>');
+}
+
+static
+bool
+dae_texture_has_vendor_extra(AkTextureRef * __restrict texref,
+                             bool                       forceWeight) {
+  return texref
+         && (forceWeight
+             || texref->transform);
+}
+
+static
+void
+dae_write_texture_vendor_extra(DAEExpWriter * __restrict w,
+                               AkTextureRef * __restrict texref,
+                               bool                       forceWeight,
+                               float                      weight) {
+  AkTextureTransform *transform;
+
+  if (!dae_texture_has_vendor_extra(texref, forceWeight))
+    return;
+
+  transform = texref->transform;
+  dae_w_lit(w, "<extra>");
+  if (transform) {
+    dae_w_lit(w, "<technique profile=\"MAYA\">");
+    dae_write_vendor_float_tag(w, DAE_EXP_NAME_LIT("repeatU"),
+                               transform->scale[0]);
+    dae_write_vendor_float_tag(w, DAE_EXP_NAME_LIT("repeatV"),
+                               transform->scale[1]);
+    dae_write_vendor_float_tag(w, DAE_EXP_NAME_LIT("offsetU"),
+                               transform->offset[0]);
+    dae_write_vendor_float_tag(w, DAE_EXP_NAME_LIT("offsetV"),
+                               transform->offset[1]);
+    dae_write_vendor_float_tag(w, DAE_EXP_NAME_LIT("rotateUV"),
+                               transform->rotation);
+    dae_w_lit(w, "</technique>");
+  }
+  if (forceWeight) {
+    dae_w_lit(w, "<technique profile=\"MAX3D\"><amount>");
+    dae_w_float_fast(w, weight);
+    dae_w_lit(w, "</amount></technique>");
+  }
+  dae_w_lit(w, "</extra>");
+}
+
+static
+void
+dae_write_texture_value_weight(DAEExpWriter * __restrict w,
+                               uint32_t                  matIdx,
+                               DAEExpName                suffix,
+                               AkTextureRef * __restrict texref,
+                               bool                      forceWeight,
+                               float                     weight) {
   dae_w_lit(w, "<texture texture=\"sampler_");
   dae_w_uint_fast(w, matIdx);
   dae_w_name(w, suffix);
   dae_w_lit(w, "\" texcoord=\"");
   dae_w_texcoord(w, texref, -1);
-  dae_w_lit(w, "\"/>");
+  dae_w_ch(w, '"');
+  if (!dae_texture_has_vendor_extra(texref, forceWeight)) {
+    dae_w_lit(w, "/>");
+    return;
+  }
+  dae_w_ch(w, '>');
+  dae_write_texture_vendor_extra(w, texref, forceWeight, weight);
+  dae_w_lit(w, "</texture>");
+}
+
+static
+void
+dae_write_texture_value(DAEExpWriter * __restrict w,
+                        uint32_t                  matIdx,
+                        DAEExpName                suffix,
+                        AkTextureRef * __restrict texref) {
+  dae_write_texture_value_weight(w, matIdx, suffix, texref, false, 0.0f);
 }
 
 static
@@ -624,9 +709,12 @@ dae_write_effect(DAEExpState * __restrict st,
   DAEExpWriter      *w;
   AkMaterialSurface *surface;
   AkMaterialClassicFeature *classic;
+  AkMaterialSpecularFeature *specular;
   AkTextureRef      *baseTex;
   AkTextureRef      *emissiveTex;
+  AkTextureRef      *normalTex;
   AkTextureRef      *specularTex;
+  AkTextureRef      *specularLevelTex;
   AkTextureRef      *opacityTex;
   AkTextureRef      *transparentTex;
   DAEExpName         techniqueTag;
@@ -642,9 +730,14 @@ dae_write_effect(DAEExpState * __restrict st,
   surface  = mat ? mat->surface : NULL;
   classic  = (AkMaterialClassicFeature *)ak_materialFeature(surface,
                                                             AK_MATERIAL_FEATURE_CLASSIC);
+  specular = (AkMaterialSpecularFeature *)ak_materialFeature(
+               surface, AK_MATERIAL_FEATURE_SPECULAR);
   baseTex  = dae_material_base_texture(surface);
   emissiveTex = dae_material_input_texture(surface ? surface->emissive : NULL);
+  normalTex = dae_material_input_texture(surface ? surface->normal : NULL);
   specularTex = dae_material_input_texture(classic ? classic->specular : NULL);
+  specularLevelTex =
+    dae_material_input_texture(specular ? specular->factor : NULL);
   opacityTex  = dae_material_input_texture(surface ? surface->opacity : NULL);
   transparentTex =
     dae_material_input_texture(classic ? classic->transparency : NULL);
@@ -652,7 +745,9 @@ dae_write_effect(DAEExpState * __restrict st,
 
   if (!dae_texture_ref_mapped(st, baseTex)
       || !dae_texture_ref_mapped(st, emissiveTex)
+      || !dae_texture_ref_mapped(st, normalTex)
       || !dae_texture_ref_mapped(st, specularTex)
+      || !dae_texture_ref_mapped(st, specularLevelTex)
       || !dae_texture_ref_mapped(st, opacityTex)
       || !dae_texture_ref_mapped(st, transparentTex)) {
     w->result = AK_EINVAL;
@@ -665,7 +760,10 @@ dae_write_effect(DAEExpState * __restrict st,
 
   dae_write_texture_newparam(st, matIdx, DAE_EXP_NAME_LIT(""), baseTex);
   dae_write_texture_newparam(st, matIdx, DAE_EXP_NAME_LIT("_emission"), emissiveTex);
+  dae_write_texture_newparam(st, matIdx, DAE_EXP_NAME_LIT("_normal"), normalTex);
   dae_write_texture_newparam(st, matIdx, DAE_EXP_NAME_LIT("_specular"), specularTex);
+  dae_write_texture_newparam(st, matIdx, DAE_EXP_NAME_LIT("_specular_level"),
+                             specularLevelTex);
   dae_write_texture_newparam(st, matIdx, DAE_EXP_NAME_LIT("_transparent"),
                              opacityTex ? opacityTex : transparentTex);
 
@@ -771,7 +869,43 @@ dae_write_effect(DAEExpState * __restrict st,
 
   dae_w_lit(w, "</");
   dae_w_name(w, techniqueTag);
-  dae_w_lit(w, "></technique></profile_COMMON></effect>");
+  dae_w_ch(w, '>');
+
+  if (dae_texture_image_index(st, normalTex) != UINT32_MAX
+      || dae_texture_image_index(st, specularLevelTex) != UINT32_MAX) {
+    dae_w_lit(w, "<extra><technique profile=\"OpenCOLLADA3dsMax\">");
+    if (dae_texture_image_index(st, specularLevelTex) != UINT32_MAX) {
+      dae_w_lit(w, "<specularLevel>");
+      dae_write_texture_value_weight(
+        w, matIdx, DAE_EXP_NAME_LIT("_specular_level"), specularLevelTex,
+        specular && specular->factor, specular && specular->factor
+          ? specular->factor->value[0] : 1.0f);
+      dae_w_lit(w, "</specularLevel>");
+    }
+    if (dae_texture_image_index(st, normalTex) != UINT32_MAX) {
+      dae_w_lit(w, "<bump bumptype=\"");
+      if (surface && surface->normal
+          && (surface->normal->flags & AK_MATERIAL_INPUT_FLAG_HEIGHT))
+        dae_w_lit(w, "HEIGHTFIELD");
+      else
+        dae_w_lit(w, "NORMALMAP");
+      dae_w_lit(w, "\">");
+      dae_write_texture_value_weight(
+        w, matIdx, DAE_EXP_NAME_LIT("_normal"), normalTex,
+        surface && surface->normal, surface && surface->normal
+          ? surface->normal->value[0] : 1.0f);
+      dae_w_lit(w, "</bump>");
+    }
+    dae_w_lit(w, "</technique></extra>");
+  }
+
+  dae_w_lit(w, "</technique></profile_COMMON>");
+  if (surface && (surface->flags & AK_MATERIAL_FLAG_DOUBLE_SIDED)) {
+    dae_w_lit(w, "<extra><technique profile=\"MAX3D\">");
+    dae_w_lit(w, "<double_sided>1</double_sided>");
+    dae_w_lit(w, "</technique></extra>");
+  }
+  dae_w_lit(w, "</effect>");
 }
 
 AK_HIDE
@@ -900,12 +1034,15 @@ dae_write_instance_materials(DAEExpState        * __restrict st,
     {
       AkMaterialSurface *surface;
       AkMaterialClassicFeature *classic;
+      AkMaterialSpecularFeature *specular;
       int32_t       slots[8];
       uint32_t      slotCount;
 
       surface   = mat->surface;
       classic   = (AkMaterialClassicFeature *)ak_materialFeature(
                     surface, AK_MATERIAL_FEATURE_CLASSIC);
+      specular  = (AkMaterialSpecularFeature *)ak_materialFeature(
+                    surface, AK_MATERIAL_FEATURE_SPECULAR);
       slotCount = 0;
       slotCount = dae_write_instance_texcoord_binding(
                     st, prim, inst, dae_material_base_texture(surface),
@@ -916,7 +1053,15 @@ dae_write_instance_materials(DAEExpState        * __restrict st,
                     slots, slotCount);
       slotCount = dae_write_instance_texcoord_binding(
                     st, prim, inst,
+                    dae_material_input_texture(surface ? surface->normal : NULL),
+                    slots, slotCount);
+      slotCount = dae_write_instance_texcoord_binding(
+                    st, prim, inst,
                     dae_material_input_texture(classic ? classic->specular : NULL),
+                    slots, slotCount);
+      slotCount = dae_write_instance_texcoord_binding(
+                    st, prim, inst,
+                    dae_material_input_texture(specular ? specular->factor : NULL),
                     slots, slotCount);
       slotCount = dae_write_instance_texcoord_binding(
                     st, prim, inst,

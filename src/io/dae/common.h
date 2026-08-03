@@ -237,6 +237,8 @@ typedef AK_ALIGN(16) struct DAEState {
   RBTree          *meshInfo;
   RBTree          *inputmap;
   RBTree          *texmap;
+  RBTree          *textureVendorMap;
+  RBTree          *materialVendorMap;
   RBTree          *instanceMap;
   RBTree          *materialEffectMap;
   FListItem       *vertMap;
@@ -262,8 +264,12 @@ typedef AK_ALIGN(16) struct DAEState {
   size_t           indexParseJobCount;
   size_t           indexParseJobCapacity;
   AkCOLLADAVersion version;
+  bool             sceneKitProfileSeen;
   bool             sceneKitAuthoringChecked;
   bool             sceneKitAuthored;
+  bool             colorSRGBAuthoringChecked;
+  bool             colorSRGBAuthored;
+  bool             hasMeshColorInputs;
   bool             stop;
 } DAEState;
 
@@ -374,12 +380,65 @@ typedef struct AkDaeMeshInfo {
   size_t   nVertex;
 } AkDaeMeshInfo;
 
+typedef struct AkDAETextureVendor {
+  uint32_t             vendorMask;
+  float                repeatU;
+  float                repeatV;
+  float                offsetU;
+  float                offsetV;
+  float                rotateUV;
+  float                weight;
+  bool                 wrapU;
+  bool                 wrapV;
+  bool                 mirrorU;
+  bool                 mirrorV;
+  bool                 hasWeight;
+} AkDAETextureVendor;
+
+typedef struct AkDAEMaterialVendor {
+  AkColorDesc *normal;
+  AkColorDesc *specularLevel;
+  float        normalScale;
+  float        specularLevelScale;
+  bool         normalIsHeight;
+} AkDAEMaterialVendor;
+
 typedef struct AkDAETextureRef {
   const char          *texture;
   const char          *texcoord;
   AkTextureColorSpace  colorSpace;
   AkTextureChannels    channels;
 } AkDAETextureRef;
+
+typedef enum AkDAETextureVendorMask {
+  AK_DAE_TEXTURE_HAS_WRAP_U   = 1u << 0,
+  AK_DAE_TEXTURE_HAS_WRAP_V   = 1u << 1,
+  AK_DAE_TEXTURE_HAS_MIRROR_U = 1u << 2,
+  AK_DAE_TEXTURE_HAS_MIRROR_V = 1u << 3,
+  AK_DAE_TEXTURE_HAS_REPEAT_U = 1u << 4,
+  AK_DAE_TEXTURE_HAS_REPEAT_V = 1u << 5,
+  AK_DAE_TEXTURE_HAS_OFFSET_U = 1u << 6,
+  AK_DAE_TEXTURE_HAS_OFFSET_V = 1u << 7,
+  AK_DAE_TEXTURE_HAS_ROTATE_UV = 1u << 8
+} AkDAETextureVendorMask;
+
+static inline
+AkDAETextureVendor*
+dae_textureVendor(DAEState        * __restrict dst,
+                  AkDAETextureRef * __restrict texture) {
+  return dst && dst->textureVendorMap && texture
+         ? rb_find(dst->textureVendorMap, texture)
+         : NULL;
+}
+
+static inline
+AkDAEMaterialVendor*
+dae_materialVendor(DAEState             * __restrict dst,
+                   AkTechniqueFxCommon * __restrict material) {
+  return dst && dst->materialVendorMap && material
+         ? rb_find(dst->materialVendorMap, material)
+         : NULL;
+}
 
 typedef struct AkNewParam {
   /* const char * sid; */

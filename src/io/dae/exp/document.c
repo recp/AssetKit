@@ -136,11 +136,13 @@ dae_write_doc(DAEExpState * __restrict st) {
   w = &st->w;
 
   dae_w_lit(w, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-  dae_w_lit(w, "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"");
-  if (st->useCollada150)
-    dae_w_lit(w, "1.5.0");
-  else
-    dae_w_lit(w, "1.4.1");
+  if (st->useCollada150) {
+    /* 1.5.1 is a specification maintenance revision. Its schema revision
+       and instance-document version remain 1.5.0. */
+    dae_w_lit(w, "<COLLADA xmlns=\"http://www.collada.org/2008/03/COLLADASchema\" version=\"1.5.0");
+  } else {
+    dae_w_lit(w, "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1");
+  }
   dae_w_lit(w, "\">\n");
   dae_write_asset(st);
 

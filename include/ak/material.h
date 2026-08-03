@@ -95,7 +95,11 @@ typedef enum AkMaterialSemantic {
 typedef enum AkMaterialInputFlags {
   AK_MATERIAL_INPUT_FLAG_NONE       = 0,
   AK_MATERIAL_INPUT_FLAG_NORMALIZED = 1u << 0,
-  AK_MATERIAL_INPUT_FLAG_INVERTED   = 1u << 1
+  AK_MATERIAL_INPUT_FLAG_INVERTED   = 1u << 1,
+  /* The normal input stores scalar height data that must be converted to a
+     shading normal by the consumer. Without this flag, normal textures are
+     tangent-space normal maps. */
+  AK_MATERIAL_INPUT_FLAG_HEIGHT     = 1u << 2
 } AkMaterialInputFlags;
 
 typedef struct AkMaterialInput {

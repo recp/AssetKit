@@ -199,6 +199,9 @@ dae_poly(DAEState * __restrict dst,
       } else {
         AkURL *url;
 
+        if (inp->semantic == AK_INPUT_COLOR)
+          dst->hasMeshColorInputs = true;
+
         inp->indexOffset = xmla_u32(DAE_XMLA8(xml, offset), 0);
         inp->set         = xmla_u32(DAE_XMLA4(xml, set),    0);
 

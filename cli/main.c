@@ -129,7 +129,7 @@ ak_cli_print_usage(FILE *out) {
           "      --format <fmt>          Use when output has no extension, or force this format\n"
           "      --bin                   Binary output when supported: stl, ply, glb\n"
           "      --ascii                 Text output when supported: stl, ply, gltf\n"
-          "      --asset-version <ver>   Output asset version: auto, 1.4.1, 1.5.0, 2.0, 2.1\n"
+          "      --asset-version <ver>   Output asset version: auto, 1.4.1, 1.5.1, 2.0, 2.1\n"
           "\n"
           "Inspect options:\n"
           "      --json                  JSON report\n"
@@ -258,8 +258,10 @@ ak_cli_parse_asset_version(AkFileType type,
       *value = AK_DAE_EXPORT_VERSION_1_4;
       return 1;
     }
-    if (ak_cli_streq(version, "1.5") || ak_cli_streq(version, "1.5.0")) {
-      *value = AK_DAE_EXPORT_VERSION_1_5;
+    if (ak_cli_streq(version, "1.5")
+        || ak_cli_streq(version, "1.5.0")
+        || ak_cli_streq(version, "1.5.1")) {
+      *value = AK_DAE_EXPORT_VERSION_1_5_1;
       return 1;
     }
   } else if (type == AK_FILE_TYPE_GLTF || type == AK_FILE_TYPE_GLB) {

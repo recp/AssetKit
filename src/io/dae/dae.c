@@ -346,6 +346,10 @@ dae_doc_data(AkDoc            ** __restrict dest,
   rb_destroy(dstVal.meshInfo);
   rb_destroy(dstVal.inputmap);
   rb_destroy(dstVal.texmap);
+  if (dstVal.textureVendorMap)
+    rb_destroy(dstVal.textureVendorMap);
+  if (dstVal.materialVendorMap)
+    rb_destroy(dstVal.materialVendorMap);
   rb_destroy(dstVal.instanceMap);
   rb_destroy(dstVal.materialEffectMap);
 

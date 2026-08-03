@@ -47,6 +47,9 @@ dae_vert(DAEState * __restrict dst,
       } else {
         AkURL *url;
 
+        if (inp->semantic == AK_INPUT_COLOR)
+          dst->hasMeshColorInputs = true;
+
         inp->set = xmla_u32(DAE_XMLA4(xml, set), 0);
         url = DAE_URL_FROM(dst, xml, source, memp);
         rb_insert(dst->inputmap, inp, url);

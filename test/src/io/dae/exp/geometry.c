@@ -197,7 +197,9 @@ TEST_IMPL(dae_export_brep_smoke) {
   ASSERT(brep->edges->input->semanticRaw != NULL);
   ASSERT(strcmp(brep->edges->input->semanticRaw, "VERTEX") == 0);
   ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
-  ASSERT(ak_test_file_contains(outDae, "version=\"1.5.0\""));
+  ASSERT(ak_test_file_contains(
+    outDae,
+    "<COLLADA xmlns=\"http://www.collada.org/2008/03/COLLADASchema\" version=\"1.5.0\""));
   ASSERT(ak_test_file_contains(outDae, "<edges"));
   ASSERT(ak_test_file_contains(outDae, "<input semantic=\"VERTEX\" source=\"#geom_0_brep_vertices\""));
   ASSERT(ak_load(&roundTrip, outDae, AK_FILE_TYPE_DAE) == AK_OK && roundTrip);
@@ -411,7 +413,9 @@ TEST_IMPL(dae_export_brep_nurbs_roundtrip) {
   ASSERT(line->extra != NULL);
 
   ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
-  ASSERT(ak_test_file_contains(outDae, "version=\"1.5.0\""));
+  ASSERT(ak_test_file_contains(
+    outDae,
+    "<COLLADA xmlns=\"http://www.collada.org/2008/03/COLLADASchema\" version=\"1.5.0\""));
   ASSERT(ak_test_file_contains(outDae,
                                "<init_from><ref>data:image/png;base64,AA==</ref></init_from>"));
   ASSERT(ak_test_file_contains(outDae,
@@ -893,6 +897,7 @@ TEST_IMPL(dae_camera_light_extra_preserve_opt) {
   AkDoc      *docWithExtras;
   AkCamera   *camera;
   AkLight    *light;
+  AkSpotLight *spot;
   char        dirTemplate[PATH_MAX];
   char       *tmpdir;
   char        daePath[PATH_MAX];
@@ -919,6 +924,13 @@ TEST_IMPL(dae_camera_light_extra_preserve_opt) {
   ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
   ASSERT(doc->lib.cameras.first != NULL);
   ASSERT(doc->lib.lights.first != NULL);
+  ASSERT(doc->lib.lights.first->data != NULL);
+  ASSERT(doc->lib.lights.first->data->type == AK_LIGHT_TYPE_SPOT);
+  spot = (AkSpotLight *)doc->lib.lights.first->data;
+  ASSERT(fabsf(spot->base.intensity - 3.0f) < 0.001f);
+  ASSERT(fabsf(spot->innerConeAngle - 0.2617994f) < 0.001f);
+  ASSERT(fabsf(spot->outerConeAngle - 0.6981317f) < 0.001f);
+  ASSERT(spot->base.range > 0.0f);
   ASSERT(!ak_extra(doc->lib.cameras.first));
   ASSERT(!ak_extra(doc->lib.lights.first));
   ak_free(doc);

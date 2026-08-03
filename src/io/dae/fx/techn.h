@@ -25,4 +25,10 @@ dae_techniqueFx(DAEState * __restrict dst,
                 xml_t    * __restrict xml,
                 void     * __restrict memp);
 
+AK_HIDE
+void
+dae_techniqueFxExtra(DAEState            * __restrict dst,
+                     xml_t               * __restrict xml,
+                     AkTechniqueFxCommon * __restrict techn);
+
 #endif /* dae_technique_fx_h */

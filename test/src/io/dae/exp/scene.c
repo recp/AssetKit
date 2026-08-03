@@ -397,6 +397,15 @@ TEST_IMPL(dae_export_asset_metadata_smoke) {
   ak_heap_setdata(heap, doc);
 
   doc->coordSys    = AK_ZUP;
+  doc->inf         = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
+  ASSERT(doc->inf != NULL);
+  doc->inf->name          = "model";
+  doc->inf->base.created  = (time_t)1609459200;
+  doc->inf->base.modified = (time_t)1609545600;
+  doc->inf->base.keywords = "house architecture";
+  doc->inf->base.revision = "7";
+  doc->inf->base.subject  = "metadata round trip";
+  doc->inf->base.title    = "Asset metadata";
   doc->unit        = ak_heap_calloc(heap, doc, sizeof(*doc->unit));
   ASSERT(doc->unit != NULL);
   doc->unit->name  = "centimeter";
@@ -420,6 +429,16 @@ TEST_IMPL(dae_export_asset_metadata_smoke) {
   ASSERT(ak_test_file_contains(daePath,
                                "<authoring_tool>" AK_AUTHORING_TOOL "</authoring_tool>"));
   ASSERT(ak_test_file_contains(daePath,
+                               "<created>2021-01-01T00:00:00Z</created>"));
+  ASSERT(ak_test_file_contains(daePath,
+                               "<keywords>house architecture</keywords>"));
+  ASSERT(ak_test_file_contains(daePath,
+                               "<modified>2021-01-02T00:00:00Z</modified>"));
+  ASSERT(ak_test_file_contains(daePath, "<revision>7</revision>"));
+  ASSERT(ak_test_file_contains(daePath,
+                               "<subject>metadata round trip</subject>"));
+  ASSERT(ak_test_file_contains(daePath, "<title>Asset metadata</title>"));
+  ASSERT(ak_test_file_contains(daePath,
                                "<unit name=\"centimeter\" meter=\"0.01\"/>"));
   ASSERT(ak_test_file_contains(daePath, "<up_axis>Z_UP</up_axis>"));
 
@@ -435,6 +454,15 @@ TEST_IMPL(dae_export_asset_metadata_smoke) {
   ASSERT(roundTrip->unit->name != NULL);
   ASSERT(strcmp(roundTrip->unit->name, "centimeter") == 0);
   ASSERT(fabs(roundTrip->unit->dist - 0.01) < 0.000001);
+  ASSERT(roundTrip->inf != NULL);
+  ASSERT(roundTrip->inf->base.keywords != NULL);
+  ASSERT(strcmp(roundTrip->inf->base.keywords, "house architecture") == 0);
+  ASSERT(roundTrip->inf->base.revision != NULL);
+  ASSERT(strcmp(roundTrip->inf->base.revision, "7") == 0);
+  ASSERT(roundTrip->inf->base.subject != NULL);
+  ASSERT(strcmp(roundTrip->inf->base.subject, "metadata round trip") == 0);
+  ASSERT(roundTrip->inf->base.title != NULL);
+  ASSERT(strcmp(roundTrip->inf->base.title, "Asset metadata") == 0);
 
   ak_free(roundTrip);
   ak_heap_destroy(heap);
@@ -564,6 +592,7 @@ TEST_IMPL(dae_export_empty_scene) {
   ASSERT(stat(daePath, &stDae) == 0);
   ASSERT(stDae.st_size > 0);
   ASSERT(ak_test_file_contains(daePath, "<visual_scene id=\"scene_0\" name=\"Empty\">"));
+  ASSERT(ak_test_file_contains(daePath, "<node id=\"vnode_0\"/>"));
   ASSERT(!ak_test_file_contains(daePath, "<library_geometries>"));
   ASSERT(!ak_test_file_contains(daePath, "<geometry "));
 
@@ -597,6 +626,7 @@ TEST_IMPL(dae_export_null_scene) {
   ASSERT(stat(daePath, &stDae) == 0);
   ASSERT(stDae.st_size > 0);
   ASSERT(ak_test_file_contains(daePath, "<visual_scene id=\"scene_0\">"));
+  ASSERT(ak_test_file_contains(daePath, "<node id=\"vnode_0\"/>"));
   ASSERT(!ak_test_file_contains(daePath, "<library_geometries>"));
   ASSERT(!ak_test_file_contains(daePath, "<geometry "));
 

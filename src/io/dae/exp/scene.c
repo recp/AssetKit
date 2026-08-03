@@ -492,7 +492,7 @@ dae_write_node(DAEExpState * __restrict st,
 }
 
 static
-void
+bool
 dae_write_root_instance_node(DAEExpState    * __restrict st,
                              AkInstanceNode * __restrict nodeInst) {
   DAEExpWriter *w;
@@ -500,18 +500,18 @@ dae_write_root_instance_node(DAEExpState    * __restrict st,
   uint32_t      targetIdx;
 
   if (!nodeInst)
-    return;
+    return false;
 
   target = ak_instanceNodeTarget(nodeInst);
   if (target && target->gpuInstancing) {
     dae_write_node(st, target, UINT32_MAX);
-    return;
+    return true;
   }
 
   targetIdx = target ? dae_map_index(st->nodes, target) : UINT32_MAX;
   if (targetIdx == UINT32_MAX) {
     dae_write_node(st, target, UINT32_MAX);
-    return;
+    return target != NULL;
   }
 
   w = &st->w;
@@ -520,6 +520,7 @@ dae_write_root_instance_node(DAEExpState    * __restrict st,
   dae_w_lit(w, "\">");
   dae_write_instance_node_ref(st, nodeInst);
   dae_w_lit(w, "</node>");
+  return true;
 }
 
 AK_HIDE
@@ -531,6 +532,7 @@ dae_write_visual_scene(DAEExpState * __restrict st,
   AkNode         *root;
   AkNode         *node;
   AkInstanceNode *nodeInst;
+  bool            hasNode;
 
   w = &st->w;
   dae_w_lit(w, "<visual_scene id=\"");
@@ -541,12 +543,25 @@ dae_write_visual_scene(DAEExpState * __restrict st,
   }
   dae_w_lit(w, "\">");
 
+  hasNode = false;
   root = scene ? scene->node : NULL;
   if (root) {
-    for (node = root->chld; node; node = node->next)
+    for (node = root->chld; node; node = node->next) {
       dae_write_node(st, node, dae_map_index(st->nodes, node));
-    for (nodeInst = root->node; nodeInst; nodeInst = nodeInst->next)
-      dae_write_root_instance_node(st, nodeInst);
+      hasNode = true;
+    }
+    for (nodeInst = root->node; nodeInst; nodeInst = nodeInst->next) {
+      if (dae_write_root_instance_node(st, nodeInst))
+        hasNode = true;
+    }
+  }
+
+  /* COLLADA requires at least one node in every visual_scene. Keep an empty
+     document schema-valid without introducing geometry or transforms. */
+  if (!hasNode) {
+    dae_w_lit(w, "<node id=\"");
+    dae_w_vnode_id(w, st->visualNodeCount++);
+    dae_w_lit(w, "\"/>");
   }
 
   dae_write_extra(w, scene ? scene->extra : NULL);

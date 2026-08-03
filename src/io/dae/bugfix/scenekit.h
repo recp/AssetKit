@@ -25,11 +25,11 @@ dae_scenekit_authored(AkDoc * __restrict doc);
 
 AK_HIDE
 void
-dae_scenekit_normalize_colors(DAEState * __restrict dst);
+dae_normalize_srgb_colors(DAEState * __restrict dst);
 
 AK_HIDE
 void
-dae_scenekit_normalize_animation_colors(DAEState * __restrict dst);
+dae_normalize_srgb_animation_colors(DAEState * __restrict dst);
 
 AK_HIDE
 void

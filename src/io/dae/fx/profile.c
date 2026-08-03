@@ -28,6 +28,8 @@ dae_profile(DAEState * __restrict dst,
             void     * __restrict memp) {
   AkHeap    *heap;
   AkProfile *profile;
+  xml_t     *items;
+  bool       pendingExtras;
 
   heap = dst->heap;
 
@@ -40,7 +42,9 @@ dae_profile(DAEState * __restrict dst,
   ak_setypeid(profile, AKT_PROFILE);
   xmla_setid(xml, heap, profile);
 
-  xml = xml->val;
+  items = xml->val;
+  xml   = items;
+  pendingExtras = false;
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, asset)) {
       (void)dae_asset(dst, xml, profile, NULL);
@@ -66,9 +70,21 @@ dae_profile(DAEState * __restrict dst,
       /* migration from 1.4 */
       dae14_fxMigrateImg(dst, xml, NULL);
     } else if (DAE_XML_TAG_EQ8(xml, extra)) {
+      if (profile->technique)
+        dae_techniqueFxExtra(dst, xml, profile->technique->common);
+      else
+        pendingExtras = true;
       profile->extra = tree_fromxml(heap, profile, xml);
     }
     xml = xml->next;
+  }
+
+
+  if (pendingExtras && profile->technique) {
+    for (xml = items; xml; xml = xml->next) {
+      if (DAE_XML_TAG_EQ8(xml, extra))
+        dae_techniqueFxExtra(dst, xml, profile->technique->common);
+    }
   }
 
   return profile;

@@ -822,7 +822,8 @@ ak_test_write_dae_animation_minimal(const char *path) {
 
 static inline
 bool
-ak_test_write_dae_scenekit_color_carriers(const char *path) {
+ak_test_write_dae_srgb_color_carriers(const char *path,
+                                      const char *authoringTool) {
   FILE *file;
 
   file = fopen(path, "wb");
@@ -831,8 +832,25 @@ ak_test_write_dae_scenekit_color_carriers(const char *path) {
 
   fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
         "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
-        "<asset><contributor><authoring_tool>SceneKit Collada Exporter v1.0</authoring_tool>"
-        "</contributor><unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>\n"
+        "<asset>",
+        file);
+  if (authoringTool && authoringTool[0]) {
+    fputs("<contributor><authoring_tool>", file);
+    fputs(authoringTool, file);
+    fputs("</authoring_tool></contributor>", file);
+  }
+  fputs("<unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>\n"
+        "<library_effects><effect id=\"material-effect\"><profile_COMMON>"
+        "<technique sid=\"common\"><lambert><diffuse>"
+        "<color>0.8823529 0.8823529 0.7843137 1</color>"
+        "</diffuse><extra><technique profile=\"SceneKit\">"
+        "<constant_diffuse><color>0.8823529 0.8823529 0.7843137 1</color>"
+        "</constant_diffuse></technique></extra></lambert>"
+        "</technique></profile_COMMON></effect>"
+        "</library_effects><library_materials>"
+        "<material id=\"material\" name=\"edge_color225225200255\">"
+        "<instance_effect url=\"#material-effect\"/></material>"
+        "</library_materials>\n"
         "<library_lights><light id=\"light\"><technique_common><point>"
         "<color sid=\"color\">0.4 0.1 0 1</color>"
         "</point></technique_common></light>"
@@ -1515,7 +1533,15 @@ ak_test_write_dae_camera_light_extra(const char *path) {
         "<extra><technique profile=\"Test\"><cameraTag>yes</cameraTag></technique></extra>"
         "</camera></library_cameras>\n"
         "<library_lights><light id=\"lamp\" name=\"Lamp\">"
-        "<technique_common><point><color>1 1 1</color></point></technique_common>"
+        "<technique_common><spot><color>1 1 1</color>"
+        "<constant_attenuation>1</constant_attenuation>"
+        "<linear_attenuation>0.2</linear_attenuation>"
+        "<falloff_angle>20</falloff_angle>"
+        "</spot></technique_common>"
+        "<technique profile=\"MAX3D\"><intensity>3</intensity></technique>"
+        "<extra><technique profile=\"FCOLLADA\">"
+        "<hotspot_beam>15</hotspot_beam><outer_cone>40</outer_cone>"
+        "</technique></extra>"
         "<extra><technique profile=\"Test\"><lightTag>yes</lightTag></technique></extra>"
         "</light></library_lights>\n"
         "<library_visual_scenes><visual_scene id=\"Scene\">"

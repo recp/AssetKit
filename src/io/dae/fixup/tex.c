@@ -125,8 +125,10 @@ dae_tex_walk(RBTree *tree, RBNode *rbnode) {
   AkNewParam      *newparam;
   AkColorDesc     *cd;
   AkDAETextureRef *dtex;
+  AkDAETextureVendor *vendor;
   AkTextureRef    *texref;
   AkTexture       *tex;
+  AkTexture       *vendorTex;
   AkImage         *image;
   DAEState        *dst;
   AkInstanceBase  *instanceImage;
@@ -134,6 +136,8 @@ dae_tex_walk(RBTree *tree, RBNode *rbnode) {
 
   cd       = rbnode->key;
   dtex     = rbnode->val;
+  dst      = tree->userData;
+  vendor   = dae_textureVendor(dst, dtex);
   heap     = ak_heap_getheap(cd);
   
   actx.doc = ak_heap_data(heap);
@@ -165,13 +169,87 @@ dae_tex_walk(RBTree *tree, RBNode *rbnode) {
     return;
   }
 
-  dst           = tree->userData;
   instanceImage = tex->sampler ? rb_find(dst->instanceMap, tex->sampler) : NULL;
   image         = ak_instanceObject(instanceImage);
 
 bind_texture:
+  if (vendor && (vendor->vendorMask
+      & (AK_DAE_TEXTURE_HAS_WRAP_U
+         | AK_DAE_TEXTURE_HAS_WRAP_V
+         | AK_DAE_TEXTURE_HAS_MIRROR_U
+         | AK_DAE_TEXTURE_HAS_MIRROR_V))) {
+    AkSampler *vendorSampler;
+
+    vendorTex = ak_heap_calloc(heap, cd, sizeof(*vendorTex));
+    if (vendorTex) {
+      *vendorTex = *tex;
+      vendorTex->next = NULL;
+      ak_setypeid(vendorTex, AKT_TEXTURE);
+
+      vendorSampler = ak_heap_calloc(heap, vendorTex, sizeof(*vendorSampler));
+      if (vendorSampler) {
+        if (tex->sampler)
+          *vendorSampler = *tex->sampler;
+        vendorSampler->next = NULL;
+        ak_setypeid(vendorSampler, AKT_SAMPLER);
+
+        if ((vendor->vendorMask & AK_DAE_TEXTURE_HAS_MIRROR_U)
+            && vendor->mirrorU) {
+          vendorSampler->wrapS = AK_WRAP_MODE_MIRROR;
+        } else if (vendor->vendorMask & AK_DAE_TEXTURE_HAS_WRAP_U) {
+          vendorSampler->wrapS = vendor->wrapU
+                                 ? AK_WRAP_MODE_WRAP
+                                 : AK_WRAP_MODE_CLAMP;
+        }
+
+        if ((vendor->vendorMask & AK_DAE_TEXTURE_HAS_MIRROR_V)
+            && vendor->mirrorV) {
+          vendorSampler->wrapT = AK_WRAP_MODE_MIRROR;
+        } else if (vendor->vendorMask & AK_DAE_TEXTURE_HAS_WRAP_V) {
+          vendorSampler->wrapT = vendor->wrapV
+                                 ? AK_WRAP_MODE_WRAP
+                                 : AK_WRAP_MODE_CLAMP;
+        }
+        vendorTex->sampler = vendorSampler;
+      }
+      tex = vendorTex;
+    }
+  }
+
   texref->texture = tex;
   ak_texref_usage(texref, dtex->colorSpace, dtex->channels);
+  if (ak_extra(dtex))
+    ak_extra_set(texref, ak_extra(dtex));
+
+  if (vendor && (vendor->vendorMask
+      & (AK_DAE_TEXTURE_HAS_REPEAT_U
+         | AK_DAE_TEXTURE_HAS_REPEAT_V
+         | AK_DAE_TEXTURE_HAS_OFFSET_U
+         | AK_DAE_TEXTURE_HAS_OFFSET_V
+         | AK_DAE_TEXTURE_HAS_ROTATE_UV))) {
+    AkTextureTransform *transform;
+
+    transform = ak_heap_calloc(heap, texref, sizeof(*transform));
+    if (transform) {
+      transform->scale[0] =
+        vendor->vendorMask & AK_DAE_TEXTURE_HAS_REPEAT_U
+          ? vendor->repeatU : 1.0f;
+      transform->scale[1] =
+        vendor->vendorMask & AK_DAE_TEXTURE_HAS_REPEAT_V
+          ? vendor->repeatV : 1.0f;
+      transform->offset[0] =
+        vendor->vendorMask & AK_DAE_TEXTURE_HAS_OFFSET_U
+          ? vendor->offsetU : 0.0f;
+      transform->offset[1] =
+        vendor->vendorMask & AK_DAE_TEXTURE_HAS_OFFSET_V
+          ? vendor->offsetV : 0.0f;
+      transform->rotation =
+        vendor->vendorMask & AK_DAE_TEXTURE_HAS_ROTATE_UV
+          ? vendor->rotateUV : 0.0f;
+      transform->slot = -1;
+      texref->transform = transform;
+    }
+  }
   
   /* this is the default */
   /* use bind_material to set texcoord */

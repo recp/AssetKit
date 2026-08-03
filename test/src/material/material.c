@@ -26,7 +26,12 @@ test_write_material_dae(const char *path) {
   fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
         "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
         "<asset><contributor><authoring_tool>SceneKit Collada Exporter v1.0</authoring_tool></contributor><up_axis>Y_UP</up_axis></asset>\n"
-        "<library_images><image id=\"img_alpha\" name=\"alpha\"><init_from>alpha.png</init_from></image></library_images>\n"
+        "<library_images>"
+        "<image id=\"img_alpha\" name=\"alpha\"><init_from>alpha.png</init_from></image>"
+        "<image id=\"img_normal\" name=\"normal\"><init_from>normal.png</init_from></image>"
+        "<image id=\"img_height\" name=\"height\"><init_from>height.png</init_from></image>"
+        "<image id=\"img_specular_level\" name=\"specular_level\"><init_from>specular_level.png</init_from></image>"
+        "</library_images>\n"
         "<library_effects>\n"
         "<effect id=\"effect_edge\"><profile_COMMON><technique sid=\"common\"><constant>"
         "<transparent opaque=\"A_ONE\"><color>0.9 0.9 0.9 1</color></transparent>"
@@ -86,8 +91,51 @@ test_write_material_dae(const char *path) {
         "<newparam sid=\"surface_diffuse\"><surface type=\"2D\"><init_from>img_alpha</init_from></surface></newparam>"
         "<newparam sid=\"sampler_diffuse\"><sampler2D><source>surface_diffuse</source></sampler2D></newparam>"
         "<technique sid=\"common\"><lambert>"
-        "<diffuse><texture texture=\"sampler_diffuse\" texcoord=\"UVSET0\"/></diffuse>"
+        "<diffuse><texture texture=\"sampler_diffuse\" texcoord=\"UVSET0\">"
+        "<extra><technique profile=\"MAYA\">"
+        "<mirrorU>1</mirrorU><mirrorV>0</mirrorV><wrapU>1</wrapU><wrapV>0</wrapV>"
+        "<repeatU>3</repeatU><repeatV>2</repeatV>"
+        "<offsetU>0.25</offsetU><offsetV>0.5</offsetV><rotateUV>0.75</rotateUV>"
+        "<blend_mode>MULTIPLY</blend_mode>"
+        "</technique><technique profile=\"MAX3D\"><amount>0.6</amount></technique>"
+        "<technique profile=\"OKINO\"><mix_with_previous_layer>1</mix_with_previous_layer></technique>"
+        "</extra></texture></diffuse>"
         "</lambert></technique></profile_COMMON></effect>\n"
+        "<effect id=\"effect_fcollada_normal\"><profile_COMMON>"
+        "<newparam sid=\"surface_normal\"><surface type=\"2D\"><init_from>img_normal</init_from></surface></newparam>"
+        "<newparam sid=\"sampler_normal\"><sampler2D><source>surface_normal</source></sampler2D></newparam>"
+        "<technique sid=\"common\">"
+        "<extra><technique profile=\"FCOLLADA\"><bump bumptype=\"NORMALMAP\">"
+        "<texture texture=\"sampler_normal\" texcoord=\"UVSET0\"/>"
+        "</bump></technique></extra>"
+        "<phong><diffuse><color>1 1 1 1</color></diffuse></phong>"
+        "</technique></profile_COMMON></effect>\n"
+        "<effect id=\"effect_max_height_specular\"><profile_COMMON>"
+        "<newparam sid=\"surface_height\"><surface type=\"2D\"><init_from>img_height</init_from></surface></newparam>"
+        "<newparam sid=\"sampler_height\"><sampler2D><source>surface_height</source></sampler2D></newparam>"
+        "<newparam sid=\"surface_specular_level\"><surface type=\"2D\"><init_from>img_specular_level</init_from></surface></newparam>"
+        "<newparam sid=\"sampler_specular_level\"><sampler2D><source>surface_specular_level</source></sampler2D></newparam>"
+        "<technique sid=\"common\"><phong>"
+        "<diffuse><color>1 1 1 1</color></diffuse>"
+        "<specular><color>0.4 0.3 0.2 1</color></specular>"
+        "</phong><extra><technique profile=\"OpenCOLLADA3dsMax\">"
+        "<specularLevel><texture texture=\"sampler_specular_level\" texcoord=\"UVSET1\">"
+        "<extra><technique profile=\"MAX3D\"><amount>0.8</amount></technique></extra>"
+        "</texture></specularLevel>"
+        "<bump bumptype=\"HEIGHTFIELD\"><texture texture=\"sampler_height\" texcoord=\"UVSET0\">"
+        "<extra><technique profile=\"MAX3D\"><amount>0.65</amount></technique></extra>"
+        "</texture></bump>"
+        "</technique></extra></technique></profile_COMMON>"
+        "<extra><technique profile=\"MAX3D\">"
+        "<faceted>1</faceted><double_sided>1</double_sided><wireframe>1</wireframe>"
+        "</technique></extra></effect>\n"
+        "<effect id=\"effect_direct_bump\"><profile_COMMON>"
+        "<newparam sid=\"surface_normal\"><surface type=\"2D\"><init_from>img_normal</init_from></surface></newparam>"
+        "<newparam sid=\"sampler_normal\"><sampler2D><source>surface_normal</source></sampler2D></newparam>"
+        "<technique sid=\"common\"><phong>"
+        "<diffuse><color>1 1 1 1</color></diffuse>"
+        "<bump><texture texture=\"sampler_normal\" texcoord=\"UVSET0\"/></bump>"
+        "</phong></technique></profile_COMMON></effect>\n"
         "</library_effects>\n"
         "<library_materials>"
         "<material id=\"mat_edge\" name=\"edge\"><instance_effect url=\"#effect_edge\"/></material>"
@@ -100,6 +148,9 @@ test_write_material_dae(const char *path) {
         "<material id=\"mat_tex_rgb_one\" name=\"tex_rgb_one\"><instance_effect url=\"#effect_tex_rgb_one\"/></material>"
         "<material id=\"mat_tex_rgb_zero\" name=\"tex_rgb_zero\"><instance_effect url=\"#effect_tex_rgb_zero\"/></material>"
         "<material id=\"mat_diffuse_tex\" name=\"diffuse_tex\"><instance_effect url=\"#effect_diffuse_tex\"/></material>"
+        "<material id=\"mat_fcollada_normal\" name=\"fcollada_normal\"><instance_effect url=\"#effect_fcollada_normal\"/></material>"
+        "<material id=\"mat_max_height_specular\" name=\"max_height_specular\"><instance_effect url=\"#effect_max_height_specular\"/></material>"
+        "<material id=\"mat_direct_bump\" name=\"direct_bump\"><instance_effect url=\"#effect_direct_bump\"/></material>"
         "</library_materials>\n"
         "<library_visual_scenes><visual_scene id=\"Scene\"/></library_visual_scenes>\n"
         "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
@@ -546,6 +597,10 @@ TEST_IMPL(material_dae_adapter) {
   AkMaterial  *texRgbOne;
   AkMaterial  *texRgbZero;
   AkMaterial  *diffuseTex;
+  AkMaterial  *fcolladaNormal;
+  AkMaterial  *maxHeightSpecular;
+  AkMaterial  *directBump;
+  AkMaterialSpecularFeature *specularLevel;
   AkDoc       *noExtraDoc;
   AkMaterial  *noExtraEdge;
   char          dirTemplate[PATH_MAX];
@@ -622,6 +677,67 @@ TEST_IMPL(material_dae_adapter) {
   ASSERT(diffuseTex->surface->baseColor->source == AK_MATERIAL_INPUT_TEXTURE);
   ASSERT(diffuseTex->surface->baseColor->channels == AK_TEXTURE_CHANNEL_RGB);
   ASSERT(diffuseTex->surface->baseColor->colorSpace == AK_TEXTURE_COLORSPACE_SRGB);
+  ASSERT(diffuseTex->surface->baseColor->texture);
+  ASSERT(diffuseTex->surface->baseColor->texture->texture);
+  ASSERT(diffuseTex->surface->baseColor->texture->texture->sampler);
+  ASSERT(diffuseTex->surface->baseColor->texture->texture->sampler->wrapS
+         == AK_WRAP_MODE_MIRROR);
+  ASSERT(diffuseTex->surface->baseColor->texture->texture->sampler->wrapT
+         == AK_WRAP_MODE_CLAMP);
+  ASSERT(diffuseTex->surface->baseColor->texture->transform);
+  ASSERT(fabsf(diffuseTex->surface->baseColor->texture->transform->scale[0]
+               - 3.0f) < 0.001f);
+  ASSERT(fabsf(diffuseTex->surface->baseColor->texture->transform->scale[1]
+               - 2.0f) < 0.001f);
+  ASSERT(fabsf(diffuseTex->surface->baseColor->texture->transform->offset[0]
+               - 0.25f) < 0.001f);
+  ASSERT(fabsf(diffuseTex->surface->baseColor->texture->transform->offset[1]
+               - 0.5f) < 0.001f);
+  ASSERT(fabsf(diffuseTex->surface->baseColor->texture->transform->rotation
+               - 0.75f) < 0.001f);
+  ASSERT(ak_extra(diffuseTex->surface->baseColor->texture) != NULL);
+
+  fcolladaNormal = test_material_by_name(doc, "fcollada_normal");
+  ASSERT(fcolladaNormal && fcolladaNormal->surface);
+  ASSERT(fcolladaNormal->surface->normal);
+  ASSERT(fcolladaNormal->surface->normal->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(fcolladaNormal->surface->normal->colorSpace
+         == AK_TEXTURE_COLORSPACE_LINEAR);
+  ASSERT(fcolladaNormal->surface->normal->channels == AK_TEXTURE_CHANNEL_RGB);
+  ASSERT(!(fcolladaNormal->surface->normal->flags
+           & AK_MATERIAL_INPUT_FLAG_HEIGHT));
+
+  maxHeightSpecular = test_material_by_name(doc, "max_height_specular");
+  ASSERT(maxHeightSpecular && maxHeightSpecular->surface);
+  ASSERT(maxHeightSpecular->surface->normal);
+  ASSERT(maxHeightSpecular->surface->normal->source
+         == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(maxHeightSpecular->surface->normal->colorSpace
+         == AK_TEXTURE_COLORSPACE_LINEAR);
+  ASSERT(maxHeightSpecular->surface->normal->channels == AK_TEXTURE_CHANNEL_R);
+  ASSERT(maxHeightSpecular->surface->normal->flags
+         & AK_MATERIAL_INPUT_FLAG_HEIGHT);
+  ASSERT(fabsf(ak_materialInputScalar(maxHeightSpecular->surface->normal, 1.0f)
+               - 0.65f) < 0.001f);
+  ASSERT(ak_extra(maxHeightSpecular->surface->normal->texture) != NULL);
+  ASSERT(maxHeightSpecular->surface->flags
+         & AK_MATERIAL_FLAG_DOUBLE_SIDED);
+  specularLevel = (AkMaterialSpecularFeature *)ak_materialFeature(
+                    maxHeightSpecular->surface,
+                    AK_MATERIAL_FEATURE_SPECULAR);
+  ASSERT(specularLevel && specularLevel->factor);
+  ASSERT(specularLevel->factor->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(specularLevel->factor->colorSpace == AK_TEXTURE_COLORSPACE_LINEAR);
+  ASSERT(specularLevel->factor->channels == AK_TEXTURE_CHANNEL_R);
+  ASSERT(fabsf(ak_materialInputScalar(specularLevel->factor, 1.0f)
+               - 0.8f) < 0.001f);
+  ASSERT(ak_extra(specularLevel->factor->texture) != NULL);
+
+  directBump = test_material_by_name(doc, "direct_bump");
+  ASSERT(directBump && directBump->surface && directBump->surface->normal);
+  ASSERT(directBump->surface->normal->source == AK_MATERIAL_INPUT_TEXTURE);
+  ASSERT(!(directBump->surface->normal->flags
+           & AK_MATERIAL_INPUT_FLAG_HEIGHT));
   ASSERT(ak_extra(edge));
   ASSERT(test_tree_has_name(ak_extra(edge), "profile_COMMON"));
   ASSERT(test_tree_has_name(ak_extra(edge), "technique"));

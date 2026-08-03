@@ -241,7 +241,7 @@ dae_postscript(DAEState * __restrict dst) {
   dae_fixAngles(dst);
   dae_fixup_accessors(dst);
   dae_pre_mesh(dst);
-  dae_scenekit_normalize_colors(dst);
+  dae_normalize_srgb_colors(dst);
   dae_bugfix_scenekit_backfaces(dst);
 
   /* fixup when finished,
@@ -273,7 +273,7 @@ dae_postscript(DAEState * __restrict dst) {
      instances exist (including the orphan-attach pass above). */
   if (dst->doc->lib.animations.first)
     dae_fixup_channel(dst);
-  dae_scenekit_normalize_animation_colors(dst);
+  dae_normalize_srgb_animation_colors(dst);
 
   /* now set used coordSys */
   if (coordCvtType != AK_COORD_CVT_DISABLED)
@@ -503,6 +503,7 @@ dae_build_material_surfaces(DAEState * __restrict dst) {
   AkMaterial           *material;
   AkEffect             *effect;
   AkTechniqueFxCommon  *common;
+  AkDAEMaterialVendor  *vendor;
 
   if (!dst || !dst->doc)
     return;
@@ -520,6 +521,19 @@ dae_build_material_surfaces(DAEState * __restrict dst) {
                                                                  material,
                                                                  common,
                                                                  false);
+      vendor = dae_materialVendor(dst, common);
+      if (vendor && material->surface) {
+        ak_materialSurfaceSetNormalFromColorDesc(dst->heap,
+                                                 material->surface,
+                                                 vendor->normal,
+                                                 vendor->normalScale,
+                                                 vendor->normalIsHeight);
+        ak_materialSurfaceAddSpecularFactorFromColorDesc(
+          dst->heap,
+          material->surface,
+          vendor->specularLevel,
+          vendor->specularLevelScale);
+      }
     }
   }
 }
