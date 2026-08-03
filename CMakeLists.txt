@@ -55,7 +55,7 @@ option(AK_BUILD_GLTF_DRACO_DECODER "Build optional glTF Draco decoder shim" ON)
 option(AK_BUILD_GLTF_MESHOPT_DECODER "Build optional glTF meshoptimizer decoder shim" ON)
 option(AK_BUILD_GLTF_SPZ_DECODER "Build optional glTF Gaussian splatting (SPZ) decoder shim" ON)
 option(AK_BUILD_GLTF_KTX2_DECODER "Build optional glTF KHR_texture_basisu (KTX2/BasisU) decoder shim" ON)
-option(AK_FETCH_DEPS "Fetch optional decoder dependencies into AK_DEPS_ROOT when missing" ON)
+option(AK_FETCH_DEPS "Fetch missing optional decoder dependencies into the build tree" ON)
 option(AK_USE_SYSTEM_CGLM "Use system cglm instead of bundled deps/cglm" OFF)
 option(AK_STATIC_INTERNAL_DEPS "Build internal AssetKit dependencies as static libraries" OFF)
 option(AK_ENABLE_LTO "Enable link-time optimization for release builds" OFF)
@@ -397,6 +397,13 @@ if(AK_BUILD_DECODER_SHIMS
 endif()
 
 if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_DRACO_DECODER)
+  if(AK_DRACO_INCLUDE_DIR
+     AND NOT EXISTS "${AK_DRACO_INCLUDE_DIR}/draco/compression/decode.h")
+    unset(AK_DRACO_INCLUDE_DIR CACHE)
+  endif()
+  if(AK_DRACO_LIBRARY AND NOT EXISTS "${AK_DRACO_LIBRARY}")
+    unset(AK_DRACO_LIBRARY CACHE)
+  endif()
   find_path(AK_DRACO_INCLUDE_DIR
             NAMES draco/compression/decode.h
             HINTS ${AK_DRACO_ROOT}
@@ -555,6 +562,13 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_DRACO_DECODER)
 endif()
 
 if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_MESHOPT_DECODER)
+  if(AK_MESHOPT_INCLUDE_DIR
+     AND (NOT EXISTS "${AK_MESHOPT_INCLUDE_DIR}/meshoptimizer.h"
+          OR NOT EXISTS "${AK_MESHOPT_INCLUDE_DIR}/indexcodec.cpp"
+          OR NOT EXISTS "${AK_MESHOPT_INCLUDE_DIR}/vertexcodec.cpp"
+          OR NOT EXISTS "${AK_MESHOPT_INCLUDE_DIR}/vertexfilter.cpp"))
+    unset(AK_MESHOPT_INCLUDE_DIR CACHE)
+  endif()
   find_path(AK_MESHOPT_INCLUDE_DIR
             NAMES meshoptimizer.h
             HINTS ${AK_MESHOPT_ROOT}
@@ -567,18 +581,21 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_MESHOPT_DECODER)
   if(NOT AK_MESHOPT_INCLUDE_DIR AND AK_FETCH_DEPS)
     include(FetchContent)
 
+    set(AK_MESHOPT_SOURCE_DIR
+        "${CMAKE_CURRENT_BINARY_DIR}/assetkit_meshoptimizer-src")
     FetchContent_Declare(assetkit_meshoptimizer_dep
         GIT_REPOSITORY https://github.com/zeux/meshoptimizer.git
         GIT_TAG master
         GIT_SHALLOW TRUE
         UPDATE_DISCONNECTED TRUE
-        SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_meshoptimizer-src")
+        SOURCE_DIR "${AK_MESHOPT_SOURCE_DIR}")
     FetchContent_GetProperties(assetkit_meshoptimizer_dep)
     if(NOT assetkit_meshoptimizer_dep_POPULATED)
       FetchContent_Populate(assetkit_meshoptimizer_dep)
     endif()
 
-    set(AK_MESHOPT_INCLUDE_DIR "${AK_DEPS_ROOT}/meshoptimizer/src")
+    set(AK_MESHOPT_INCLUDE_DIR
+        "${assetkit_meshoptimizer_dep_SOURCE_DIR}/src")
   endif()
 
   set(AK_MESHOPT_SOURCES
@@ -628,6 +645,14 @@ endif()
 # ---------------------------------------------------------------------------
 if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
   set(AK_SPZ_TARGET "")
+  if(AK_SPZ_INCLUDE_DIR
+     AND NOT EXISTS "${AK_SPZ_INCLUDE_DIR}/spz/load-spz.h"
+     AND NOT EXISTS "${AK_SPZ_INCLUDE_DIR}/load-spz.h")
+    unset(AK_SPZ_INCLUDE_DIR CACHE)
+  endif()
+  if(AK_SPZ_LIBRARY AND NOT EXISTS "${AK_SPZ_LIBRARY}")
+    unset(AK_SPZ_LIBRARY CACHE)
+  endif()
   find_path(AK_SPZ_INCLUDE_DIR
             NAMES spz/load-spz.h load-spz.h
             HINTS ${AK_SPZ_ROOT}
@@ -640,9 +665,6 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
                   ${AK_DEPS_ROOT}/spz/src/cc
             PATH_SUFFIXES include src/cc
             NO_DEFAULT_PATH)
-  if(AK_SPZ_LIBRARY AND NOT EXISTS "${AK_SPZ_LIBRARY}")
-    unset(AK_SPZ_LIBRARY CACHE)
-  endif()
   find_library(AK_SPZ_LIBRARY
                NAMES spz
                HINTS ${AK_SPZ_ROOT}
@@ -727,8 +749,7 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_SPZ_DECODER)
     endif()
     target_include_directories(assetkit_spz
         SYSTEM PRIVATE
-            ${AK_SPZ_INCLUDE_DIR}
-            ${AK_DEPS_ROOT}/spz/src/cc)
+            ${AK_SPZ_INCLUDE_DIR})
     target_include_directories(assetkit_spz
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -790,6 +811,12 @@ endif()
 # it like any other Core Graphics-decoded texture.
 # ---------------------------------------------------------------------------
 if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
+  if(AK_KTX2_INCLUDE_DIR AND NOT EXISTS "${AK_KTX2_INCLUDE_DIR}/ktx.h")
+    unset(AK_KTX2_INCLUDE_DIR CACHE)
+  endif()
+  if(AK_KTX2_LIBRARY AND NOT EXISTS "${AK_KTX2_LIBRARY}")
+    unset(AK_KTX2_LIBRARY CACHE)
+  endif()
   find_path(AK_KTX2_INCLUDE_DIR
             NAMES ktx.h
             HINTS ${AK_KTX2_ROOT}
@@ -886,6 +913,7 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
         GIT_REPOSITORY https://github.com/KhronosGroup/KTX-Software.git
         GIT_TAG main
         GIT_SHALLOW TRUE
+        GIT_SUBMODULES ""
         UPDATE_DISCONNECTED TRUE
         SOURCE_DIR "${AK_KTX2_SOURCE_DIR}"
         BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_ktx2-local-build"
