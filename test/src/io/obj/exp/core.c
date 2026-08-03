@@ -16,6 +16,23 @@
 
 #include "../../../test_export_common.h"
 
+static
+float
+ak_test_obj_accessor_f32(AkAccessor *acc,
+                         uint32_t    index,
+                         uint32_t    component) {
+  const char *data;
+  float       value;
+
+  data = (const char *)acc->buffer->data
+       + acc->byteOffset
+       + (size_t)index * acc->byteStride
+       + (size_t)component * acc->bytesPerComponent;
+  memcpy(&value, data, sizeof(value));
+
+  return value;
+}
+
 TEST_IMPL(obj_export_triangle_smoke) {
   AkHeap            *heap;
   AkDoc             *doc;
@@ -193,7 +210,8 @@ TEST_IMPL(obj_export_triangle_smoke) {
   ASSERT(stMtl.st_size > 0);
   ASSERT(ak_test_file_contains(objPath, "mtllib model.mtl"));
   ASSERT(ak_test_file_contains(objPath, "o OBJ Node"));
-  ASSERT(ak_test_file_contains(objPath, "v 2 3 4 0.25 0.5 0.75 1"));
+  ASSERT(ak_test_file_contains(objPath,
+                               "v 2 3 4 0.537098 0.735354 0.880822 1"));
   ASSERT(ak_test_file_contains(objPath, "vt 0 0"));
   ASSERT(ak_test_file_contains(objPath, "s on"));
   ASSERT(ak_test_file_contains(objPath, "usemtl mat_0_obj_mat"));
@@ -226,6 +244,15 @@ TEST_IMPL(obj_export_triangle_smoke) {
       break;
   }
   ASSERT(roundInput != NULL);
+  ASSERT(roundInput->accessor != NULL);
+  ASSERT(fabsf(ak_test_obj_accessor_f32(roundInput->accessor, 0, 0)
+               - colors[0]) < 0.0001f);
+  ASSERT(fabsf(ak_test_obj_accessor_f32(roundInput->accessor, 0, 1)
+               - colors[1]) < 0.0001f);
+  ASSERT(fabsf(ak_test_obj_accessor_f32(roundInput->accessor, 0, 2)
+               - colors[2]) < 0.0001f);
+  ASSERT(fabsf(ak_test_obj_accessor_f32(roundInput->accessor, 0, 3)
+               - colors[3]) < 0.0001f);
   ASSERT(roundTrip->lib.materials.first != NULL);
   roundSurface = roundTrip->lib.materials.first->surface;
   ASSERT(roundSurface != NULL);
@@ -303,7 +330,7 @@ TEST_IMPL(obj_export_ubyte_vertex_colors_are_normalized) {
 
   ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_WAVEFRONT) == AK_OK);
   ASSERT(ak_test_file_contains(objPath,
-                               "v 0 0 0 1 0.501961 0"));
+                               "v 0 0 0 1 0.736645 0"));
   ASSERT(!ak_test_file_contains(objPath, "v 0 0 0 255 128 0"));
 
   ak_heap_destroy(heap);

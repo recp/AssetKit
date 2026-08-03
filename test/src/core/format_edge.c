@@ -2086,11 +2086,11 @@ TEST_IMPL(format_edge_cases) {
   ASSERT(acc->componentSize == AK_COMPONENT_SIZE_VEC4);
   ASSERT(acc->count == 3);
   ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 0)
-               - (128.0f / 255.0f)) < 0.001f);
+               - ak_sRGB_linearf(128.0f / 255.0f)) < 0.001f);
   ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 1)
-               - (64.0f / 255.0f)) < 0.001f);
+               - ak_sRGB_linearf(64.0f / 255.0f)) < 0.001f);
   ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 2)
-               - (32.0f / 255.0f)) < 0.001f);
+               - ak_sRGB_linearf(32.0f / 255.0f)) < 0.001f);
   ak_free(doc);
 
   doc = NULL;
@@ -2104,11 +2104,11 @@ TEST_IMPL(format_edge_cases) {
   ASSERT(acc->componentSize == AK_COMPONENT_SIZE_VEC4);
   ASSERT(acc->count == 3);
   ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 0)
-               - (16.0f / 31.0f)) < 0.001f);
+               - ak_sRGB_linearf(16.0f / 31.0f)) < 0.001f);
   ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 1)
-               - (8.0f / 31.0f)) < 0.001f);
+               - ak_sRGB_linearf(8.0f / 31.0f)) < 0.001f);
   ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 2)
-               - (4.0f / 31.0f)) < 0.001f);
+               - ak_sRGB_linearf(4.0f / 31.0f)) < 0.001f);
   ak_free(doc);
 
   doc = NULL;
@@ -2156,7 +2156,8 @@ TEST_IMPL(format_edge_cases) {
   acc = ak_test_input(prim, AK_INPUT_COLOR)->accessor;
   ASSERT(acc->componentSize == AK_COMPONENT_SIZE_VEC4);
   ASSERT(ak_test_accessor_f32(acc, 0, 0) == 1.0f);
-  ASSERT(ak_test_accessor_f32(acc, 1, 0) == 0.25f);
+  ASSERT(fabsf(ak_test_accessor_f32(acc, 1, 0)
+               - ak_sRGB_linearf(0.25f)) < 0.0001f);
   ASSERT(ak_test_accessor_f32(acc, 2, 3) == 0.40f);
   ak_free(doc);
 
@@ -2186,7 +2187,8 @@ TEST_IMPL(format_edge_cases) {
   ASSERT(ak_test_input(prim, AK_INPUT_COLOR) != NULL);
   acc = ak_test_input(prim, AK_INPUT_COLOR)->accessor;
   ASSERT(acc && acc->count == 2);
-  ASSERT(ak_test_accessor_f32(acc, 0, 0) == 0.25f);
+  ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 0)
+               - ak_sRGB_linearf(0.25f)) < 0.0001f);
   ASSERT(ak_test_accessor_f32(acc, 1, 1) == 1.0f);
 
   prim = ak_test_primitive_of_type(doc, AK_PRIMITIVE_POINTS);
@@ -2352,14 +2354,14 @@ TEST_IMPL(format_edge_cases) {
   ASSERT(acc->componentSize == AK_COMPONENT_SIZE_VEC4);
   ASSERT(acc->originalComponentType == AKT_UBYTE);
   ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 0)
-               - (128.0f / 255.0f)) < 0.001f);
+               - ak_sRGB_linearf(128.0f / 255.0f)) < 0.001f);
   ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 3)
                - (128.0f / 255.0f)) < 0.001f);
   ak_free(doc);
 
   doc                = NULL;
   plyImportColorMode = ak_opt_get(AK_OPT_PLY_IMPORT_COLOR_MODE);
-  ak_opt_set(AK_OPT_PLY_IMPORT_COLOR_MODE, AK_PLY_IMPORT_COLOR_SRGB);
+  ak_opt_set(AK_OPT_PLY_IMPORT_COLOR_MODE, AK_PLY_IMPORT_COLOR_LINEAR);
   loadResult = ak_load(&doc, plyPointsPath, AK_FILE_TYPE_AUTO);
   ak_opt_set(AK_OPT_PLY_IMPORT_COLOR_MODE, plyImportColorMode);
   ASSERT(loadResult == AK_OK && doc);
@@ -2367,7 +2369,7 @@ TEST_IMPL(format_edge_cases) {
   ASSERT(prim != NULL);
   acc = ak_test_input(prim, AK_INPUT_COLOR)->accessor;
   ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 0)
-               - ak_sRGB_linearf(128.0f / 255.0f)) < 0.001f);
+               - (128.0f / 255.0f)) < 0.001f);
   ASSERT(fabsf(ak_test_accessor_f32(acc, 0, 3)
                - (128.0f / 255.0f)) < 0.001f);
   ak_free(doc);

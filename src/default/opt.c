@@ -74,11 +74,11 @@ uintptr_t AK_OPTIONS[] =
   AK_PLY_EXPORT_BINARY_LITTLE,     /* 40: _PLY_EXPORT_FORMAT           */
   false,                           /* 41: _PLY_EXPORT_NORMALS          */
   true,                            /* 42: _PLY_EXPORT_UV               */
-  AK_PLY_EXPORT_COLOR_LINEAR,      /* 43: _PLY_EXPORT_COLOR_MODE       */
+  AK_PLY_EXPORT_COLOR_SRGB,        /* 43: _PLY_EXPORT_COLOR_MODE       */
   false,                           /* 44: _PLY_EXPORT_TRIANGULATED     */
   AK_GLTF_EXPORT_VERSION_AUTO,     /* 45: _GLTF_EXPORT_VERSION         */
   1,                               /* 46: _ZIP_EXPORT_COMPRESSION_LEVEL */
-  AK_PLY_IMPORT_COLOR_LINEAR        /* 47: _PLY_IMPORT_COLOR_MODE       */
+  AK_PLY_IMPORT_COLOR_SRGB          /* 47: _PLY_IMPORT_COLOR_MODE       */
 };
 
 AK_EXPORT

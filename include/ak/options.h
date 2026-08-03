@@ -85,8 +85,9 @@ typedef enum AkPlyExportColorMode {
 typedef enum AkPlyImportColorMode {
   /* PLY does not declare a transfer function. AUTO applies the widespread
      byte-as-display-color convention (integer RGB is sRGB, float RGB is
-     linear). LINEAR preserves RGB numerically apart from integer 0..1
-     normalization and is AssetKit's conservative default. */
+     linear). SRGB matches interoperable DCC display-color behavior and is
+     AssetKit's default. LINEAR preserves RGB numerically apart from integer
+     0..1 normalization. */
   AK_PLY_IMPORT_COLOR_AUTO   = 0,
   AK_PLY_IMPORT_COLOR_SRGB   = 1,
   AK_PLY_IMPORT_COLOR_LINEAR = 2
@@ -165,7 +166,7 @@ typedef enum AkOption {
   AK_OPT_PLY_EXPORT_FORMAT            = 40, /* BINARY_LITTLE */
   AK_OPT_PLY_EXPORT_NORMALS           = 41, /* false    */
   AK_OPT_PLY_EXPORT_UV                = 42, /* true     */
-  AK_OPT_PLY_EXPORT_COLOR_MODE        = 43, /* LINEAR   */
+  AK_OPT_PLY_EXPORT_COLOR_MODE        = 43, /* SRGB     */
   AK_OPT_PLY_EXPORT_TRIANGULATED      = 44, /* false    */
 
   /* AkGltfExportVersion. Default AUTO writes glTF 2.0 for maximum
@@ -177,7 +178,7 @@ typedef enum AkOption {
   AK_OPT_ZIP_EXPORT_COMPRESSION_LEVEL  = 46, /* 1        */
 
   /* AkPlyImportColorMode. */
-  AK_OPT_PLY_IMPORT_COLOR_MODE         = 47, /* LINEAR   */
+  AK_OPT_PLY_IMPORT_COLOR_MODE         = 47, /* SRGB     */
 } AkOption;
 
 AK_EXPORT

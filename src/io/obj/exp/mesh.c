@@ -18,6 +18,7 @@
 #include "material.h"
 #include "writer.h"
 #include "../../common/primitive.h"
+#include "../../../color.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -158,11 +159,17 @@ wobj_write_positions(WOBJExpState * __restrict st,
     if (colorRows) {
       row = wobj_rows_get(colorRows, i);
       wobj_w_ch(&st->w, ' ');
-      wobj_w_float_fast(&st->w, wobj_color_component(colorRows, row, 0, 1.0f));
+      wobj_w_float_fast(&st->w,
+                        ak_linear_to_srgbf_fast(
+                          wobj_color_component(colorRows, row, 0, 1.0f)));
       wobj_w_ch(&st->w, ' ');
-      wobj_w_float_fast(&st->w, wobj_color_component(colorRows, row, 1, 1.0f));
+      wobj_w_float_fast(&st->w,
+                        ak_linear_to_srgbf_fast(
+                          wobj_color_component(colorRows, row, 1, 1.0f)));
       wobj_w_ch(&st->w, ' ');
-      wobj_w_float_fast(&st->w, wobj_color_component(colorRows, row, 2, 1.0f));
+      wobj_w_float_fast(&st->w,
+                        ak_linear_to_srgbf_fast(
+                          wobj_color_component(colorRows, row, 2, 1.0f)));
 
       if (colorRows->componentCount > 3u) {
         wobj_w_ch(&st->w, ' ');

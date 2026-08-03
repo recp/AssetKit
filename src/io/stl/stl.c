@@ -25,6 +25,7 @@
 #include "common.h"
 #include "../../id.h"
 #include "../../data.h"
+#include "../../color.h"
 #include "../../mat/internal.h"
 #include "../../../include/ak/path.h"
 #include "../common/util.h"
@@ -136,7 +137,21 @@ stl_ascii_likely(const char * __restrict p,
 static
 float
 stl_color_5bit(uint16_t v) {
-  return (float)v / 31.0f;
+  static const float table[32] = {
+    0.000000000e+00f, 2.496754220e-03f, 5.370537349e-03f,
+    9.529478582e-03f, 1.513350723e-02f, 2.229888301e-02f,
+    3.113008991e-02f, 4.172257392e-02f, 5.416457340e-02f,
+    6.853841291e-02f, 8.492145665e-02f, 1.033868345e-01f,
+    1.240040094e-01f, 1.468392308e-01f, 1.719559031e-01f,
+    1.994148902e-01f, 2.292747699e-01f, 2.615920503e-01f,
+    2.964213533e-01f, 3.338155745e-01f, 3.738260210e-01f,
+    4.165025327e-01f, 4.618935895e-01f, 5.100464057e-01f,
+    5.610070144e-01f, 6.148203435e-01f, 6.715302834e-01f,
+    7.311797491e-01f, 7.938107351e-01f, 8.594643671e-01f,
+    9.281809479e-01f, 1.000000000e+00f
+  };
+
+  return table[v];
 }
 
 static
@@ -172,10 +187,11 @@ stl_header_color(const char * __restrict header, vec4 color) {
       const unsigned char *rgba;
 
       rgba     = (const unsigned char *)(const void *)(header + i + 6);
-      /* Binary STL color conventions do not define a transfer function. */
-      color[0] = (float)rgba[0] / 255.0f;
-      color[1] = (float)rgba[1] / 255.0f;
-      color[2] = (float)rgba[2] / 255.0f;
+      /* Packed STL colors are display-referred in interoperable tools.
+         Canonical AssetKit values are linear-sRGB. */
+      color[0] = ak_srgb8_to_linearf_fast(rgba[0]);
+      color[1] = ak_srgb8_to_linearf_fast(rgba[1]);
+      color[2] = ak_srgb8_to_linearf_fast(rgba[2]);
       color[3] = (float)rgba[3] / 255.0f;
       return true;
     }

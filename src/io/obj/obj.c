@@ -30,6 +30,7 @@
 #include "../common/postscript.h"
 #include "../../id.h"
 #include "../../data.h"
+#include "../../color.h"
 #include "../../string_fast.h"
 #include "../../../include/ak/path.h"
 
@@ -283,16 +284,17 @@ wobj_is_freeform_keyword(const char * __restrict p) {
 
 static
 uint32_t
-wobj_parse_float_line(char     * __restrict p,
-                      float    * __restrict values,
-                      uint32_t               cap,
-                      uint32_t               min_count,
-                      bool     * __restrict ok,
-                      char    ** __restrict endp) {
+wobj_parse_float_line_from(char     * __restrict p,
+                           float    * __restrict values,
+                           uint32_t               cap,
+                           uint32_t               min_count,
+                           uint32_t               initial_count,
+                           bool     * __restrict ok,
+                           char    ** __restrict endp) {
   float    ignored;
   uint32_t count;
 
-  count = 0;
+  count = initial_count;
   if (ok)
     *ok = false;
 
@@ -334,6 +336,23 @@ wobj_parse_float_line(char     * __restrict p,
     *endp = p;
 
   return count;
+}
+
+static
+uint32_t
+wobj_parse_float_line(char     * __restrict p,
+                      float    * __restrict values,
+                      uint32_t               cap,
+                      uint32_t               min_count,
+                      bool     * __restrict ok,
+                      char    ** __restrict endp) {
+  return wobj_parse_float_line_from(p,
+                                    values,
+                                    cap,
+                                    min_count,
+                                    0,
+                                    ok,
+                                    endp);
 }
 
 AK_INLINE
@@ -494,11 +513,9 @@ wobj_append_color(WOState  * __restrict wst,
                               wst->dc_pos->itemcount > 0
                               ? wst->dc_pos->itemcount - 1
                               : 0);
-    /* The de-facto OBJ vertex-color extension does not define a transfer
-       function. Preserve the numeric RGB values as scene-linear. */
-    color[0] = values[start];
-    color[1] = values[start + 1];
-    color[2] = values[start + 2];
+    /* Interoperable OBJ tools treat the de-facto vertex-color extension as
+       display-referred sRGB. Canonical AssetKit values are linear-sRGB. */
+    ak_srgb3_to_linearf_fast(values + start, color);
     color[3] = hasAlpha ? values[start + 3] : 1.0f;
     if (hasAlpha)
       wst->hasColorAlpha = true;
@@ -907,11 +924,23 @@ wobj_obj(AkDoc     ** __restrict dest,
           if (*++p == '\0')
             goto err;
 
-          lineEnd = p;
+          lineEnd = NULL;
           if (wobj_parse_float3_exact_line(p, values, &lineEnd)) {
             nValues     = 3;
             validValues = true;
             p           = lineEnd;
+          } else if (lineEnd) {
+            /* The fast parser already consumed the required XYZ prefix.
+               Continue at W/color instead of parsing those three values a
+               second time on every colored vertex. */
+            nValues = wobj_parse_float_line_from(lineEnd,
+                                                 values,
+                                                 8,
+                                                 3,
+                                                 3,
+                                                 &validValues,
+                                                 &lineEnd);
+            p = lineEnd;
           } else {
             nValues = wobj_parse_float_line(p,
                                             values,
