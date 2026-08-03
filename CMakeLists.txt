@@ -914,6 +914,14 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
         GIT_TAG main
         GIT_SHALLOW TRUE
         GIT_SUBMODULES ""
+        # KTX-Software stores test assets in Git LFS, but the libktx build
+        # below disables tests and does not need them.  Override any global
+        # LFS filter so embedding AssetKit never requires git-lfs merely to
+        # build the KTX2 decoder.
+        GIT_CONFIG
+          filter.lfs.process=
+          filter.lfs.smudge=cat
+          filter.lfs.required=false
         UPDATE_DISCONNECTED TRUE
         SOURCE_DIR "${AK_KTX2_SOURCE_DIR}"
         BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assetkit_ktx2-local-build"
