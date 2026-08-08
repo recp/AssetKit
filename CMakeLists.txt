@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(assetkit VERSION 0.6.8 LANGUAGES C)
+project(assetkit VERSION 0.6.9 LANGUAGES C)
 
 if(POLICY CMP0076)
   cmake_policy(SET CMP0076 NEW)
