@@ -861,6 +861,7 @@ ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
                                       bool                              constantColorsAreSRGB) {
   AkMaterialSurface       *surface;
   AkMaterialClassicFeature *classic;
+  AkColorDesc             *baseColorDesc;
 
   if (!heap || !parent || !common)
     return NULL;
@@ -877,10 +878,15 @@ ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
   if (common->type == AK_MATERIAL_TYPE_UNLIT)
     surface->flags |= AK_MATERIAL_FLAG_UNLIT;
 
+  baseColorDesc = common->albedo ? common->albedo : common->constantDiffuse;
+  if (!baseColorDesc
+      && common->type == AK_MATERIAL_TYPE_CONSTANT
+      && common->emission)
+    baseColorDesc = &common->emission->color;
   surface->baseColor = ak__materialInputFromColorDesc(heap,
                                                       surface,
                                                       _s_ak_baseColor,
-                                                      common->albedo ? common->albedo : common->constantDiffuse,
+                                                      baseColorDesc,
                                                       AK_TEXTURE_COLORSPACE_SRGB,
                                                       AK_TEXTURE_CHANNEL_RGBA);
   if (!surface->baseColor
@@ -897,7 +903,7 @@ ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
   if (constantColorsAreSRGB)
     ak__materialInputColorSRGBToLinear(surface->baseColor);
 
-  if (common->emission)
+  if (common->emission && common->type != AK_MATERIAL_TYPE_CONSTANT)
     surface->emissive = ak__materialInputFromColorDesc(heap,
                                                        surface,
                                                        _s_ak_emissive,
@@ -907,7 +913,7 @@ ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
   if (constantColorsAreSRGB)
     ak__materialInputColorSRGBToLinear(surface->emissive);
 
-  if (common->emission)
+  if (common->emission && common->type != AK_MATERIAL_TYPE_CONSTANT)
     surface->emissiveStrength = common->emission->strength;
 
   if (common->transparent) {

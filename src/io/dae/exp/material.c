@@ -232,8 +232,10 @@ dae_material_pbr_like(AkMaterialSurface * __restrict surface) {
     case AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS:
     case AK_MATERIAL_TYPE_PBR_SPECULAR_GLOSSINESS:
       return true;
-    default:
+    case AK_MATERIAL_TYPE_NONE:
       return surface->metallic || surface->roughness;
+    default:
+      return false;
   }
 }
 

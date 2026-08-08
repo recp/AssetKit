@@ -525,15 +525,19 @@ TEST_IMPL(dae_export_material_pbr_matte_uses_lambert) {
 TEST_IMPL(dae_export_material_technique_types) {
   AkHeap            *heap;
   AkDoc             *doc;
+  AkDoc             *roundTrip;
   AkMaterial        *matConstant;
   AkMaterial        *matLambert;
   AkMaterial        *matBlinn;
+  AkMaterial        *roundTripConstant;
   AkMaterialSurface *surfaceConstant;
   AkMaterialSurface *surfaceLambert;
   AkMaterialSurface *surfaceBlinn;
   AkMaterialInput   *colorConstant;
   AkMaterialInput   *colorLambert;
   AkMaterialInput   *colorBlinn;
+  AkMaterialInput   *constantMetallic;
+  AkMaterialInput   *constantRoughness;
   const char        *outDir  = "./assetkit_export_dae_material_technique";
   const char        *daePath = "./assetkit_export_dae_material_technique/model.dae";
 
@@ -552,6 +556,8 @@ TEST_IMPL(dae_export_material_technique_types) {
   colorConstant = ak_test_material_input(heap, surfaceConstant);
   colorLambert = ak_test_material_input(heap, surfaceLambert);
   colorBlinn = ak_test_material_input(heap, surfaceBlinn);
+  constantMetallic = ak_test_material_input(heap, surfaceConstant);
+  constantRoughness = ak_test_material_input(heap, surfaceConstant);
   ASSERT(matConstant != NULL);
   ASSERT(matLambert != NULL);
   ASSERT(matBlinn != NULL);
@@ -561,6 +567,12 @@ TEST_IMPL(dae_export_material_technique_types) {
   ASSERT(colorConstant != NULL);
   ASSERT(colorLambert != NULL);
   ASSERT(colorBlinn != NULL);
+  ASSERT(constantMetallic != NULL);
+  ASSERT(constantRoughness != NULL);
+
+  matConstant->name = "constant";
+  matLambert->name  = "lambert";
+  matBlinn->name    = "blinn";
 
   colorConstant->source       = AK_MATERIAL_INPUT_CONSTANT;
   colorConstant->valueType    = AK_MATERIAL_VALUE_COLOR;
@@ -585,6 +597,14 @@ TEST_IMPL(dae_export_material_technique_types) {
 
   surfaceConstant->type      = AK_MATERIAL_TYPE_CONSTANT;
   surfaceConstant->baseColor = colorConstant;
+  constantMetallic->source    = AK_MATERIAL_INPUT_CONSTANT;
+  constantMetallic->valueType = AK_MATERIAL_VALUE_FLOAT;
+  constantMetallic->value[0]  = 0.0f;
+  constantRoughness->source    = AK_MATERIAL_INPUT_CONSTANT;
+  constantRoughness->valueType = AK_MATERIAL_VALUE_FLOAT;
+  constantRoughness->value[0]  = 1.0f;
+  surfaceConstant->metallic    = constantMetallic;
+  surfaceConstant->roughness   = constantRoughness;
   surfaceLambert->type       = AK_MATERIAL_TYPE_LAMBERT;
   surfaceLambert->baseColor  = colorLambert;
   surfaceBlinn->type         = AK_MATERIAL_TYPE_BLINN;
@@ -608,6 +628,22 @@ TEST_IMPL(dae_export_material_technique_types) {
   ASSERT(ak_test_file_contains(daePath,
                                "<blinn><diffuse><color>0 0 1 1</color></diffuse></blinn>"));
   ASSERT(!ak_test_file_contains(daePath, "<constant><diffuse>"));
+
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, daePath, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  roundTripConstant = roundTrip->lib.materials.first;
+  while (roundTripConstant
+         && (!roundTripConstant->surface
+             || roundTripConstant->surface->type != AK_MATERIAL_TYPE_CONSTANT))
+    roundTripConstant = roundTripConstant->next;
+  ASSERT(roundTripConstant != NULL);
+  ASSERT(roundTripConstant->surface->baseColor != NULL);
+  ASSERT(roundTripConstant->surface->baseColor->valueType
+         == AK_MATERIAL_VALUE_COLOR);
+  ASSERT(roundTripConstant->surface->baseColor->color.rgba.R == 1.0f);
+  ASSERT(roundTripConstant->surface->emissive == NULL);
+  ak_free(roundTrip);
 
   ak_heap_destroy(heap);
   ak_test_export_cleanup(outDir);
