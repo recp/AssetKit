@@ -16,6 +16,43 @@
 
 #include "../../../test_export_common.h"
 
+static bool
+ak_test_ply_files_equal(const char *aPath, const char *bPath) {
+  unsigned char aBuffer[16u * 1024u];
+  unsigned char bBuffer[16u * 1024u];
+  FILE         *a;
+  FILE         *b;
+  size_t        aRead;
+  size_t        bRead;
+  bool          equal;
+
+  a = fopen(aPath, "rb");
+  b = fopen(bPath, "rb");
+  if (!a || !b) {
+    if (a)
+      fclose(a);
+    if (b)
+      fclose(b);
+    return false;
+  }
+
+  equal = true;
+  do {
+    aRead = fread(aBuffer, 1u, sizeof(aBuffer), a);
+    bRead = fread(bBuffer, 1u, sizeof(bBuffer), b);
+    if (aRead != bRead || memcmp(aBuffer, bBuffer, aRead) != 0) {
+      equal = false;
+      break;
+    }
+  } while (aRead == sizeof(aBuffer));
+
+  if (ferror(a) || ferror(b))
+    equal = false;
+  fclose(a);
+  fclose(b);
+  return equal;
+}
+
 static AkDoc *
 ak_test_make_ply_triangle_doc(bool withAttributes) {
   AkHeap     *heap;
@@ -180,6 +217,7 @@ TEST_IMPL(ply_export_ascii_attributes_smoke) {
 
 TEST_IMPL(ply_export_bakes_base_color_texture) {
   AkDoc             *doc;
+  AkDoc             *parallelRoundTrip;
   AkHeap            *heap;
   AkGeometry        *geom;
   AkMesh            *mesh;
@@ -238,6 +276,14 @@ TEST_IMPL(ply_export_bakes_base_color_texture) {
     "./assetkit_export_ply_texture_bake_nonfinite_color";
   const char        *nonfiniteColorPath =
     "./assetkit_export_ply_texture_bake_nonfinite_color/model.ply";
+  const char        *parallelADir =
+    "./assetkit_export_ply_texture_bake_parallel_a";
+  const char        *parallelAPath =
+    "./assetkit_export_ply_texture_bake_parallel_a/model.ply";
+  const char        *parallelBDir =
+    "./assetkit_export_ply_texture_bake_parallel_b";
+  const char        *parallelBPath =
+    "./assetkit_export_ply_texture_bake_parallel_b/model.ply";
   const float        repeatedUVs[6] = {
     0.0f, 0.0f,
     2.0f, 0.0f,
@@ -247,6 +293,23 @@ TEST_IMPL(ply_export_bakes_base_color_texture) {
     0.0f, 0.0f,
     1.0f, 0.0f,
     0.0f, 1.0f
+  };
+  const float wideUVs[6] = {
+    0.0f,  0.0f,
+    16.0f, 0.0f,
+    0.0f, 16.0f
+  };
+  const float originalMatrix[16] = {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    2.0f, 3.0f, 4.0f, 1.0f
+  };
+  const float parallelMatrix[16] = {
+    4.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 4.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 4.0f, 0.0f,
+    2.0f, 3.0f, 4.0f, 1.0f
   };
   const float negativeUVs[6] = {
     -0.25f, 0.25f,
@@ -300,6 +363,8 @@ TEST_IMPL(ply_export_bakes_base_color_texture) {
   ak_test_export_cleanup(linearDir);
   ak_test_export_cleanup(nonfiniteUVDir);
   ak_test_export_cleanup(nonfiniteColorDir);
+  ak_test_export_cleanup(parallelADir);
+  ak_test_export_cleanup(parallelBDir);
   doc = ak_test_make_ply_triangle_doc(false);
   ASSERT(doc != NULL);
 
@@ -407,6 +472,33 @@ TEST_IMPL(ply_export_bakes_base_color_texture) {
   ASSERT(ak_test_file_contains(plyPath, "element face 144"));
   ASSERT(ak_test_file_contains(plyPath, "2 3 4 255 0 0 255"));
   ASSERT(ak_test_file_contains(plyPath, "2.25 3 4 0 255 0 255"));
+
+  /* A large binary triangle crosses the parallel bake threshold. Repeated
+     exports must remain byte-identical even though independent grid-row
+     ranges are sampled and packed by the shared worker pool. */
+  texInput->accessor = ak_test_make_float_accessor(heap,
+                                                    texInput,
+                                                    wideUVs,
+                                                    2u,
+                                                    3u);
+  ASSERT(texInput->accessor != NULL);
+  ak_nodeSetTransformMatrix(doc->scene->node->chld, parallelMatrix);
+  ak_opt_set(AK_OPT_PLY_EXPORT_FORMAT, AK_PLY_EXPORT_BINARY_LITTLE);
+  ak_opt_set(AK_OPT_PLY_EXPORT_NORMALS, false);
+  ak_opt_set(AK_OPT_PLY_EXPORT_UV, false);
+  ak_opt_set(AK_OPT_PLY_EXPORT_COLOR_MODE, AK_PLY_EXPORT_COLOR_SRGB);
+  ak_opt_set(AK_OPT_PLY_EXPORT_BAKE_TEXTURES, true);
+  ASSERT(ak_export(doc, parallelADir, AK_FILE_TYPE_PLY) == AK_OK);
+  ASSERT(ak_export(doc, parallelBDir, AK_FILE_TYPE_PLY) == AK_OK);
+  ASSERT(ak_test_file_contains(parallelAPath, "element vertex 4278"));
+  ASSERT(ak_test_file_contains(parallelAPath, "element face 8281"));
+  ASSERT(ak_test_ply_files_equal(parallelAPath, parallelBPath));
+  parallelRoundTrip = NULL;
+  ASSERT(ak_load(&parallelRoundTrip, parallelAPath, AK_FILE_TYPE_PLY) == AK_OK);
+  ASSERT(parallelRoundTrip != NULL);
+  ak_free(parallelRoundTrip);
+  texInput->accessor = savedTexAccessor;
+  ak_nodeSetTransformMatrix(doc->scene->node->chld, originalMatrix);
 
   /* One combined case covers transform-before-flip sampling, clamp+nearest,
      material/vertex/texture alpha multiplication, and a UV index offset that
@@ -595,6 +687,8 @@ TEST_IMPL(ply_export_bakes_base_color_texture) {
   ak_test_export_cleanup(linearDir);
   ak_test_export_cleanup(nonfiniteUVDir);
   ak_test_export_cleanup(nonfiniteColorDir);
+  ak_test_export_cleanup(parallelADir);
+  ak_test_export_cleanup(parallelBDir);
   TEST_SUCCESS
 }
 
