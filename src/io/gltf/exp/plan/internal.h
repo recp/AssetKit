@@ -214,10 +214,10 @@ gltf_materials_reserve(GLTFExpMaterialTable * __restrict table,
 
 AK_HIDE
 bool
-gltf_materials_add(GLTFExpMaterialTable * __restrict table,
-                   AkMaterial           * __restrict material,
-                   AkMeshPrimitive      * __restrict prim,
-                   AkInstanceGeometry   * __restrict inst) ;
+gltf_materials_add(GLTFExpState        * __restrict st,
+                   AkMaterial         * __restrict material,
+                   AkMeshPrimitive    * __restrict prim,
+                   AkInstanceGeometry * __restrict inst) ;
 
 AK_HIDE
 bool
@@ -279,6 +279,16 @@ AK_HIDE
 GLTFExpPositionAttrOut*
 gltf_position_attrs_add(GLTFExpPositionAttrTable * __restrict table,
                         AkMeshPrimitive          * __restrict prim) ;
+
+AK_HIDE
+bool
+gltf_texcoord_attrs_reserve(GLTFExpTexcoordAttrTable * __restrict table,
+                            size_t                                capacity) ;
+
+AK_HIDE
+GLTFExpTexcoordAttrOut*
+gltf_texcoord_attrs_add(GLTFExpTexcoordAttrTable * __restrict table,
+                        AkInput                  * __restrict input) ;
 
 AK_HIDE
 bool
@@ -387,12 +397,14 @@ gltf_plan_material(GLTFExpState * __restrict st,
 
 AK_HIDE
 bool
-gltf_primitive_has_exportable_skin_inputs(AkMeshPrimitive * __restrict prim,
+gltf_primitive_has_exportable_skin_inputs(GLTFExpState    * __restrict st,
+                                          AkMeshPrimitive * __restrict prim,
                                           AkInput         * __restrict posInput) ;
 
 AK_HIDE
 bool
-gltf_mesh_needs_generated_skin_attrs(AkMesh * __restrict mesh) ;
+gltf_mesh_needs_generated_skin_attrs(GLTFExpState * __restrict st,
+                                     AkMesh       * __restrict mesh) ;
 
 AK_HIDE
 bool
@@ -473,6 +485,19 @@ gltf_accessors_add_accessor_target_flags(GLTFExpAccessorTable * __restrict table
 
 AK_HIDE
 bool
+gltf_accessors_add_input_view(GLTFExpAccessorTable * __restrict table,
+                              AkInput              * __restrict input,
+                              uint32_t                           count,
+                              uint32_t                           target,
+                              bool                               normalizeVec3) ;
+
+AK_HIDE
+bool
+gltf_input_accessor_require_minmax(GLTFExpAccessorTable * __restrict table,
+                                   AkInput              * __restrict input) ;
+
+AK_HIDE
+bool
 gltf_accessors_require_minmax_target(GLTFExpAccessorTable * __restrict table,
                                      AkAccessor           * __restrict accessor,
                                      uint32_t                          target) ;
@@ -517,11 +542,6 @@ gltf_accessors_add_file_view(GLTFExpAccessorTable * __restrict table,
                              size_t                            byteLength) ;
 
 AK_HIDE
-GLTFExpIndex
-gltf_raw_accessor_index(GLTFExpAccessorTable * __restrict table,
-                        const void           * __restrict key) ;
-
-AK_HIDE
 bool
 gltf_raw_accessor_require_minmax(GLTFExpAccessorTable * __restrict table,
                                  const void           * __restrict key) ;
@@ -559,7 +579,8 @@ gltf_input_set_kind(AkInput * __restrict input) ;
 
 AK_HIDE
 bool
-gltf_input_has_source_set_before(AkMeshPrimitive * __restrict prim,
+gltf_input_has_source_set_before(GLTFExpState    * __restrict st,
+                                 AkMeshPrimitive * __restrict prim,
                                  AkInput         * __restrict first,
                                  AkInput         * __restrict limit,
                                  AkInput         * __restrict posInput,
@@ -625,6 +646,12 @@ gltf_plan_position_vec2(GLTFExpState    * __restrict st,
 
 AK_HIDE
 bool
+gltf_plan_texcoord_flip(GLTFExpState * __restrict st,
+                        AkInput      * __restrict input,
+                        uint32_t                  count) ;
+
+AK_HIDE
+bool
 gltf_plan_baked_position(GLTFExpState            * __restrict st,
                          AkNode                  * __restrict bakeNode,
                          AkMeshPrimitive         * __restrict prim,
@@ -635,6 +662,8 @@ gltf_plan_baked_position(GLTFExpState            * __restrict st,
 AK_HIDE
 bool
 gltf_plan_baked_normal(GLTFExpState            * __restrict st,
+                       AkMeshPrimitive         * __restrict prim,
+                       AkInput                 * __restrict posInput,
                        AkInput                 * __restrict input,
                        GLTFExpBakedPrimAttrOut * __restrict attr,
                        mat4                                 matrix) ;
@@ -713,7 +742,7 @@ gltf_plan_child_index(GLTFExpState   * __restrict st,
 
 AK_HIDE
 AkInstanceGeometry*
-gltf_node_geometry(AkNode * __restrict node, bool * __restrict ok) ;
+gltf_node_geometry(AkNode * __restrict node, size_t * __restrict count) ;
 
 AK_HIDE
 bool

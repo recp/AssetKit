@@ -21,6 +21,8 @@
 #include "../../data.h"
 #include "../../string_fast.h"
 
+#define PLY_FACE_INLINE_CAPACITY 64u
+
 AK_INLINE
 char*
 ply_ascii_parse_index(char   * __restrict p,
@@ -99,10 +101,15 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
   PLYProperty *prop;
   AkBuffer    *buff;
   char         c;
+  AkUInt       faceInline[PLY_FACE_INLINE_CAPACITY];
+  AkUInt      *faceHeap;
+  size_t       faceHeapCapacity;
   uint32_t     i, stride;
   
-  p    = src;
-  elem = pst->element;
+  p                = src;
+  elem             = pst->element;
+  faceHeap         = NULL;
+  faceHeapCapacity = 0;
 
   while (elem) {
     if (elem->type == PLY_ELEM_VERTEX) {
@@ -114,7 +121,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
 
       /* stop */
       if (!elem->buff || elem->buff->length == 0)
-        return;
+        goto finish;
 
       if (ply_ascii_vertex_direct(elem)) {
         uint32_t j;
@@ -125,7 +132,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
           for (j = 0; j < stride; j++)
             p = ply_ascii_parse_float_token(p, &b[j]);
 
-          ply_normalize_color_row(pst, b);
+          ply_normalize_color_row(pst, b, i);
           b += stride;
 
           NEXT_LINE
@@ -152,7 +159,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
             prop = prop->next;
           }
 
-          ply_normalize_color_row(pst, b);
+          ply_normalize_color_row(pst, b, i);
           b += stride;
 
           NEXT_LINE
@@ -162,14 +169,14 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
         } while (p && p[0] != '\0');
       }
     } else if (elem->type == PLY_ELEM_FACE) {
-      AkUInt *f, fc, j, count, last_fc, valid, vertcount;
+      AkUInt *f, fc, j, count, valid, vertcount;
       
       pst->dc_ind = ply_index_data_new_estimated(pst, (size_t)elem->count * 3u);
+      pst->faceAlphaBlendCount = 0u;
       c           = *p;
-      f           = NULL;
+      f           = faceInline;
       i           = 0;
       count       = 0;
-      last_fc     = 0;
       vertcount   = pst->vertcount;
 
       while (i++ < elem->count) {
@@ -188,8 +195,24 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
               if (f0 < vertcount && f1 < vertcount && f2 < vertcount)
                 PLY_INDEX_APPEND_TRI(pst, f0, f1, f2, count);
             } else if (fc > 3) {
-              if (!f || last_fc < fc)
-                f = AK_ALLOCA(sizeof(AkUInt) * fc);
+              if (fc <= PLY_FACE_INLINE_CAPACITY) {
+                f = faceInline;
+              } else {
+                if ((size_t)fc > faceHeapCapacity) {
+                  AkUInt *grown;
+
+                  if ((size_t)fc > ((size_t)-1) / sizeof(*f))
+                    goto finish;
+
+                  grown = realloc(faceHeap, sizeof(*f) * (size_t)fc);
+                  if (!grown)
+                    goto finish;
+
+                  faceHeap = grown;
+                  faceHeapCapacity = fc;
+                }
+                f = faceHeap;
+              }
 
               valid = 0;
               for (j = 0; j < fc; j++)
@@ -206,7 +229,6 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
                 p = ply_ascii_parse_index(p, &unused);
             }
 
-            last_fc = fc;
           } else {
             p = ply_ascii_skip_property(p, prop);
           }
@@ -236,10 +258,12 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
             AkUInt prev0, prev1, stripLen;
 
             p = ply_ascii_parse_index(p, &fc);
-            if (!pst->dc_ind)
+            if (!pst->dc_ind) {
               pst->dc_ind = ply_index_data_new_estimated(
                 pst,
                 fc > 2 ? ((size_t)fc - 2u) * 3u : 0);
+              pst->faceAlphaBlendCount = 0u;
+            }
             ply_tri_seen_init(&seen, pst, fc);
             prev0 = prev1 = 0;
             stripLen = 0;
@@ -331,5 +355,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
     elem = elem->next;
   }
   
+finish:
+  free(faceHeap);
   ply_finish(pst);
 }

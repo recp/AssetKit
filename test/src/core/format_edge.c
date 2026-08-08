@@ -728,6 +728,52 @@ ak_test_write_obj_sparse_lines_points(const char *path) {
 
 static
 bool
+ak_test_write_obj_sparse_small_face_primitives(const char *path) {
+  enum {
+    GLOBAL_VERTEX_COUNT = 8192,
+    PRIMITIVE_COUNT     = 128
+  };
+  FILE    *file;
+  uint32_t i;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  for (i = 0; i < GLOBAL_VERTEX_COUNT; i++) {
+    fprintf(file,
+            "v %u 0 0 0.25 0.50 0.75\n",
+            i);
+  }
+  fputs("vt 0 0\n"
+        "vt 0 1\n"
+        "vt 1 1\n"
+        "vt 1 0\n"
+        "vn 0 0 1\n",
+        file);
+
+  for (i = 0; i < PRIMITIVE_COUNT; i++) {
+    uint32_t base;
+
+    base = GLOBAL_VERTEX_COUNT - 4u - ((i * 37u) & 4095u);
+    fprintf(file,
+            "usemtl sparse_%u\n"
+            "f %u/1/1 %u/2/1 %u/3/1\n"
+            "f %u/4/1 %u/3/1 %u/2/1\n",
+            i,
+            base,
+            base + 1u,
+            base + 2u,
+            base,
+            base + 2u,
+            base + 3u);
+  }
+
+  return fclose(file) == 0;
+}
+
+static
+bool
 ak_test_write_obj_mixed_face(const char *path) {
   FILE *file;
 
@@ -1235,6 +1281,100 @@ ak_test_write_ply_binary_face_props(const char *path) {
   ok = ok && ak_test_write_u16le(file, 3);
 
   return fclose(file) == 0 && ok;
+}
+
+static
+bool
+ak_test_write_ply_rgba_opaque(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("ply\n"
+        "format ascii 1.0\n"
+        "element vertex 3\n"
+        "property float x\n"
+        "property float y\n"
+        "property float z\n"
+        "property float nx\n"
+        "property float ny\n"
+        "property float nz\n"
+        "property uchar red\n"
+        "property uchar green\n"
+        "property uchar blue\n"
+        "property uchar alpha\n"
+        "element face 1\n"
+        "property list uchar int vertex_indices\n"
+        "end_header\n"
+        "0 0 0 0 0 1 255 0 0 255\n"
+        "1 0 0 0 0 1 0 255 0 255\n"
+        "0 1 0 0 0 1 0 0 255 255\n"
+        "3 0 1 2\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+ak_test_write_ply_rgba_partition(const char *path, uint32_t highIndex) {
+  FILE    *file;
+  uint32_t i, vertexCount;
+
+  if (highIndex < 5u || highIndex == UINT32_MAX)
+    return false;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  vertexCount = highIndex + 1u;
+  fprintf(file,
+          "ply\n"
+          "format ascii 1.0\n"
+          "element vertex %u\n"
+          "property float x\n"
+          "property float y\n"
+          "property float z\n"
+          "property float nx\n"
+          "property float ny\n"
+          "property float nz\n"
+          "property float red\n"
+          "property float green\n"
+          "property float blue\n"
+          "property float alpha\n"
+          "element face 3\n"
+          "property list uchar uint vertex_indices\n"
+          "element edge 5\n"
+          "property uint vertex1\n"
+          "property uint vertex2\n"
+          "end_header\n",
+          vertexCount);
+
+  for (i = 0u; i < vertexCount; i++) {
+    if (i == 3u)
+      fprintf(file, "%u 0 0 0 0 1 1 1 1 0.5\n", i);
+    else if (i == highIndex)
+      fprintf(file, "%u 0 0 0 0 1 1 1 1 1e39\n", i);
+    else
+      fprintf(file, "%u 0 0 0 0 1 1 1 1 1\n", i);
+  }
+
+  fprintf(file,
+          "3 0 1 2\n"
+          "3 3 4 0\n"
+          "3 %u 1 2\n"
+          "0 4\n"
+          "1 2\n"
+          "2 4\n"
+          "3 1\n"
+          "%u 0\n",
+          highIndex,
+          highIndex);
+
+  return fclose(file) == 0;
 }
 
 static
@@ -1797,6 +1937,86 @@ TEST_IMPL(parallel_dae_index_array_parse) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(obj_sparse_small_face_primitives_compact_locally) {
+  enum { PRIMITIVE_COUNT = 128 };
+  AkDoc           *doc;
+  AkMeshPrimitive *prim;
+  AkInput         *texcoord, *normal, *color;
+  char             dirTemplate[PATH_MAX];
+  char            *tmpdir;
+  char             objPath[PATH_MAX];
+  const char      *tmpBase;
+  uint32_t         primitiveCount;
+
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-obj-local-compact-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(objPath, sizeof(objPath), "%s/sparse_small.obj", tmpdir);
+  ASSERT(ak_test_write_obj_sparse_small_face_primitives(objPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, objPath, AK_FILE_TYPE_WAVEFRONT) == AK_OK);
+  ASSERT(doc != NULL);
+
+  primitiveCount = 0;
+  for (prim = ak_test_first_primitive(doc); prim; prim = prim->next) {
+    AkAccessor *positions;
+    uint32_t     component;
+
+    ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+    ASSERT(prim->nPolygons == 2u);
+    ASSERT(prim->indexStride == 1u);
+    ASSERT(prim->indices != NULL && prim->indices->count == 6u);
+    ASSERT(prim->indices->componentType == AKT_UBYTE);
+    ASSERT(prim->indices->max == 4u);
+    ASSERT(ak_indexArrayGet(prim->indices, 0u) == 0u);
+    ASSERT(ak_indexArrayGet(prim->indices, 1u) == 1u);
+    ASSERT(ak_indexArrayGet(prim->indices, 2u) == 2u);
+    ASSERT(ak_indexArrayGet(prim->indices, 3u) == 3u);
+    ASSERT(ak_indexArrayGet(prim->indices, 4u) == 2u);
+    ASSERT(ak_indexArrayGet(prim->indices, 5u) == 4u);
+
+    ASSERT(prim->pos != NULL && prim->pos->indexOffset == 0u);
+    positions = prim->pos->accessor;
+    ASSERT(positions != NULL && positions->count == 5u);
+    ASSERT(ak_test_accessor_f32(positions, 0u, 0u)
+           == ak_test_accessor_f32(positions, 3u, 0u));
+
+    texcoord = ak_test_input(prim, AK_INPUT_TEXCOORD);
+    normal   = ak_test_input(prim, AK_INPUT_NORMAL);
+    color    = ak_test_input(prim, AK_INPUT_COLOR);
+    ASSERT(texcoord != NULL && texcoord->indexOffset == 0u);
+    ASSERT(normal != NULL && normal->indexOffset == 0u);
+    ASSERT(color != NULL && color->indexOffset == 0u);
+    ASSERT(texcoord->accessor != NULL && texcoord->accessor->count == 5u);
+    ASSERT(normal->accessor != NULL && normal->accessor->count == 5u);
+    ASSERT(color->accessor != NULL && color->accessor->count == 5u);
+    ASSERT(ak_test_accessor_f32(texcoord->accessor, 0u, 0u) == 0.0f);
+    ASSERT(ak_test_accessor_f32(texcoord->accessor, 3u, 0u) == 1.0f);
+    ASSERT(ak_test_accessor_f32(normal->accessor, 4u, 2u) == 1.0f);
+    for (component = 0; component < 4u; component++) {
+      ASSERT(ak_test_accessor_f32(color->accessor, 0u, component)
+             == ak_test_accessor_f32(color->accessor, 3u, component));
+    }
+    primitiveCount++;
+  }
+  ASSERT(primitiveCount == PRIMITIVE_COUNT);
+
+  ak_free(doc);
+  unlink(objPath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(index_stats_corpus) {
   AkTestIndexStats stats;
   char             dirTemplate[PATH_MAX];
@@ -1859,6 +2079,143 @@ TEST_IMPL(index_stats_corpus) {
   unlink(plyPath);
   unlink(gltfPath);
   unlink(binPath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(ply_rgba_alpha_partitions) {
+  static const uint32_t highIndices[] = {5u, 256u, 65536u};
+  static const AkTypeId componentTypes[] = {AKT_UBYTE, AKT_USHORT, AKT_UINT};
+  AkDoc          *doc;
+  AkMeshPrimitive *prim, *triOpaque, *triBlended, *lineOpaque, *lineBlended;
+  AkAccessor     *colorAccessor;
+  char            dirTemplate[PATH_MAX];
+  char           *tmpdir;
+  char            opaquePath[PATH_MAX];
+  char            mixedPaths[3][PATH_MAX];
+  const char     *tmpBase;
+  uint32_t        caseIndex, highIndex;
+
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-ply-alpha-partition-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  snprintf(opaquePath, sizeof(opaquePath), "%s/opaque.ply", tmpdir);
+  ASSERT(ak_test_write_ply_rgba_opaque(opaquePath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, opaquePath, AK_FILE_TYPE_PLY) == AK_OK && doc);
+  prim = ak_test_first_primitive(doc);
+  ASSERT(prim != NULL && prim->next == NULL);
+  ASSERT(prim->type == AK_PRIMITIVE_TRIANGLES);
+  ASSERT(prim->nPolygons == 1u);
+  ASSERT(prim->indices && prim->indices->count == 3u);
+  ASSERT(prim->material && prim->material->surface);
+  ASSERT((prim->material->surface->flags & AK_MATERIAL_FLAG_ALPHA_BLEND) == 0u);
+  ASSERT(ak_indexArrayGet(prim->indices, 0u) == 0u);
+  ASSERT(ak_indexArrayGet(prim->indices, 1u) == 1u);
+  ASSERT(ak_indexArrayGet(prim->indices, 2u) == 2u);
+  ak_free(doc);
+
+  for (caseIndex = 0u; caseIndex < 3u; caseIndex++) {
+    highIndex = highIndices[caseIndex];
+    snprintf(mixedPaths[caseIndex],
+             sizeof(mixedPaths[caseIndex]),
+             "%s/mixed-%u.ply",
+             tmpdir,
+             highIndex);
+    ASSERT(ak_test_write_ply_rgba_partition(mixedPaths[caseIndex], highIndex));
+
+    doc = NULL;
+    ASSERT(ak_load(&doc, mixedPaths[caseIndex], AK_FILE_TYPE_PLY) == AK_OK
+           && doc);
+
+    triOpaque  = ak_test_first_primitive(doc);
+    triBlended = triOpaque ? triOpaque->next : NULL;
+    lineOpaque = triBlended ? triBlended->next : NULL;
+    lineBlended = lineOpaque ? lineOpaque->next : NULL;
+    ASSERT(triOpaque && triBlended && lineOpaque && lineBlended);
+    ASSERT(lineBlended->next == NULL);
+    ASSERT(triOpaque->mesh && triOpaque->mesh->primitiveCount == 4u);
+
+    ASSERT(triOpaque->type == AK_PRIMITIVE_TRIANGLES);
+    ASSERT(triBlended->type == AK_PRIMITIVE_TRIANGLES);
+    ASSERT(lineOpaque->type == AK_PRIMITIVE_LINES);
+    ASSERT(lineBlended->type == AK_PRIMITIVE_LINES);
+    ASSERT(triOpaque->nPolygons == 1u);
+    ASSERT(triBlended->nPolygons == 2u);
+    ASSERT(lineOpaque->nPolygons == 3u);
+    ASSERT(lineBlended->nPolygons == 2u);
+
+    ASSERT(triOpaque->material && triOpaque->material->surface);
+    ASSERT(triBlended->material && triBlended->material->surface);
+    ASSERT(lineOpaque->material && lineOpaque->material->surface);
+    ASSERT(lineBlended->material && lineBlended->material->surface);
+    ASSERT((triOpaque->material->surface->flags
+            & AK_MATERIAL_FLAG_ALPHA_BLEND) == 0u);
+    ASSERT((lineOpaque->material->surface->flags
+            & AK_MATERIAL_FLAG_ALPHA_BLEND) == 0u);
+    ASSERT((triBlended->material->surface->flags
+            & AK_MATERIAL_FLAG_ALPHA_BLEND) != 0u);
+    ASSERT((lineBlended->material->surface->flags
+            & AK_MATERIAL_FLAG_ALPHA_BLEND) != 0u);
+
+    ASSERT(triOpaque->indices && triOpaque->indices->count == 3u);
+    ASSERT(triBlended->indices && triBlended->indices->count == 6u);
+    ASSERT(lineOpaque->indices && lineOpaque->indices->count == 6u);
+    ASSERT(lineBlended->indices && lineBlended->indices->count == 4u);
+    ASSERT(triOpaque->indices->componentType == componentTypes[caseIndex]);
+    ASSERT(triBlended->indices->componentType == componentTypes[caseIndex]);
+    ASSERT(lineOpaque->indices->componentType == componentTypes[caseIndex]);
+    ASSERT(lineBlended->indices->componentType == componentTypes[caseIndex]);
+    ASSERT(triOpaque->indices->max == 2u);
+    ASSERT(triBlended->indices->max == highIndex);
+    ASSERT(lineOpaque->indices->max == 4u);
+    ASSERT(lineBlended->indices->max == highIndex);
+
+    ASSERT(ak_indexArrayGet(triOpaque->indices, 0u) == 0u);
+    ASSERT(ak_indexArrayGet(triOpaque->indices, 1u) == 1u);
+    ASSERT(ak_indexArrayGet(triOpaque->indices, 2u) == 2u);
+    ASSERT(ak_indexArrayGet(triBlended->indices, 0u) == 3u);
+    ASSERT(ak_indexArrayGet(triBlended->indices, 1u) == 4u);
+    ASSERT(ak_indexArrayGet(triBlended->indices, 2u) == 0u);
+    ASSERT(ak_indexArrayGet(triBlended->indices, 3u) == highIndex);
+    ASSERT(ak_indexArrayGet(triBlended->indices, 4u) == 1u);
+    ASSERT(ak_indexArrayGet(triBlended->indices, 5u) == 2u);
+    ASSERT(ak_indexArrayGet(lineOpaque->indices, 0u) == 0u);
+    ASSERT(ak_indexArrayGet(lineOpaque->indices, 1u) == 4u);
+    ASSERT(ak_indexArrayGet(lineOpaque->indices, 2u) == 1u);
+    ASSERT(ak_indexArrayGet(lineOpaque->indices, 3u) == 2u);
+    ASSERT(ak_indexArrayGet(lineOpaque->indices, 4u) == 2u);
+    ASSERT(ak_indexArrayGet(lineOpaque->indices, 5u) == 4u);
+    ASSERT(ak_indexArrayGet(lineBlended->indices, 0u) == 3u);
+    ASSERT(ak_indexArrayGet(lineBlended->indices, 1u) == 1u);
+    ASSERT(ak_indexArrayGet(lineBlended->indices, 2u) == highIndex);
+    ASSERT(ak_indexArrayGet(lineBlended->indices, 3u) == 0u);
+
+    colorAccessor = ak_test_input(triOpaque, AK_INPUT_COLOR)->accessor;
+    ASSERT(colorAccessor != NULL);
+    ASSERT(ak_test_input(triBlended, AK_INPUT_COLOR)->accessor == colorAccessor);
+    ASSERT(ak_test_input(lineOpaque, AK_INPUT_COLOR)->accessor == colorAccessor);
+    ASSERT(ak_test_input(lineBlended, AK_INPUT_COLOR)->accessor == colorAccessor);
+    ASSERT(fabsf(ak_test_accessor_f32(colorAccessor, 3u, 3u) - 0.5f)
+           < 0.0001f);
+    ASSERT(!isfinite(ak_test_accessor_f32(colorAccessor, highIndex, 3u)));
+
+    ak_free(doc);
+  }
+
+  unlink(opaquePath);
+  for (caseIndex = 0u; caseIndex < 3u; caseIndex++)
+    unlink(mixedPaths[caseIndex]);
   rmdir(tmpdir);
 
   TEST_SUCCESS

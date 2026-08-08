@@ -166,6 +166,79 @@ ak_test_3mf_zip_entry_method(const char *path,
   return false;
 }
 
+static bool
+ak_test_3mf_zip_read_stored(const char *path,
+                            const char *entryName,
+                            void      **outData,
+                            size_t     *outSize) {
+  unsigned char *archive;
+  unsigned char *payload;
+  FILE          *file;
+  long           fileSize;
+  size_t         cursor;
+  size_t         entryNameLen;
+  bool           ok;
+
+  if (!path || !entryName || !outData || !outSize)
+    return false;
+  *outData = NULL;
+  *outSize = 0u;
+
+  file = fopen(path, "rb");
+  if (!file)
+    return false;
+  ok = fseek(file, 0, SEEK_END) == 0;
+  fileSize = ok ? ftell(file) : -1;
+  ok = ok && fileSize >= 30 && fseek(file, 0, SEEK_SET) == 0;
+  archive = ok ? malloc((size_t)fileSize) : NULL;
+  if (!archive)
+    ok = false;
+  if (ok)
+    ok = fread(archive, 1, (size_t)fileSize, file) == (size_t)fileSize;
+  fclose(file);
+  if (!ok) {
+    free(archive);
+    return false;
+  }
+
+  entryNameLen = strlen(entryName);
+  cursor = 0u;
+  while ((size_t)fileSize - cursor >= 30u
+         && ak_test_3mf_load_u32le(archive + cursor) == 0x04034b50u) {
+    uint32_t compressedSize;
+    uint16_t method;
+    uint16_t nameLen;
+    uint16_t extraLen;
+    size_t   dataOffset;
+
+    method         = ak_test_3mf_load_u16le(archive + cursor + 8u);
+    compressedSize = ak_test_3mf_load_u32le(archive + cursor + 18u);
+    nameLen        = ak_test_3mf_load_u16le(archive + cursor + 26u);
+    extraLen       = ak_test_3mf_load_u16le(archive + cursor + 28u);
+    dataOffset     = cursor + 30u + (size_t)nameLen + (size_t)extraLen;
+    if (dataOffset > (size_t)fileSize
+        || compressedSize > (size_t)fileSize - dataOffset)
+      break;
+    if (method == 0u
+        && nameLen == entryNameLen
+        && memcmp(archive + cursor + 30u, entryName, entryNameLen) == 0) {
+      payload = malloc((size_t)compressedSize + 1u);
+      if (!payload)
+        break;
+      memcpy(payload, archive + dataOffset, compressedSize);
+      payload[compressedSize] = '\0';
+      *outData = payload;
+      *outSize = compressedSize;
+      free(archive);
+      return true;
+    }
+    cursor = dataOffset + compressedSize;
+  }
+
+  free(archive);
+  return false;
+}
+
 static uint32_t
 ak_test_3mf_crc32(const void *data, size_t size) {
   const unsigned char *bytes;
@@ -1285,6 +1358,90 @@ ak_test_make_3mf_color_triangle_doc(void) {
 }
 
 static AkDoc *
+ak_test_make_3mf_texture_triangle_doc(void) {
+  static const unsigned char pngBytes[] = {
+    0x89u, 'P', 'N', 'G', '\r', '\n', 0x1au, '\n'
+  };
+  AkDoc             *doc;
+  AkHeap            *heap;
+  AkGeometry        *geom;
+  AkMesh            *mesh;
+  AkMeshPrimitive   *prim;
+  AkMaterial        *material;
+  AkMaterialSurface *surface;
+  AkMaterialInput   *baseColor;
+  AkTextureRef      *textureRef;
+  AkTexture         *texture;
+  AkImage           *image;
+  AkImageSource     *source;
+  AkBuffer          *buffer;
+
+  doc = ak_test_make_3mf_triangle_doc();
+  if (!doc)
+    return NULL;
+
+  heap = ak_heap_getheap(doc);
+  geom = doc->lib.geometries.first;
+  mesh = geom && geom->gdata ? ak_objGet(geom->gdata) : NULL;
+  prim = mesh ? mesh->primitive : NULL;
+  if (!heap || !prim || !ak_test_add_texcoord_input(heap, prim, 0u))
+    return NULL;
+
+  material   = ak_heap_calloc(heap, doc, sizeof(*material));
+  surface    = material ? ak_heap_calloc(heap, material, sizeof(*surface)) : NULL;
+  baseColor  = surface ? ak_test_material_input(heap, surface) : NULL;
+  textureRef = baseColor ? ak_heap_calloc(heap, baseColor, sizeof(*textureRef)) : NULL;
+  texture    = ak_heap_calloc(heap, doc, sizeof(*texture));
+  image      = ak_heap_calloc(heap, doc, sizeof(*image));
+  source     = image ? ak_heap_calloc(heap, image, sizeof(*source)) : NULL;
+  buffer     = source ? ak_heap_calloc(heap, source, sizeof(*buffer)) : NULL;
+  if (!material || !surface || !baseColor || !textureRef
+      || !texture || !image || !source || !buffer)
+    return NULL;
+
+  buffer->data = ak_heap_alloc(heap, buffer, sizeof(pngBytes));
+  if (!buffer->data)
+    return NULL;
+  memcpy(buffer->data, pngBytes, sizeof(pngBytes));
+  buffer->length    = sizeof(pngBytes);
+  source->type      = AK_IMAGE_SOURCE_BUFFER;
+  source->buffer    = buffer;
+  source->mimeType  = "image/png";
+  image->name       = "Test Texture";
+  image->source     = source;
+  texture->name     = "Test Texture";
+  texture->image    = image;
+  textureRef->texture = texture;
+  textureRef->slot    = 0;
+
+  baseColor->source       = AK_MATERIAL_INPUT_TEXTURE;
+  baseColor->valueType    = AK_MATERIAL_VALUE_COLOR;
+  baseColor->texture      = textureRef;
+  baseColor->color.rgba.R = 1.0f;
+  baseColor->color.rgba.G = 1.0f;
+  baseColor->color.rgba.B = 1.0f;
+  baseColor->color.rgba.A = 1.0f;
+
+  material->name       = "Textured Material";
+  material->surface    = surface;
+  surface->type        = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
+  surface->baseColor   = baseColor;
+  prim->material       = material;
+
+  doc->lib.materials.first = material;
+  doc->lib.materials.last  = material;
+  doc->lib.materials.count = 1u;
+  doc->lib.images.first    = image;
+  doc->lib.images.last     = image;
+  doc->lib.images.count    = 1u;
+  doc->lib.textures.first  = texture;
+  doc->lib.textures.last   = texture;
+  doc->lib.textures.count  = 1u;
+
+  return doc;
+}
+
+static AkDoc *
 ak_test_make_3mf_package_triangle_doc(void) {
   static const unsigned char thumbnail[] = {
     0x89u, 'P', 'N', 'G', '\r', '\n', 0x1au, '\n'
@@ -1487,6 +1644,10 @@ TEST_IMPL(three_mf_export_triangle_roundtrip) {
   AkMesh         *mesh;
   AkMeshPrimitive *prim;
   AkPrintDocument *print;
+  AkNode          *roundNode;
+  AkMatrix          roundMatrix = {0};
+  float             sourceTranslation[3] = {2.0f, 3.0f, 4.0f};
+  float             expectedTranslation[3];
   struct stat      st;
   uintptr_t        savedCompressionLevel;
   uint16_t         zipMethod;
@@ -1509,9 +1670,9 @@ TEST_IMPL(three_mf_export_triangle_roundtrip) {
   roundTrip = NULL;
   ASSERT(ak_load(&roundTrip, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
   ASSERT(roundTrip != NULL);
-  ASSERT(roundTrip->coordSys == AK_ZUP);
+  ASSERT(roundTrip->coordSys == AK_YUP);
   ASSERT(roundTrip->unit != NULL);
-  ASSERT(fabs(roundTrip->unit->dist - 0.001) < 0.000001);
+  ASSERT(fabs(roundTrip->unit->dist - 1.0) < 0.000001);
   ASSERT(roundTrip->lib.geometries.count == 1);
   print = ak_printDocument(roundTrip);
   ASSERT(print != NULL);
@@ -1522,6 +1683,20 @@ TEST_IMPL(three_mf_export_triangle_roundtrip) {
   ASSERT(print->meshObjectCount == 1);
   ASSERT(print->componentObjectCount == 0);
   ASSERT(print->buildItemCount == 1);
+
+  ASSERT(roundTrip->scene != NULL);
+  ASSERT(roundTrip->scene->node != NULL);
+  roundNode = roundTrip->scene->node->chld;
+  ASSERT(roundNode != NULL);
+  ASSERT(roundNode->transform != NULL);
+  ak_transformCombine(roundNode->transform, roundMatrix.val[0]);
+  ak_coordCvtVectorTo(AK_YUP,
+                      sourceTranslation,
+                      AK_ZUP,
+                      expectedTranslation);
+  ASSERT(fabs(roundMatrix.val[3][0] - expectedTranslation[0]) < 0.000001f);
+  ASSERT(fabs(roundMatrix.val[3][1] - expectedTranslation[1]) < 0.000001f);
+  ASSERT(fabs(roundMatrix.val[3][2] - expectedTranslation[2]) < 0.000001f);
 
   geom = roundTrip->lib.geometries.first;
   ASSERT(geom != NULL);
@@ -1540,6 +1715,222 @@ TEST_IMPL(three_mf_export_triangle_roundtrip) {
   ASSERT(ak_indexArrayGet(prim->indices, 2) == 2);
 
   ak_test_export_cleanup(outDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_export_preserves_instance_attachment_order) {
+  AkDoc      *doc;
+  AkHeap     *heap;
+  AkNode     *node;
+  AkGeometry *baseGeom;
+  AkGeometry *overlayGeom;
+  void       *xmlData;
+  char       *xml;
+  char       *baseVertex;
+  char       *overlayVertex;
+  char       *build;
+  char       *baseItem;
+  char       *overlayItem;
+  size_t      xmlSize;
+  uintptr_t   savedCompressionLevel;
+  AkResult    exportResult;
+  const float overlayPositions[9] = {
+    10.0f, 0.0f, 0.0f,
+    11.0f, 0.0f, 0.0f,
+    10.0f, 1.0f, 0.0f
+  };
+  const char *outDir =
+    "./assetkit_export_3mf_instance_attachment_order";
+  const char *mfPath =
+    "./assetkit_export_3mf_instance_attachment_order/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  doc = ak_test_make_3mf_triangle_doc();
+  ASSERT(doc != NULL);
+  heap = ak_heap_getheap(doc);
+  ASSERT(heap != NULL);
+
+  node     = doc->scene ? doc->scene->node->chld : NULL;
+  baseGeom = doc->lib.geometries.first;
+  ASSERT(node != NULL);
+  ASSERT(baseGeom != NULL);
+
+  overlayGeom = ak_test_make_triangle_geom(heap, doc, overlayPositions);
+  ASSERT(overlayGeom != NULL);
+  overlayGeom->name = "Overlay";
+  baseGeom->name    = "Base";
+  baseGeom->next    = overlayGeom;
+  doc->lib.geometries.last  = overlayGeom;
+  doc->lib.geometries.count = 2u;
+  ASSERT(ak_nodeAttachGeometry(node, overlayGeom) != NULL);
+
+  savedCompressionLevel = ak_opt_get(AK_OPT_ZIP_EXPORT_COMPRESSION_LEVEL);
+  ak_opt_set(AK_OPT_ZIP_EXPORT_COMPRESSION_LEVEL, 0u);
+  exportResult = ak_export(doc, outDir, AK_FILE_TYPE_3MF);
+  ak_opt_set(AK_OPT_ZIP_EXPORT_COMPRESSION_LEVEL, savedCompressionLevel);
+  ASSERT(exportResult == AK_OK);
+  xmlData = NULL;
+  xmlSize = 0u;
+  ASSERT(ak_test_3mf_zip_read_stored(mfPath,
+                                     "3D/3dmodel.model",
+                                     &xmlData,
+                                     &xmlSize));
+  ASSERT(xmlData != NULL);
+  ASSERT(xmlSize > 0u);
+  xml = xmlData;
+
+  baseVertex    = strstr(xml, "<vertex x=\"0\"");
+  overlayVertex = strstr(xml, "<vertex x=\"10\"");
+  ASSERT(baseVertex != NULL);
+  ASSERT(overlayVertex != NULL);
+  ASSERT(baseVertex < overlayVertex);
+
+  build       = strstr(xml, "<build>");
+  baseItem    = build ? strstr(build, "<item objectid=\"1\"") : NULL;
+  overlayItem = build ? strstr(build, "<item objectid=\"2\"") : NULL;
+  ASSERT(build != NULL);
+  ASSERT(baseItem != NULL);
+  ASSERT(overlayItem != NULL);
+  ASSERT(baseItem < overlayItem);
+
+  free(xml);
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_export_unsupported_unit_scales_to_metres) {
+  AkDoc    *doc;
+  AkDoc    *roundTrip;
+  AkHeap   *heap;
+  AkNode   *roundNode;
+  AkMatrix  roundMatrix = {0};
+  float     sourceTranslation[3] = {2.0f, 3.0f, 4.0f};
+  float     expectedTranslation[3];
+  const char *outDir =
+    "./assetkit_export_3mf_unsupported_unit_scales_to_metres";
+  const char *mfPath =
+    "./assetkit_export_3mf_unsupported_unit_scales_to_metres/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  doc = ak_test_make_3mf_triangle_doc();
+  ASSERT(doc != NULL);
+  heap = ak_heap_getheap(doc);
+  ASSERT(heap != NULL);
+  doc->unit = ak_heap_calloc(heap, doc, sizeof(*doc->unit));
+  ASSERT(doc->unit != NULL);
+  doc->unit->name = "custom";
+  doc->unit->dist = 0.02;
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_3MF) == AK_OK);
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->coordSys == AK_YUP);
+  ASSERT(roundTrip->unit != NULL);
+  ASSERT(fabs(roundTrip->unit->dist - 1.0) < 0.000001);
+
+  ASSERT(roundTrip->scene != NULL);
+  ASSERT(roundTrip->scene->node != NULL);
+  roundNode = roundTrip->scene->node->chld;
+  ASSERT(roundNode != NULL);
+  ASSERT(roundNode->transform != NULL);
+  ak_transformCombine(roundNode->transform, roundMatrix.val[0]);
+  ak_coordCvtVectorTo(AK_YUP,
+                      sourceTranslation,
+                      AK_ZUP,
+                      expectedTranslation);
+  expectedTranslation[0] *= 0.02f;
+  expectedTranslation[1] *= 0.02f;
+  expectedTranslation[2] *= 0.02f;
+  ASSERT(fabs(roundMatrix.val[3][0] - expectedTranslation[0]) < 0.000001f);
+  ASSERT(fabs(roundMatrix.val[3][1] - expectedTranslation[1]) < 0.000001f);
+  ASSERT(fabs(roundMatrix.val[3][2] - expectedTranslation[2]) < 0.000001f);
+
+  ak_test_export_cleanup(outDir);
+  TEST_SUCCESS
+}
+
+TEST_IMPL(three_mf_export_texture_triangle_roundtrip) {
+  AkHeap            *heap;
+  AkDoc             *doc;
+  AkDoc             *roundTrip;
+  AkGeometry        *geom;
+  AkMesh            *mesh;
+  AkMeshPrimitive   *prim;
+  AkMaterialInput   *baseColor;
+  AkTextureRef      *textureRef;
+  AkInput           *input;
+  float              texcoords[6];
+  bool               hasTexcoord;
+  const char        *outDir =
+    "./assetkit_export_3mf_texture_triangle_roundtrip";
+  const char        *mfPath =
+    "./assetkit_export_3mf_texture_triangle_roundtrip/model.3mf";
+
+  ak_test_export_cleanup(outDir);
+  doc = ak_test_make_3mf_texture_triangle_doc();
+  ASSERT(doc != NULL);
+  heap = ak_heap_getheap(doc);
+  ASSERT(heap != NULL);
+  doc->inf = ak_heap_calloc(heap, doc, sizeof(*doc->inf));
+  ASSERT(doc->inf != NULL);
+  doc->inf->flipImage = true;
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_3MF) == AK_OK);
+
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, mfPath, AK_FILE_TYPE_3MF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->lib.images.count == 1u);
+  ASSERT(roundTrip->lib.textures.count == 1u);
+  ASSERT(roundTrip->lib.samplers.count == 1u);
+  ASSERT(roundTrip->lib.materials.count == 1u);
+  ASSERT(roundTrip->lib.images.first != NULL);
+  ASSERT(roundTrip->lib.images.first->source != NULL);
+  ASSERT(roundTrip->lib.images.first->source->type == AK_IMAGE_SOURCE_BUFFER);
+  ASSERT(roundTrip->lib.images.first->source->buffer != NULL);
+  ASSERT(roundTrip->lib.images.first->source->buffer->length == 8u);
+
+  geom = roundTrip->lib.geometries.first;
+  ASSERT(geom != NULL);
+  mesh = geom->gdata ? ak_objGet(geom->gdata) : NULL;
+  ASSERT(mesh != NULL);
+  prim = mesh->primitive;
+  ASSERT(prim != NULL);
+  ASSERT(prim->material != NULL);
+  ASSERT(prim->material->surface != NULL);
+  baseColor = prim->material->surface->baseColor;
+  ASSERT(baseColor != NULL);
+  textureRef = ak_materialInputTexture(baseColor);
+  ASSERT(textureRef != NULL);
+  ASSERT(textureRef->texture != NULL);
+  ASSERT(textureRef->texture->image != NULL);
+
+  hasTexcoord = false;
+  for (input = prim->input; input; input = input->next) {
+    if (input->semantic == AK_INPUT_TEXCOORD) {
+      hasTexcoord = true;
+      ASSERT(input->accessor != NULL);
+      ASSERT(input->accessor->count == 3u);
+      ASSERT(ak_accessorAsFloat(input->accessor,
+                                texcoords,
+                                AK_ARRAY_LEN(texcoords))
+             == AK_ARRAY_LEN(texcoords));
+      ASSERT(fabs(texcoords[0] - 0.0f) < 0.000001f);
+      ASSERT(fabs(texcoords[1] - 1.0f) < 0.000001f);
+      ASSERT(fabs(texcoords[2] - 1.0f) < 0.000001f);
+      ASSERT(fabs(texcoords[3] - 1.0f) < 0.000001f);
+      ASSERT(fabs(texcoords[4] - 0.0f) < 0.000001f);
+      ASSERT(fabs(texcoords[5] - 0.0f) < 0.000001f);
+      break;
+    }
+  }
+  ASSERT(hasTexcoord);
+
+  ak_free(roundTrip);
+  ak_free(doc);
+  ak_test_export_cleanup(outDir);
+
   TEST_SUCCESS
 }
 

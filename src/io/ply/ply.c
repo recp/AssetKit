@@ -760,7 +760,8 @@ ply_finish_indices(PLYState       * __restrict pst,
 static
 void
 ply_primitive_attach_inputs(PLYState        * __restrict pst,
-                            AkMeshPrimitive * __restrict prim) {
+                            AkMeshPrimitive * __restrict prim,
+                            bool                          alphaBlend) {
   AkHeap *heap;
 
   heap = pst->heap;
@@ -781,9 +782,212 @@ ply_primitive_attach_inputs(PLYState        * __restrict pst,
   /* vertex colors */
   if (pst->ac_rgb) {
     io_input(heap, prim, pst->ac_rgb, AK_INPUT_COLOR, _s_COLOR, 0);
-    prim->material = ak_materialDefaultVertexColorAlpha(pst->doc, pst->ac_rgb->componentSize == AK_COMPONENT_SIZE_VEC4);
+    prim->material = ak_materialDefaultVertexColorAlpha(pst->doc, alphaBlend);
   }
 }
+
+typedef struct PLYAlphaSplit {
+  AkMeshPrimitive *opaque;
+  AkMeshPrimitive *blended;
+} PLYAlphaSplit;
+
+#define PLY_ALPHA_PARTITION_TYPED(TYPE)                                      \
+  do {                                                                        \
+    TYPE   *values_, *smallValues_;                                           \
+    size_t  retainedWrite_, smallWrite_;                                      \
+                                                                              \
+    values_       = (TYPE *)(void *)indices->items;                           \
+    smallValues_  = (TYPE *)(void *)smallIndices->items;                      \
+    retainedWrite_ = 0u;                                                      \
+    smallWrite_    = 0u;                                                      \
+    if (verticesPerElement == 3u) {                                           \
+      for (i = 0u; i < elementCount; i++) {                                  \
+        AkUInt max_;                                                          \
+        bool   blended_, retain_;                                             \
+        size_t base_, *write_;                                                \
+        TYPE   a_, b_, c_, *dst_;                                             \
+                                                                              \
+        base_ = i * 3u;                                                       \
+        a_    = values_[base_];                                               \
+        b_    = values_[base_ + 1u];                                          \
+        c_    = values_[base_ + 2u];                                          \
+        blended_ = ply_vertex_alpha_blended(pst, a_)                         \
+                   || ply_vertex_alpha_blended(pst, b_)                      \
+                   || ply_vertex_alpha_blended(pst, c_);                     \
+        retain_ = blended_ == retainBlended;                                 \
+        write_  = retain_ ? &retainedWrite_ : &smallWrite_;                  \
+        dst_    = retain_ ? values_ : smallValues_;                          \
+        if (!retain_ || *write_ != base_) {                                  \
+          dst_[*write_]      = a_;                                            \
+          dst_[*write_ + 1u] = b_;                                            \
+          dst_[*write_ + 2u] = c_;                                            \
+        }                                                                     \
+        *write_ += 3u;                                                        \
+        max_ = a_ > b_ ? a_ : b_;                                            \
+        if (c_ > max_)                                                        \
+          max_ = c_;                                                         \
+        if (retain_) {                                                        \
+          if (max_ > retainedMax)                                             \
+            retainedMax = max_;                                               \
+        } else if (max_ > smallMax) {                                         \
+          smallMax = max_;                                                    \
+        }                                                                     \
+      }                                                                       \
+    } else {                                                                  \
+      for (i = 0u; i < elementCount; i++) {                                  \
+        AkUInt max_;                                                          \
+        bool   blended_, retain_;                                             \
+        size_t base_, *write_;                                                \
+        TYPE   a_, b_, *dst_;                                                 \
+                                                                              \
+        base_ = i * 2u;                                                       \
+        a_    = values_[base_];                                               \
+        b_    = values_[base_ + 1u];                                          \
+        blended_ = ply_vertex_alpha_blended(pst, a_)                         \
+                   || ply_vertex_alpha_blended(pst, b_);                     \
+        retain_ = blended_ == retainBlended;                                 \
+        write_  = retain_ ? &retainedWrite_ : &smallWrite_;                  \
+        dst_    = retain_ ? values_ : smallValues_;                          \
+        if (!retain_ || *write_ != base_) {                                  \
+          dst_[*write_]      = a_;                                            \
+          dst_[*write_ + 1u] = b_;                                            \
+        }                                                                     \
+        *write_ += 2u;                                                        \
+        max_ = a_ > b_ ? a_ : b_;                                            \
+        if (retain_) {                                                        \
+          if (max_ > retainedMax)                                             \
+            retainedMax = max_;                                               \
+        } else if (max_ > smallMax) {                                         \
+          smallMax = max_;                                                    \
+        }                                                                     \
+      }                                                                       \
+    }                                                                         \
+  } while (0)
+
+static
+AkMeshPrimitive*
+ply_primitive_alloc_like(PLYState        * __restrict pst,
+                         AkMesh          * __restrict mesh,
+                         AkMeshPrimitive * __restrict source) {
+  AkMeshPrimitive *prim;
+
+  prim = NULL;
+  if (source->type == AK_PRIMITIVE_TRIANGLES) {
+    AkTriangles *tri;
+
+    tri = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*tri));
+    if (tri) {
+      tri->mode      = ((AkTriangles *)source)->mode;
+      tri->base.type = AK_PRIMITIVE_TRIANGLES;
+      prim           = (AkMeshPrimitive *)tri;
+    }
+  } else if (source->type == AK_PRIMITIVE_LINES) {
+    AkLines *lines;
+
+    lines = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*lines));
+    if (lines) {
+      lines->mode      = ((AkLines *)source)->mode;
+      lines->base.type = AK_PRIMITIVE_LINES;
+      prim             = (AkMeshPrimitive *)lines;
+    }
+  }
+
+  if (prim)
+    prim->indexStride = source->indexStride;
+  return prim;
+}
+
+static
+PLYAlphaSplit
+ply_primitive_split_alpha(PLYState        * __restrict pst,
+                          AkMesh          * __restrict mesh,
+                          AkMeshPrimitive * __restrict prim,
+                          bool                          alphaBitsValid,
+                          uint32_t                      verticesPerElement,
+                          size_t                        blendedCount) {
+  PLYAlphaSplit   split;
+  AkIndexArray   *indices, *smallIndices;
+  AkMeshPrimitive *smallPrim;
+  AkUInt          retainedMax, smallMax;
+  size_t          elementCount, i;
+  size_t          opaqueCount, smallCount;
+  bool            retainBlended;
+
+  split.opaque  = NULL;
+  split.blended = NULL;
+  indices       = prim->indices;
+
+  if (!pst->ac_rgb || pst->ac_rgb->componentSize != AK_COMPONENT_SIZE_VEC4) {
+    split.opaque = prim;
+    return split;
+  }
+  if (!alphaBitsValid || !indices || verticesPerElement == 0u
+      || indices->count % verticesPerElement != 0u) {
+    split.blended = prim;
+    return split;
+  }
+
+  elementCount = indices->count / verticesPerElement;
+  if (blendedCount > elementCount) {
+    split.blended = prim;
+    return split;
+  }
+
+  if (blendedCount == 0u) {
+    split.opaque = prim;
+    return split;
+  }
+  if (blendedCount == elementCount) {
+    split.blended = prim;
+    return split;
+  }
+
+  opaqueCount    = elementCount - blendedCount;
+  retainBlended  = blendedCount > opaqueCount;
+  smallCount     = retainBlended ? opaqueCount : blendedCount;
+  smallPrim      = ply_primitive_alloc_like(pst, mesh, prim);
+  if (!smallPrim) {
+    split.blended = prim;
+    return split;
+  }
+
+  smallIndices = ak_indexArrayAlloc(pst->heap,
+                                    smallPrim,
+                                    smallCount * verticesPerElement,
+                                    indices->componentType);
+  if (!smallIndices) {
+    split.blended = prim;
+    return split;
+  }
+
+  retainedMax = 0u;
+  smallMax    = 0u;
+  switch (indices->componentType) {
+    case AKT_UBYTE:  PLY_ALPHA_PARTITION_TYPED(uint8_t);  break;
+    case AKT_USHORT: PLY_ALPHA_PARTITION_TYPED(uint16_t); break;
+    case AKT_UINT:   PLY_ALPHA_PARTITION_TYPED(uint32_t); break;
+    default:                                                   break;
+  }
+
+  indices->count       = (elementCount - smallCount) * verticesPerElement;
+  indices->max         = retainedMax;
+  prim->nPolygons      = (uint32_t)(elementCount - smallCount);
+  smallIndices->count  = smallCount * verticesPerElement;
+  smallIndices->max    = smallMax;
+  smallPrim->indices   = smallIndices;
+  smallPrim->nPolygons = (uint32_t)smallCount;
+
+  if (retainBlended) {
+    split.opaque  = smallPrim;
+    split.blended = prim;
+  } else {
+    split.opaque  = prim;
+    split.blended = smallPrim;
+  }
+  return split;
+}
+
+#undef PLY_ALPHA_PARTITION_TYPED
 
 static
 void
@@ -847,14 +1051,27 @@ ply_prepare_color_normalization(PLYState * __restrict pst) {
   pst->normalizeColors     = srgb || pst->colorScale != 1.0f;
   acc->originallyNormalized = ply_color_source_is_integer(
                                 acc->originalComponentType);
+
+  if (acc->componentCount > 3u) {
+    size_t bitBytes;
+
+    bitBytes = ((size_t)acc->count + 7u) >> 3u;
+    if (bitBytes == 0u) {
+      pst->alphaBlendBitsValid = true;
+    } else {
+      pst->alphaBlendBits = ak_heap_calloc(pst->heap, pst->tmp, bitBytes);
+      pst->alphaBlendBitsValid = pst->alphaBlendBits != NULL;
+    }
+  }
 }
 
 AK_HIDE
 void
 ply_finish(PLYState * __restrict pst) {
-  AkGeometry         *geom;
-  AkMesh             *mesh;
-  AkMeshPrimitive    *prim;
+  AkGeometry      *geom;
+  AkMesh          *mesh;
+  AkMeshPrimitive *prim;
+  bool             alphaBitsValid;
 
   /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
 
@@ -862,52 +1079,84 @@ ply_finish(PLYState * __restrict pst) {
 
   /* add to library */
   AK_LIB_PREPEND(*pst->lib_geom, geom, next);
-  
+
   /* make instance geeometry and attach to the root node  */
   (void)ak_nodeAttachGeometry(pst->node, geom);
 
+  alphaBitsValid = pst->alphaBlendBitsValid;
+
   if (pst->dc_ind && pst->dc_ind->itemcount > 0) {
-    AkTriangles *tri;
+    PLYAlphaSplit split;
+    AkTriangles  *tri;
 
     tri            = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*tri));
     tri->mode      = AK_TRIANGLES;
     tri->base.type = AK_PRIMITIVE_TRIANGLES;
-    prim           = (AkMeshPrimitive *)tri;
+    prim              = (AkMeshPrimitive *)tri;
     prim->indexStride = 1;
     prim->nPolygons   = pst->count / 3;
-    ply_primitive_attach_inputs(pst, prim);
     ply_finish_indices(pst,
                        prim,
                        pst->dc_ind,
                        pst->indexMax,
                        pst->indexComponentType);
-    ply_mesh_add_primitive(mesh, prim);
+    split = ply_primitive_split_alpha(pst,
+                                      mesh,
+                                      prim,
+                                      alphaBitsValid,
+                                      3u,
+                                      pst->faceAlphaBlendCount);
+    if (split.opaque) {
+      ply_primitive_attach_inputs(pst, split.opaque, false);
+      ply_mesh_add_primitive(mesh, split.opaque);
+    }
+    if (split.blended) {
+      ply_primitive_attach_inputs(pst, split.blended, true);
+      ply_mesh_add_primitive(mesh, split.blended);
+    }
   }
 
   if (pst->dc_edge_ind && pst->edgeIndexCount > 0) {
-    AkLines *lines;
+    PLYAlphaSplit split;
+    AkLines      *lines;
 
     lines            = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*lines));
     lines->mode      = AK_LINES;
     lines->base.type = AK_PRIMITIVE_LINES;
-    prim             = (AkMeshPrimitive *)lines;
+    prim              = (AkMeshPrimitive *)lines;
     prim->indexStride = 1;
     prim->nPolygons   = pst->edgeIndexCount / 2;
-    ply_primitive_attach_inputs(pst, prim);
     ply_finish_indices(pst,
                        prim,
                        pst->dc_edge_ind,
                        pst->edgeIndexMax,
                        pst->edgeIndexComponentType);
-    ply_mesh_add_primitive(mesh, prim);
+    split = ply_primitive_split_alpha(pst,
+                                      mesh,
+                                      prim,
+                                      alphaBitsValid,
+                                      2u,
+                                      pst->edgeAlphaBlendCount);
+    if (split.opaque) {
+      ply_primitive_attach_inputs(pst, split.opaque, false);
+      ply_mesh_add_primitive(mesh, split.opaque);
+    }
+    if (split.blended) {
+      ply_primitive_attach_inputs(pst, split.blended, true);
+      ply_mesh_add_primitive(mesh, split.blended);
+    }
   }
 
   if (!mesh->primitive) {
-    prim       = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*prim));
-    prim->type = AK_PRIMITIVE_POINTS;
+    prim              = ak_heap_calloc(pst->heap, ak_objFrom(mesh), sizeof(*prim));
+    prim->type        = AK_PRIMITIVE_POINTS;
     prim->indexStride = 1;
     prim->nPolygons   = pst->vertcount;
-    ply_primitive_attach_inputs(pst, prim);
+    ply_primitive_attach_inputs(pst,
+                                prim,
+                                pst->ac_rgb
+                                && pst->ac_rgb->componentSize
+                                   == AK_COMPONENT_SIZE_VEC4);
     ply_mesh_add_primitive(mesh, prim);
   }
 }

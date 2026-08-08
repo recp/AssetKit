@@ -78,7 +78,8 @@ uintptr_t AK_OPTIONS[] =
   false,                           /* 44: _PLY_EXPORT_TRIANGULATED     */
   AK_GLTF_EXPORT_VERSION_AUTO,     /* 45: _GLTF_EXPORT_VERSION         */
   1,                               /* 46: _ZIP_EXPORT_COMPRESSION_LEVEL */
-  AK_PLY_IMPORT_COLOR_SRGB          /* 47: _PLY_IMPORT_COLOR_MODE       */
+  AK_PLY_IMPORT_COLOR_SRGB,         /* 47: _PLY_IMPORT_COLOR_MODE       */
+  false                             /* 48: _PLY_EXPORT_BAKE_TEXTURES    */
 };
 
 AK_EXPORT

@@ -16,6 +16,8 @@
 
 #include "internal.h"
 
+#include <string.h>
+
 AK_HIDE
 bool
 gltf_indices_reserve_span(GLTFExpIndexList * __restrict list,
@@ -92,11 +94,12 @@ gltf_node_index(GLTFExpState * __restrict st,
 
 AK_HIDE
 AkInstanceGeometry*
-gltf_node_geometry(AkNode * __restrict node, bool * __restrict ok) {
+gltf_node_geometry(AkNode * __restrict node, size_t * __restrict count) {
   AkInstanceGeometry *inst;
   AkInstanceGeometry *geomInst;
 
   geomInst = NULL;
+  *count   = 0;
 
   for (inst = node ? node->geometry : NULL;
        inst;
@@ -104,12 +107,9 @@ gltf_node_geometry(AkNode * __restrict node, bool * __restrict ok) {
     if (!inst->base.object)
       continue;
 
-    if (geomInst) {
-      *ok = false;
-      return NULL;
-    }
-
-    geomInst = inst;
+    if (!geomInst)
+      geomInst = inst;
+    (*count)++;
   }
 
   return geomInst;
@@ -254,8 +254,75 @@ gltf_plan_node_gpu_instancing(GLTFExpState   * __restrict st,
     return false;
 
   st->usesGpuInstancing = true;
+  out->hasGpuInstancing = true;
 
   return true;
+}
+
+static
+bool
+gltf_plan_node_mesh(GLTFExpState       * __restrict st,
+                    GLTFExpNodeOut     * __restrict out,
+                    AkInstanceGeometry * __restrict geomInst,
+                    AkNode             * __restrict bakeNode) {
+  out->instance = geomInst;
+  out->bakeLocalTransform = bakeNode != NULL;
+
+  if (!gltf_plan_mesh(st, geomInst, bakeNode, &out->meshIndex))
+    return false;
+
+  out->hasMesh = out->meshIndex != GLTF_EXP_INDEX_NONE;
+  if (out->hasMesh && geomInst && geomInst->morpher)
+    out->morphWeights = geomInst->morpher->overrideWeights;
+
+  if (!gltf_plan_node_gpu_instancing(st, out->node, out))
+    return false;
+
+  if (geomInst && geomInst->skinner && gltf_skin_valid(geomInst->skinner)) {
+    if (!gltf_skins_add(st, geomInst->skinner, &out->skinIndex))
+      return false;
+    out->hasSkin = out->skinIndex != GLTF_EXP_INDEX_NONE;
+  }
+
+  return true;
+}
+
+static
+bool
+gltf_plan_geometry_child(GLTFExpState       * __restrict st,
+                         AkNode             * __restrict owner,
+                         AkInstanceGeometry * __restrict geomInst,
+                         GLTFExpIndex       * __restrict childIndex) {
+  GLTFExpNodeOut *out;
+  AkGeometry     *geom;
+  size_t          newCap;
+
+  if (st->nodes.count >= GLTF_EXP_INDEX_NONE)
+    return false;
+
+  if (st->nodes.count == st->nodes.capacity) {
+    if (!gltf_next_capacity(st->nodes.capacity, 128, &newCap)
+        || !gltf_nodes_reserve(&st->nodes, newCap))
+      return false;
+  }
+
+  *childIndex = (GLTFExpIndex)st->nodes.count++;
+  out         = &st->nodes.items[*childIndex];
+  memset(out, 0, sizeof(*out));
+
+  geom                    = geomInst ? geomInst->base.object : NULL;
+  out->node               = owner;
+  out->instance           = geomInst;
+  out->name               = geomInst && geomInst->base.name
+                            ? geomInst->base.name
+                            : (geom ? geom->name : NULL);
+  out->meshIndex          = GLTF_EXP_INDEX_NONE;
+  out->cameraIndex        = GLTF_EXP_INDEX_NONE;
+  out->lightIndex         = GLTF_EXP_INDEX_NONE;
+  out->skinIndex          = GLTF_EXP_INDEX_NONE;
+  out->syntheticMeshChild = true;
+
+  return gltf_plan_node_mesh(st, out, geomInst, NULL);
 }
 
 AK_HIDE
@@ -270,7 +337,7 @@ gltf_plan_node(GLTFExpState * __restrict st,
   GLTFExpIndex    nodeIndex;
   uint32_t        childWriteIndex;
   size_t          childCount;
-  bool            ok;
+  size_t          geomCount;
 
   if (!node)
     return GLTF_EXP_INDEX_NONE;
@@ -309,7 +376,15 @@ gltf_plan_node(GLTFExpState * __restrict st,
   out->skinIndex   = GLTF_EXP_INDEX_NONE;
   out->childOffset = 0;
   childWriteIndex  = 0;
+  geomInst         = gltf_node_geometry(node, &geomCount);
   childCount       = gltf_node_direct_child_count(node);
+  if (geomCount > 1) {
+    if (geomCount > (size_t)-1 - childCount) {
+      st->failed = true;
+      return GLTF_EXP_INDEX_NONE;
+    }
+    childCount += geomCount;
+  }
   if (childCount > UINT32_MAX
       || !gltf_indices_reserve_span(&st->nodeChildren,
                                     childCount,
@@ -326,33 +401,35 @@ gltf_plan_node(GLTFExpState * __restrict st,
 
   rb_insert(st->nodeStack, node, (void *)(uintptr_t)1);
 
-  ok   = true;
-  geomInst = gltf_node_geometry(node, &ok);
-  out->bakeLocalTransform = gltf_node_can_bake_local_mesh(node, geomInst);
-  if (!ok
-      || !gltf_plan_mesh(st,
-                         geomInst,
-                         out->bakeLocalTransform ? node : NULL,
-                         &out->meshIndex)) {
-    st->failed = true;
-    goto done;
-  }
-  out->hasMesh = out->meshIndex != GLTF_EXP_INDEX_NONE;
-  if (out->hasMesh && geomInst && geomInst->morpher)
-    out->morphWeights = geomInst->morpher->overrideWeights;
+  if (geomCount <= 1) {
+    AkNode *bakeNode;
 
-  if (!gltf_plan_node_gpu_instancing(st, node, out)) {
-    st->failed = true;
-    goto done;
-  }
+    bakeNode = gltf_node_can_bake_local_mesh(node, geomInst) ? node : NULL;
+    if (!gltf_plan_node_mesh(st, out, geomInst, bakeNode)) {
+      st->failed = true;
+      goto done;
+    }
+  } else {
+    AkInstanceGeometry *geomIt;
 
-  if (geomInst && geomInst->skinner) {
-    if (gltf_skin_valid(geomInst->skinner)) {
-      if (!gltf_skins_add(st, geomInst->skinner, &out->skinIndex)) {
+    for (geomIt = node->geometry;
+         geomIt;
+         geomIt = (AkInstanceGeometry *)geomIt->base.next) {
+      GLTFExpIndex childIndex;
+
+      if (!geomIt->base.object)
+        continue;
+
+      if (!gltf_plan_geometry_child(st, node, geomIt, &childIndex)) {
         st->failed = true;
         goto done;
       }
-      out->hasSkin = out->skinIndex != GLTF_EXP_INDEX_NONE;
+
+      out = &st->nodes.items[nodeIndex];
+      if (!gltf_plan_child_index(st, out, &childWriteIndex, childIndex)) {
+        st->failed = true;
+        goto done;
+      }
     }
   }
 
@@ -547,6 +624,63 @@ gltf_plan_scene_skin_joint_roots(GLTFExpState    * __restrict st,
   return true;
 }
 
+static
+bool
+gltf_plan_scene_export_root(GLTFExpState    * __restrict st,
+                            GLTFExpSceneOut * __restrict sceneOut) {
+  GLTFExpNodeOut *rootOut;
+  GLTFExpIndex    childOffset;
+  GLTFExpIndex    rootIndex;
+  uint32_t        rootCount;
+  size_t          newCap;
+
+  if (!st->hasExportRootTransform || sceneOut->rootCount == 0)
+    return true;
+
+  if (st->nodes.count >= GLTF_EXP_INDEX_NONE)
+    return false;
+  if (st->nodes.count == st->nodes.capacity) {
+    if (!gltf_next_capacity(st->nodes.capacity, 128, &newCap)
+        || !gltf_nodes_reserve(&st->nodes, newCap))
+      return false;
+  }
+
+  rootCount = sceneOut->rootCount;
+  if (!gltf_indices_reserve_span(&st->nodeChildren,
+                                 rootCount,
+                                 &childOffset))
+    return false;
+
+  memcpy(st->nodeChildren.items + childOffset,
+         st->sceneRoots.items + sceneOut->rootOffset,
+         (size_t)rootCount * sizeof(*st->nodeChildren.items));
+
+  rootIndex = (GLTFExpIndex)st->nodes.count++;
+  rootOut   = &st->nodes.items[rootIndex];
+  memset(rootOut, 0, sizeof(*rootOut));
+  rootOut->meshIndex           = GLTF_EXP_INDEX_NONE;
+  rootOut->cameraIndex         = GLTF_EXP_INDEX_NONE;
+  rootOut->lightIndex          = GLTF_EXP_INDEX_NONE;
+  rootOut->skinIndex           = GLTF_EXP_INDEX_NONE;
+  rootOut->childOffset         = childOffset;
+  rootOut->childCount          = rootCount;
+  rootOut->syntheticExportRoot = true;
+
+  st->sceneRoots.items[sceneOut->rootOffset] = rootIndex;
+  st->sceneRoots.count = (size_t)sceneOut->rootOffset + 1u;
+  sceneOut->rootCount  = 1u;
+
+  return true;
+}
+
+static
+bool
+gltf_plan_scene_finish(GLTFExpState    * __restrict st,
+                       GLTFExpSceneOut * __restrict out) {
+  return gltf_plan_scene_skin_joint_roots(st, out)
+         && gltf_plan_scene_export_root(st, out);
+}
+
 AK_HIDE
 bool
 gltf_scene_entrypoint_needed(AkNode * __restrict node) {
@@ -599,7 +733,7 @@ gltf_plan_scene(GLTFExpState * __restrict st,
     rootIndex = gltf_plan_node(st, scene->node, NULL);
     return !st->failed
            && gltf_plan_scene_root(st, out, rootIndex)
-           && gltf_plan_scene_skin_joint_roots(st, out);
+           && gltf_plan_scene_finish(st, out);
   }
 
   for (root = scene->node->chld; root; root = root->next) {
@@ -625,5 +759,5 @@ gltf_plan_scene(GLTFExpState * __restrict st,
       return false;
   }
 
-  return gltf_plan_scene_skin_joint_roots(st, out);
+  return gltf_plan_scene_finish(st, out);
 }

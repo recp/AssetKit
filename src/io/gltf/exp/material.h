@@ -54,6 +54,14 @@ gltf_material_index(GLTFExpState * __restrict st,
                     AkInstanceGeometry * __restrict inst);
 
 bool
+gltf_material_binding_equal(GLTFExpState       * __restrict st,
+                            AkMaterial         * __restrict material,
+                            AkMeshPrimitive    * __restrict aPrim,
+                            AkInstanceGeometry * __restrict aInst,
+                            AkMeshPrimitive    * __restrict bPrim,
+                            AkInstanceGeometry * __restrict bInst);
+
+bool
 gltf_material_is_default_noop(AkMaterial * __restrict material);
 
 uint32_t

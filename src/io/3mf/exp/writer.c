@@ -92,9 +92,9 @@ AK_HIDE
 void
 ak_3mf_append_transform(AK3MFBuffer * __restrict buf, mat4 world) {
   const float values[12] = {
-    world[0][0], world[1][0], world[2][0],
-    world[0][1], world[1][1], world[2][1],
-    world[0][2], world[1][2], world[2][2],
+    world[0][0], world[0][1], world[0][2],
+    world[1][0], world[1][1], world[1][2],
+    world[2][0], world[2][1], world[2][2],
     world[3][0], world[3][1], world[3][2]
   };
   uint32_t i;
@@ -111,9 +111,9 @@ void
 ak_3mf_append_flat_transform(AK3MFBuffer         * __restrict buf,
                              const float          matrix[16]) {
   const float values[12] = {
-    matrix[0], matrix[4], matrix[8],
-    matrix[1], matrix[5], matrix[9],
-    matrix[2], matrix[6], matrix[10],
+    matrix[0], matrix[1], matrix[2],
+    matrix[4], matrix[5], matrix[6],
+    matrix[8], matrix[9], matrix[10],
     matrix[12], matrix[13], matrix[14]
   };
   uint32_t i;

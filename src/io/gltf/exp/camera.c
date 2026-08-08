@@ -21,7 +21,8 @@
 static
 void
 gltf_write_perspective(GLTFExpWriter * __restrict w,
-                       AkPerspective * __restrict persp) {
+                       AkPerspective * __restrict persp,
+                       float                       unitScale) {
   bool comma;
 
   gltf_w_key_str(w,
@@ -47,12 +48,12 @@ gltf_write_perspective(GLTFExpWriter * __restrict w,
   if (persp->zfar > 0.0f) {
     gltf_w_ch(w, ',');
     gltf_w_key(w, _s_gltf_zfar, _s_gltf_zfar_len);
-    gltf_w_float(w, persp->zfar);
+    gltf_w_float(w, persp->zfar * unitScale);
   }
 
   gltf_w_ch(w, ',');
   gltf_w_key(w, _s_gltf_znear, _s_gltf_znear_len);
-  gltf_w_float(w, persp->znear);
+  gltf_w_float(w, persp->znear * unitScale);
 
   gltf_w_ch(w, '}');
 }
@@ -60,7 +61,8 @@ gltf_write_perspective(GLTFExpWriter * __restrict w,
 static
 void
 gltf_write_orthographic(GLTFExpWriter  * __restrict w,
-                        AkOrthographic * __restrict ortho) {
+                        AkOrthographic * __restrict ortho,
+                        float                        unitScale) {
   gltf_w_key_str(w,
                  _s_gltf_type,
                  _s_gltf_type_len,
@@ -70,16 +72,16 @@ gltf_write_orthographic(GLTFExpWriter  * __restrict w,
   gltf_w_ch(w, '{');
 
   gltf_w_key(w, _s_gltf_xmag, _s_gltf_xmag_len);
-  gltf_w_float(w, ortho->xmag);
+  gltf_w_float(w, ortho->xmag * unitScale);
   gltf_w_ch(w, ',');
   gltf_w_key(w, _s_gltf_ymag, _s_gltf_ymag_len);
-  gltf_w_float(w, ortho->ymag);
+  gltf_w_float(w, ortho->ymag * unitScale);
   gltf_w_ch(w, ',');
   gltf_w_key(w, _s_gltf_zfar, _s_gltf_zfar_len);
-  gltf_w_float(w, ortho->zfar);
+  gltf_w_float(w, ortho->zfar * unitScale);
   gltf_w_ch(w, ',');
   gltf_w_key(w, _s_gltf_znear, _s_gltf_znear_len);
-  gltf_w_float(w, ortho->znear);
+  gltf_w_float(w, ortho->znear * unitScale);
 
   gltf_w_ch(w, '}');
 }
@@ -123,10 +125,10 @@ gltf_write_cameras(GLTFExpWriter * __restrict w,
 
     switch (proj->type) {
       case AK_PROJECTION_PERSPECTIVE:
-        gltf_write_perspective(w, (AkPerspective *)proj);
+        gltf_write_perspective(w, (AkPerspective *)proj, st->unitScale);
         break;
       case AK_PROJECTION_ORTHOGRAPHIC:
-        gltf_write_orthographic(w, (AkOrthographic *)proj);
+        gltf_write_orthographic(w, (AkOrthographic *)proj, st->unitScale);
         break;
       default:
         w->result = AK_ERR;

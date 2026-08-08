@@ -17,6 +17,7 @@
 #include "path.h"
 
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -307,4 +308,29 @@ io_path_mkdir_parent_dirs(char * __restrict path,
   }
 
   return true;
+}
+
+AK_HIDE
+bool
+io_file_write_bytes(const char * __restrict path,
+                    const void * __restrict data,
+                    size_t                  len) {
+  FILE *file;
+  bool  ok;
+
+  if (!path || !data || len == 0)
+    return false;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  ok = fwrite(data, 1, len, file) == len;
+  if (fclose(file) != 0)
+    ok = false;
+
+  if (!ok)
+    remove(path);
+
+  return ok;
 }

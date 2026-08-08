@@ -22,6 +22,7 @@
 #include "../../common/text_number.h"
 #include "../../common/uri.h"
 #include "../../../../include/ak/path.h"
+#include "../../../string_fast.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -289,6 +290,96 @@ wobj_texture_cache_fail(WOBJExpState * __restrict st, uint32_t imageIdx) {
 }
 
 static
+const char*
+wobj_image_mime_ext(const AkImageSource * __restrict source) {
+  const char *mime;
+
+  mime = source ? source->mimeType : NULL;
+  if (ak_str_eq_cstr_fast(mime, "image/png", sizeof("image/png") - 1u))
+    return ".png";
+  if (ak_str_eq_cstr_fast(mime, "image/jpeg", sizeof("image/jpeg") - 1u))
+    return ".jpg";
+  if (ak_str_eq_cstr_fast(mime, "image/webp", sizeof("image/webp") - 1u))
+    return ".webp";
+  if (ak_str_eq_cstr_fast(mime, "image/ktx2", sizeof("image/ktx2") - 1u))
+    return ".ktx2";
+
+  return ".bin";
+}
+
+static
+char*
+wobj_buffer_texture_uri(const AkImageSource * __restrict source,
+                        uint32_t                         imageIdx) {
+  const char *ext;
+  char        indexBuf[32];
+  char       *indexEnd;
+  char       *uri;
+  size_t      extLen;
+  size_t      indexLen;
+
+  ext      = wobj_image_mime_ext(source);
+  extLen   = strlen(ext);
+  indexEnd = ak_io_text_format_uint32(indexBuf, imageIdx);
+  indexLen = (size_t)(indexEnd - indexBuf);
+  if (indexLen > (size_t)-1 - extLen - sizeof("image_"))
+    return NULL;
+
+  uri = malloc((sizeof("image_") - 1u) + indexLen + extLen + 1u);
+  if (!uri)
+    return NULL;
+
+  memcpy(uri, "image_", sizeof("image_") - 1u);
+  memcpy(uri + sizeof("image_") - 1u, indexBuf, indexLen);
+  memcpy(uri + sizeof("image_") - 1u + indexLen, ext, extLen + 1u);
+
+  return uri;
+}
+
+static
+char*
+wobj_write_buffer_texture(WOBJExpState  * __restrict st,
+                          AkImageSource * __restrict source,
+                          uint32_t                   imageIdx,
+                          bool          * __restrict failed) {
+  char *dstPath;
+  char *exportUri;
+  bool  ok;
+
+  if (!st->outDir
+      || !source->buffer
+      || !source->buffer->data
+      || source->buffer->length == 0)
+    return NULL;
+
+  exportUri = wobj_buffer_texture_uri(source, imageIdx);
+  if (!exportUri)
+    return NULL;
+
+  dstPath = io_path_join_dup(st->outDir, exportUri);
+  if (!dstPath) {
+    free(exportUri);
+    return NULL;
+  }
+
+  ok = io_path_mkdir_parent_dirs(dstPath, false)
+       && io_file_write_bytes(dstPath,
+                              source->buffer->data,
+                              source->buffer->length);
+  free(dstPath);
+  if (!ok) {
+    wobj_texture_cache_fail(st, imageIdx);
+    if (failed)
+      *failed = true;
+    free(exportUri);
+    return NULL;
+  }
+
+  wobj_texture_cache_set(st, imageIdx, exportUri);
+  return exportUri;
+}
+
+static
 char*
 wobj_export_texture_uri(WOBJExpState         * __restrict st,
                         const AkMaterialInput * __restrict input,
@@ -321,6 +412,9 @@ wobj_export_texture_uri(WOBJExpState         * __restrict st,
     return exportUri;
   if (failed && *failed)
     return NULL;
+
+  if (source->type == AK_IMAGE_SOURCE_BUFFER)
+    return wobj_write_buffer_texture(st, source, imageIdx, failed);
 
   uri = source->uri;
   if (source->type != AK_IMAGE_SOURCE_URI || !uri || !*uri) {
@@ -548,6 +642,8 @@ wobj_write_material(WOBJExpState    * __restrict st,
   const AkMaterialInput    *metallic;
   const AkMaterialInput    *roughness;
   const AkMaterialInput    *opacity;
+  AkMaterialInput           baseAlpha;
+  const AkMaterialInput    *opacityMap;
   const AkMaterialInput    *normal;
   float                     ka[3];
   float                     kd[3];
@@ -579,6 +675,15 @@ wobj_write_material(WOBJExpState    * __restrict st,
   wobj_input_rgb(emissive, 0.0f, ke);
   alpha = glm_clamp_zo(ak_materialOpacityFactor(surface)
                        * wobj_input_alpha(baseColor, 1.0f));
+  opacityMap = opacity;
+  if (!opacityMap
+      && baseColor
+      && ak_materialInputTexture(baseColor)
+      && (ak_materialAlphaBlend(surface) || ak_materialAlphaMask(surface))) {
+    baseAlpha          = *baseColor;
+    baseAlpha.channels = AK_TEXTURE_CHANNEL_A;
+    opacityMap         = &baseAlpha;
+  }
 
   WOBJ_W_LIT(w, "newmtl ");
   wobj_w_name(w, out->name);
@@ -649,7 +754,7 @@ wobj_write_material(WOBJExpState    * __restrict st,
   wobj_w_map(st, w, "map_Pr", roughness);
   wobj_w_map(st, w, "map_Pm", metallic);
   wobj_w_map(st, w, "map_Ps", sheen ? sheen->color : NULL);
-  wobj_w_map(st, w, "map_d", opacity);
+  wobj_w_map(st, w, "map_d", opacityMap);
   wobj_w_map(st, w, "map_Ke", emissive);
   wobj_w_map(st, w, "bump", normal);
   wobj_w_ch(w, '\n');

@@ -81,3 +81,11 @@ docs_bak/
 docs/new/
 build-debug/
 build-static/
+
+build*asan*/
+build*ubsan*/
+out/
+build*/
+/assetkit_export_dae_active_extra_scene/
+/assetkit_export_mr_texture_channels/
+/assetkit_export_preserved_object_ext_kinds/

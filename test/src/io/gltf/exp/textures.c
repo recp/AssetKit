@@ -662,6 +662,217 @@ TEST_IMPL(gltf_export_instance_texcoord_binding) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(gltf_export_reuses_equivalent_material_bindings) {
+  AkHeap            *heap;
+  AkDoc             *doc;
+  AkDoc             *roundTrip;
+  AkScene           *scene;
+  AkNode            *root, *nodeA, *nodeB;
+  AkGeometry        *geomA, *geomB;
+  AkMesh            *meshA, *meshB;
+  AkMaterial        *mat;
+  AkMaterialSurface *surface;
+  AkMaterialInput   *baseColor;
+  AK_TEST_EXPORT_GLTF_PATHS("assetkit_export_equivalent_material_bindings");
+  const float positionsA[9] = {
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+  const float positionsB[9] = {
+    2.0f, 0.0f, 0.0f,
+    3.0f, 0.0f, 0.0f,
+    2.0f, 1.0f, 0.0f
+  };
+
+  ak_test_export_cleanup(outDir);
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  ak_heap_setdata(heap, doc);
+
+  scene       = ak_heap_calloc(heap, doc, sizeof(*scene));
+  root        = ak_heap_calloc(heap, scene, sizeof(*root));
+  nodeA       = ak_heap_calloc(heap, doc, sizeof(*nodeA));
+  nodeB       = ak_heap_calloc(heap, doc, sizeof(*nodeB));
+  scene->node = root;
+  doc->scene  = scene;
+  root->visible  = true;
+  nodeA->visible = true;
+  nodeB->visible = true;
+
+  geomA = ak_test_make_triangle_geom(heap, doc, positionsA);
+  geomB = ak_test_make_triangle_geom(heap, doc, positionsB);
+  ASSERT(geomA != NULL);
+  ASSERT(geomB != NULL);
+  meshA = ak_objGet(geomA->gdata);
+  meshB = ak_objGet(geomB->gdata);
+  ASSERT(meshA != NULL && meshA->primitive != NULL);
+  ASSERT(meshB != NULL && meshB->primitive != NULL);
+
+  mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
+  surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
+  baseColor = ak_test_material_input(heap, surface);
+  ASSERT(mat != NULL);
+  ASSERT(surface != NULL);
+  ASSERT(baseColor != NULL);
+  mat->name           = "Shared Material";
+  mat->surface        = surface;
+  surface->type       = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
+  surface->baseColor  = baseColor;
+  baseColor->source   = AK_MATERIAL_INPUT_CONSTANT;
+  baseColor->valueType = AK_MATERIAL_VALUE_COLOR;
+  baseColor->color.rgba.R = 0.25f;
+  baseColor->color.rgba.G = 0.5f;
+  baseColor->color.rgba.B = 0.75f;
+  baseColor->color.rgba.A = 1.0f;
+  meshA->primitive->material = mat;
+  meshB->primitive->material = mat;
+
+  geomA->next = geomB;
+  doc->lib.geometries.first = geomA;
+  doc->lib.geometries.last  = geomB;
+  doc->lib.geometries.count = 2u;
+  doc->lib.materials.first  = mat;
+  doc->lib.materials.last   = mat;
+  doc->lib.materials.count  = 1u;
+
+  ak_addSubNode(root, nodeA, false);
+  ak_addSubNode(root, nodeB, false);
+  ASSERT(ak_nodeAttachGeometry(nodeA, geomA) != NULL);
+  ASSERT(ak_nodeAttachGeometry(nodeB, geomB) != NULL);
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_count(gltfPath, "\"pbrMetallicRoughness\"") == 1u);
+
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, gltfPath, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->lib.materials.count == 1u);
+
+  ak_free(roundTrip);
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(gltf_export_splits_distinct_texcoord_bindings) {
+  AkHeap            *heap;
+  AkDoc             *doc;
+  AkDoc             *roundTrip;
+  AkScene           *scene;
+  AkNode            *root, *nodeA, *nodeB;
+  AkGeometry        *geomA, *geomB;
+  AkMesh            *meshA, *meshB;
+  AkMaterial        *mat;
+  AkMaterialSurface *surface;
+  AkMaterialInput   *baseColor;
+  AkTextureRef      *texref;
+  AkTexture         *texture;
+  AkImage           *image;
+  AkImageSource     *source;
+  AK_TEST_EXPORT_GLTF_PATHS("assetkit_export_distinct_texcoord_bindings");
+  const float positionsA[9] = {
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+  const float positionsB[9] = {
+    2.0f, 0.0f, 0.0f,
+    3.0f, 0.0f, 0.0f,
+    2.0f, 1.0f, 0.0f
+  };
+
+  ak_test_export_cleanup(outDir);
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  ak_heap_setdata(heap, doc);
+
+  scene       = ak_heap_calloc(heap, doc, sizeof(*scene));
+  root        = ak_heap_calloc(heap, scene, sizeof(*root));
+  nodeA       = ak_heap_calloc(heap, doc, sizeof(*nodeA));
+  nodeB       = ak_heap_calloc(heap, doc, sizeof(*nodeB));
+  scene->node = root;
+  doc->scene  = scene;
+  root->visible  = true;
+  nodeA->visible = true;
+  nodeB->visible = true;
+
+  geomA = ak_test_make_triangle_geom(heap, doc, positionsA);
+  geomB = ak_test_make_triangle_geom(heap, doc, positionsB);
+  ASSERT(geomA != NULL);
+  ASSERT(geomB != NULL);
+  meshA = ak_objGet(geomA->gdata);
+  meshB = ak_objGet(geomB->gdata);
+  ASSERT(meshA != NULL && meshA->primitive != NULL);
+  ASSERT(meshB != NULL && meshB->primitive != NULL);
+  ASSERT(ak_test_add_texcoord_input(heap, meshA->primitive, 0u) != NULL);
+  ASSERT(ak_test_add_texcoord_input(heap, meshB->primitive, 0u) != NULL);
+  ASSERT(ak_test_add_texcoord_input(heap, meshB->primitive, 1u) != NULL);
+
+  mat       = ak_heap_calloc(heap, doc, sizeof(*mat));
+  surface   = ak_heap_calloc(heap, mat, sizeof(*surface));
+  baseColor = ak_test_material_input(heap, surface);
+  texref    = ak_heap_calloc(heap, baseColor, sizeof(*texref));
+  texture   = ak_heap_calloc(heap, doc, sizeof(*texture));
+  image     = ak_heap_calloc(heap, doc, sizeof(*image));
+  source    = ak_heap_calloc(heap, image, sizeof(*source));
+  ASSERT(mat != NULL);
+  ASSERT(surface != NULL);
+  ASSERT(baseColor != NULL);
+  ASSERT(texref != NULL);
+  ASSERT(texture != NULL);
+  ASSERT(image != NULL);
+  ASSERT(source != NULL);
+
+  source->type   = AK_IMAGE_SOURCE_URI;
+  source->uri    = "data:image/png;base64,QUJD";
+  image->source  = source;
+  texture->image = image;
+  texref->slot   = 1;
+  texref->texture = texture;
+  baseColor->source    = AK_MATERIAL_INPUT_TEXTURE;
+  baseColor->valueType = AK_MATERIAL_VALUE_COLOR;
+  baseColor->texture   = texref;
+  mat->name            = "UV Variant Material";
+  mat->surface         = surface;
+  surface->type        = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
+  surface->baseColor   = baseColor;
+  meshA->primitive->material = mat;
+  meshB->primitive->material = mat;
+
+  geomA->next = geomB;
+  doc->lib.geometries.first = geomA;
+  doc->lib.geometries.last  = geomB;
+  doc->lib.geometries.count = 2u;
+  doc->lib.materials.first  = mat;
+  doc->lib.materials.last   = mat;
+  doc->lib.materials.count  = 1u;
+
+  ak_addSubNode(root, nodeA, false);
+  ak_addSubNode(root, nodeB, false);
+  ASSERT(ak_nodeAttachGeometry(nodeA, geomA) != NULL);
+  ASSERT(ak_nodeAttachGeometry(nodeB, geomB) != NULL);
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_count(gltfPath, "\"pbrMetallicRoughness\"") == 2u);
+  ASSERT(ak_test_file_contains(gltfPath, "\"texCoord\":1"));
+
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, gltfPath, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->lib.materials.count == 2u);
+  ASSERT(roundTrip->lib.images.count == 1u);
+
+  ak_free(roundTrip);
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(gltf_export_texcoord_binding_uses_source_set_zero) {
   AkHeap                 *heap;
   AkDoc                  *doc;

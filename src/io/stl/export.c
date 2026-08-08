@@ -16,6 +16,7 @@
 
 #include "stl.h"
 #include "../common/binary.h"
+#include "../common/export_space.h"
 #include "../common/primitive.h"
 #include "../common/text_number.h"
 
@@ -483,11 +484,11 @@ stl_write_node(STLExpState * __restrict st,
 static
 bool
 stl_write_scene(STLExpState * __restrict st) {
-  mat4 identity;
+  mat4 root;
 
-  glm_mat4_identity(identity);
+  io_export_canonical_root(st->doc, root);
   if (st->doc->scene && st->doc->scene->node)
-    return stl_write_node(st, st->doc->scene->node, identity, 0u);
+    return stl_write_node(st, st->doc->scene->node, root, 0u);
 
   return true;
 }
@@ -496,14 +497,14 @@ static
 bool
 stl_write_library_fallback(STLExpState * __restrict st) {
   AkGeometry *geom;
-  mat4        identity;
+  mat4        root;
 
   if (st->objectCount > 0)
     return true;
 
-  glm_mat4_identity(identity);
+  io_export_canonical_root(st->doc, root);
   for (geom = st->doc->lib.geometries.first; geom; geom = geom->next) {
-    if (!stl_write_mesh_instance(st, geom, identity))
+    if (!stl_write_mesh_instance(st, geom, root))
       return false;
   }
 

@@ -236,6 +236,290 @@ gltf_plan_position_vec2(GLTFExpState    * __restrict st,
 
 AK_HIDE
 bool
+gltf_plan_texcoord_flip(GLTFExpState * __restrict st,
+                        AkInput      * __restrict input,
+                        uint32_t                  count) {
+  GLTFExpTexcoordAttrOut *entry;
+  IOFloatRows             rows;
+  AkAccessor             *acc;
+  float                  *data;
+  size_t                  byteLength;
+  uint32_t                i;
+
+  if (!st || !input || !input->accessor || count == 0)
+    return false;
+
+  if (gltf_texcoord_accessor_index(st, input) != GLTF_EXP_INDEX_NONE)
+    return true;
+
+  acc = input->accessor;
+  if (count > acc->count
+      || gltf_accessor_export_component_count(acc) != 2u
+      || !io_float_rows_init(&rows, acc))
+    return false;
+
+#if SIZE_MAX <= UINT32_MAX
+  if ((size_t)count > SIZE_MAX / (sizeof(float) * 2u)) {
+    io_float_rows_destroy(&rows);
+    return false;
+  }
+#endif
+
+  byteLength = (size_t)count * sizeof(float) * 2u;
+  data       = malloc(byteLength);
+  if (!data) {
+    io_float_rows_destroy(&rows);
+    return false;
+  }
+
+  for (i = 0; i < count; i++) {
+    const float *src;
+    float       *dst;
+
+    src    = io_float_rows_get(&rows, i);
+    dst    = &data[(size_t)i * 2u];
+    dst[0] = src[0];
+    dst[1] = 1.0f - src[1];
+  }
+  io_float_rows_destroy(&rows);
+
+  entry = gltf_texcoord_attrs_add(&st->texcoordAttrs, input);
+  if (!entry) {
+    free(data);
+    return false;
+  }
+  entry->data = data;
+
+  if (!gltf_accessors_add_raw_target(&st->accessors,
+                                     input,
+                                     data,
+                                     byteLength,
+                                     count,
+                                     AKT_FLOAT,
+                                     AK_COMPONENT_SIZE_VEC2,
+                                     2u,
+                                     GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY))
+    return false;
+
+  entry->accessorIndex = gltf_raw_accessor_index(&st->accessors, input);
+  return entry->accessorIndex != GLTF_EXP_INDEX_NONE;
+}
+
+static
+GLTFExpNormalAttrOut*
+gltf_normal_attrs_add(GLTFExpNormalAttrTable * __restrict table,
+                      AkInput                * __restrict input) {
+  GLTFExpNormalAttrOut *items;
+  GLTFExpNormalAttrOut *entry;
+  size_t                newCap;
+
+  if (!table || !input)
+    return NULL;
+
+  if (table->count == table->capacity) {
+    if (!gltf_next_capacity(table->capacity, 16u, &newCap))
+      return NULL;
+    items = gltf_realloc_array(table->items, newCap, sizeof(*items));
+    if (!items)
+      return NULL;
+    table->items    = items;
+    table->capacity = newCap;
+  }
+
+  entry = &table->items[table->count++];
+  memset(entry, 0, sizeof(*entry));
+  entry->input         = input;
+  entry->accessorIndex = GLTF_EXP_INDEX_NONE;
+  return entry;
+}
+
+static
+bool
+gltf_normal_input_sanitizable(AkInput * __restrict input,
+                              uint32_t             count) {
+  return input
+         && input->semantic == AK_INPUT_NORMAL
+         && input->accessor
+         && count > 0
+         && input->accessor->count >= count
+         && gltf_accessor_float_vec_supported(input->accessor, 3u);
+}
+
+static
+bool
+gltf_fill_sanitized_normals(AkMeshPrimitive * __restrict prim,
+                            AkInput         * __restrict posInput,
+                            AkInput         * __restrict input,
+                            uint32_t                     count,
+                            float           * __restrict data) {
+  AkAccessor     *normalAcc;
+  AkAccessor     *posAcc;
+  IOTriangleIter  iter;
+  uint8_t        *invalid;
+  uint32_t        i;
+
+  if (!prim || !data
+      || !gltf_normal_input_sanitizable(input, count))
+    return false;
+
+  normalAcc = input->accessor;
+  posAcc    = posInput ? posInput->accessor : NULL;
+  invalid   = calloc(count, sizeof(*invalid));
+  if (!invalid)
+    return false;
+
+  for (i = 0; i < count; i++) {
+    const float *src;
+    float       *dst;
+    float        len2;
+
+    src  = gltf_accessor_float_row(normalAcc, i);
+    dst  = &data[(size_t)i * 3u];
+    len2 = src[0] * src[0] + src[1] * src[1] + src[2] * src[2];
+    if (!isfinite(len2) || len2 <= 0.00000001f) {
+      invalid[i] = 1u;
+      dst[0] = 0.0f;
+      dst[1] = 0.0f;
+      dst[2] = 0.0f;
+      continue;
+    }
+
+    len2   = 1.0f / sqrtf(len2);
+    dst[0] = src[0] * len2;
+    dst[1] = src[1] * len2;
+    dst[2] = src[2] * len2;
+  }
+
+  if (gltf_accessor_float_vec_supported(posAcc, 3u)
+      && io_triangle_iter_init(&iter, prim)) {
+    uint32_t tri[3];
+
+    while (io_triangle_iter_next(&iter, tri)) {
+      const float *p[3];
+      AkUInt       posIndex[3];
+      vec3         edge0;
+      vec3         edge1;
+      vec3         face;
+      float        len2;
+      uint32_t     corner;
+      bool         usable;
+
+      usable = true;
+      for (corner = 0; corner < 3u; corner++) {
+        posIndex[corner] = io_primitive_input_index(prim,
+                                                    posInput,
+                                                    tri[corner]);
+        if (posIndex[corner] >= posAcc->count) {
+          usable = false;
+          break;
+        }
+        p[corner] = gltf_accessor_float_row(posAcc, posIndex[corner]);
+        if (!isfinite(p[corner][0])
+            || !isfinite(p[corner][1])
+            || !isfinite(p[corner][2])) {
+          usable = false;
+          break;
+        }
+      }
+      if (!usable)
+        continue;
+
+      glm_vec3_sub((float *)p[1], (float *)p[0], edge0);
+      glm_vec3_sub((float *)p[2], (float *)p[0], edge1);
+      glm_vec3_cross(edge0, edge1, face);
+      len2 = glm_vec3_norm2(face);
+      if (!isfinite(len2) || len2 <= 0.00000001f)
+        continue;
+
+      for (corner = 0; corner < 3u; corner++) {
+        AkUInt normalIndex;
+        float *dst;
+
+        normalIndex = io_primitive_input_index(prim, input, tri[corner]);
+        if (normalIndex >= count || !invalid[normalIndex])
+          continue;
+        dst = &data[(size_t)normalIndex * 3u];
+        dst[0] += face[0];
+        dst[1] += face[1];
+        dst[2] += face[2];
+      }
+    }
+  }
+
+  for (i = 0; i < count; i++) {
+    float *dst;
+    float  len2;
+
+    if (!invalid[i])
+      continue;
+    dst  = &data[(size_t)i * 3u];
+    len2 = dst[0] * dst[0] + dst[1] * dst[1] + dst[2] * dst[2];
+    if (isfinite(len2) && len2 > 0.00000001f) {
+      len2   = 1.0f / sqrtf(len2);
+      dst[0] *= len2;
+      dst[1] *= len2;
+      dst[2] *= len2;
+    } else {
+      dst[0] = 0.0f;
+      dst[1] = 0.0f;
+      dst[2] = 1.0f;
+    }
+  }
+
+  free(invalid);
+  return true;
+}
+
+static
+bool
+gltf_plan_sanitized_normal(GLTFExpState    * __restrict st,
+                           AkMeshPrimitive * __restrict prim,
+                           AkInput         * __restrict posInput,
+                           AkInput         * __restrict input,
+                           uint32_t                     count) {
+  GLTFExpNormalAttrOut *entry;
+  float                *data;
+  size_t                byteLength;
+
+  if (gltf_raw_accessor_index(&st->accessors, input) != GLTF_EXP_INDEX_NONE)
+    return true;
+
+#if SIZE_MAX <= UINT32_MAX
+  if ((size_t)count > SIZE_MAX / (sizeof(float) * 3u))
+    return false;
+#endif
+
+  byteLength = (size_t)count * sizeof(float) * 3u;
+  if (byteLength == 0)
+    return false;
+
+  entry = gltf_normal_attrs_add(&st->normalAttrs, input);
+  if (!entry)
+    return false;
+
+  data = malloc(byteLength);
+  if (!data)
+    return false;
+  entry->data = data;
+
+  if (!gltf_fill_sanitized_normals(prim, posInput, input, count, data)
+      || !gltf_accessors_add_raw_target(&st->accessors,
+                                        input,
+                                        data,
+                                        byteLength,
+                                        count,
+                                        AKT_FLOAT,
+                                        AK_COMPONENT_SIZE_VEC3,
+                                        3u,
+                                        GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY))
+    return false;
+
+  entry->accessorIndex = gltf_raw_accessor_index(&st->accessors, input);
+  return entry->accessorIndex != GLTF_EXP_INDEX_NONE;
+}
+
+AK_HIDE
+bool
 gltf_plan_baked_position(GLTFExpState            * __restrict st,
                          AkNode                  * __restrict bakeNode,
                          AkMeshPrimitive         * __restrict prim,
@@ -309,6 +593,8 @@ gltf_plan_baked_position(GLTFExpState            * __restrict st,
 AK_HIDE
 bool
 gltf_plan_baked_normal(GLTFExpState            * __restrict st,
+                       AkMeshPrimitive         * __restrict prim,
+                       AkInput                 * __restrict posInput,
                        AkInput                 * __restrict input,
                        GLTFExpBakedPrimAttrOut * __restrict attr,
                        mat4                                 matrix) {
@@ -337,19 +623,28 @@ gltf_plan_baked_normal(GLTFExpState            * __restrict st,
   if (!data)
     return false;
 
+  if (!gltf_fill_sanitized_normals(prim,
+                                   posInput,
+                                   input,
+                                   count,
+                                   data)) {
+    free(data);
+    return false;
+  }
+
   for (i = 0; i < count; i++) {
-    const float *row;
+    vec3         src;
     vec3         dst;
     float        len2;
 
-    row = gltf_accessor_float_row(acc, i);
-    dst[0] = matrix[0][0] * row[0] + matrix[1][0] * row[1] + matrix[2][0] * row[2];
-    dst[1] = matrix[0][1] * row[0] + matrix[1][1] * row[1] + matrix[2][1] * row[2];
-    dst[2] = matrix[0][2] * row[0] + matrix[1][2] * row[1] + matrix[2][2] * row[2];
+    glm_vec3_copy(&data[(size_t)i * 3u], src);
+    dst[0] = matrix[0][0] * src[0] + matrix[1][0] * src[1] + matrix[2][0] * src[2];
+    dst[1] = matrix[0][1] * src[0] + matrix[1][1] * src[1] + matrix[2][1] * src[2];
+    dst[2] = matrix[0][2] * src[0] + matrix[1][2] * src[1] + matrix[2][2] * src[2];
 
     len2 = glm_vec3_norm2(dst);
     if (!isfinite(len2) || len2 <= 0.00000001f) {
-      glm_vec3_copy((float *)row, dst);
+      glm_vec3_copy(src, dst);
       len2 = glm_vec3_norm2(dst);
     }
 
@@ -404,7 +699,12 @@ gltf_plan_baked_primitive_attrs(GLTFExpState    * __restrict st,
     return false;
 
   normalInput = gltf_primitive_input_by_semantic(prim, AK_INPUT_NORMAL);
-  return gltf_plan_baked_normal(st, normalInput, attr, matrix);
+  return gltf_plan_baked_normal(st,
+                                prim,
+                                posInput,
+                                normalInput,
+                                attr,
+                                matrix);
 }
 
 AK_HIDE
@@ -703,7 +1003,8 @@ gltf_plan_mesh_accessors(GLTFExpState       * __restrict st,
 
   morph     = inst && inst->morpher ? inst->morpher->morph : NULL;
   skinner   = inst && gltf_skin_valid(inst->skinner) ? inst->skinner : NULL;
-  needsGeneratedSkinAttrs = skinner && gltf_mesh_needs_generated_skin_attrs(mesh);
+  needsGeneratedSkinAttrs = skinner
+                            && gltf_mesh_needs_generated_skin_attrs(st, mesh);
   primCount = 0;
   if (skinner || morph) {
     for (prim = mesh->primitive; prim; prim = prim->next)
@@ -746,6 +1047,7 @@ gltf_plan_mesh_accessors(GLTFExpState       * __restrict st,
   for (prim = mesh->primitive; prim; prim = prim->next, primIndex++) {
     AkInput *input;
     AkInput *posInput;
+    uint32_t attributeCount;
     uint32_t posComponentCount;
     GLTFExpIndex mode;
     bool     hasAttribute;
@@ -759,7 +1061,15 @@ gltf_plan_mesh_accessors(GLTFExpState       * __restrict st,
       return false;
 
     posInput = gltf_primitive_position_input(prim);
+    attributeCount = 0;
     hasAttribute = false;
+
+    if (posInput
+        && !gltf_primitive_export_attribute_count(st,
+                                                  prim,
+                                                  posInput,
+                                                  &attributeCount))
+      return false;
 
     if (!gltf_index_accessor_supported(prim->indexAccessor))
       return false;
@@ -784,14 +1094,28 @@ gltf_plan_mesh_accessors(GLTFExpState       * __restrict st,
           return false;
         hasAttribute = true;
       } else if (posComponentCount == 2) {
+        if (attributeCount != posInput->accessor->count)
+          return false;
         if (!gltf_plan_position_vec2(st, prim, posInput))
           return false;
         hasAttribute = true;
       } else if (posComponentCount == 3) {
-        if (!gltf_accessors_require_minmax_target(&st->accessors,
-                                                  posInput->accessor,
-                                                  GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY))
+        if (attributeCount != posInput->accessor->count) {
+          if (!gltf_accessors_add_input_view(
+                &st->accessors,
+                posInput,
+                attributeCount,
+                GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY,
+                false)
+              || !gltf_input_accessor_require_minmax(&st->accessors,
+                                                      posInput))
+            return false;
+        } else if (!gltf_accessors_require_minmax_target(
+                     &st->accessors,
+                     posInput->accessor,
+                     GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY)) {
           return false;
+        }
         hasAttribute = true;
       } else {
         return false;
@@ -799,30 +1123,62 @@ gltf_plan_mesh_accessors(GLTFExpState       * __restrict st,
     }
 
     for (input = prim->input; input; input = input->next) {
+      if (input->semantic == AK_INPUT_NORMAL
+          && !gltf_normal_input_valid(st, input)
+          && gltf_normal_input_sanitizable(input, attributeCount)
+          && !gltf_plan_sanitized_normal(st,
+                                         prim,
+                                         posInput,
+                                         input,
+                                         attributeCount))
+        return false;
+
       if (!input->accessor
           || input == posInput
           || input->semantic == AK_INPUT_POSITION
           || (bakeNode && input->semantic == AK_INPUT_NORMAL)
           || !gltf_input_supported(input))
         continue;
-      if (!gltf_normal_input_valid(input))
+      if (!gltf_normal_input_valid(st, input))
         continue;
-      if (!gltf_input_count_valid(prim, input, posInput))
+      if (!gltf_input_count_valid(st, prim, input, posInput))
         continue;
 
-      gltf_plan_mesh_quantization_input(st, input);
+      if ((input->semantic == AK_INPUT_TEXCOORD
+           || input->semantic == AK_INPUT_UV)
+          && st->doc
+          && st->doc->inf
+          && st->doc->inf->flipImage) {
+        if (!gltf_plan_texcoord_flip(st, input, attributeCount))
+          return false;
+      } else {
+        gltf_plan_mesh_quantization_input(st, input);
+      }
       hasAttribute = true;
 
-      if (!gltf_accessors_add_accessor_target_flags(
-            &st->accessors,
-            input->accessor,
-            GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY,
-            input->semantic == AK_INPUT_NORMAL))
-        return false;
+      if (gltf_texcoord_accessor_index(st, input) == GLTF_EXP_INDEX_NONE
+          && gltf_input_accessor_index(&st->accessors, input)
+             == GLTF_EXP_INDEX_NONE) {
+        if (attributeCount != input->accessor->count) {
+          if (!gltf_accessors_add_input_view(
+                &st->accessors,
+                input,
+                attributeCount,
+                GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY,
+                input->semantic == AK_INPUT_NORMAL))
+            return false;
+        } else if (!gltf_accessors_add_accessor_target_flags(
+                     &st->accessors,
+                     input->accessor,
+                     GLTF_EXP_BUFFER_VIEW_TARGET_ARRAY,
+                     input->semantic == AK_INPUT_NORMAL)) {
+          return false;
+        }
+      }
     }
 
     if (needsGeneratedSkinAttrs
-        && !gltf_primitive_has_exportable_skin_inputs(prim, posInput)) {
+        && !gltf_primitive_has_exportable_skin_inputs(st, prim, posInput)) {
       if (*skinAttrOffset == GLTF_EXP_INDEX_NONE
           || primIndex >= *skinAttrCount
           || !gltf_plan_generated_skin_attrs(

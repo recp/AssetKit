@@ -591,23 +591,39 @@ wobj_handleMaterial(WOState  * __restrict wst,
   surface = ak_heap_calloc(heap, mat,    sizeof(*surface));
   classic = ak_heap_calloc(heap, surface, sizeof(*classic));
 
-  switch (mtl->illum) {
-    case 0: /* Constant */
-      surface->type = AK_MATERIAL_TYPE_CONSTANT;
-      break;
-    case 1: /* Lambert */
-      surface->type = AK_MATERIAL_TYPE_LAMBERT;
-      break;
-    case 2: /* TODO: Currently all others are Blinn */
-//    case 3:
-//    case 4:
-      surface->type = AK_MATERIAL_TYPE_BLINN;
-    default:
-      break;
-  }
+  if (mtl->has_Pr
+      || mtl->map_Pr
+      || mtl->has_Pm
+      || mtl->map_Pm
+      || mtl->has_Ps
+      || mtl->map_Ps
+      || mtl->has_Pc
+      || mtl->has_Pcr
+      || mtl->has_aniso
+      || mtl->has_anisor) {
+    /* The Exocortex/Adobe PBR MTL fields extend, rather than merely decorate,
+       the classic illum model. Consumers must route these materials through
+       the metallic-roughness path or map_Pm/map_Pr are silently ignored. */
+    surface->type = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
+  } else {
+    switch (mtl->illum) {
+      case 0: /* Constant */
+        surface->type = AK_MATERIAL_TYPE_CONSTANT;
+        break;
+      case 1: /* Lambert */
+        surface->type = AK_MATERIAL_TYPE_LAMBERT;
+        break;
+      case 2: /* TODO: Currently all others are Blinn */
+//      case 3:
+//      case 4:
+        surface->type = AK_MATERIAL_TYPE_BLINN;
+      default:
+        break;
+    }
 
-  if (surface->type == AK_MATERIAL_TYPE_NONE)
-    surface->type = AK_MATERIAL_TYPE_BLINN;
+    if (surface->type == AK_MATERIAL_TYPE_NONE)
+      surface->type = AK_MATERIAL_TYPE_BLINN;
+  }
 
   surface->baseColor = wobj_colorInput(wst,
                                        surface,

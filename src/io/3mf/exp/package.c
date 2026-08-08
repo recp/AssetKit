@@ -91,8 +91,10 @@ ak_3mf_count_extra_parts(const AkPrintDocument * __restrict print) {
 static
 bool
 ak_3mf_build_content_types_xml(const AkPrintDocument * __restrict print,
+                               const AK3MFExportState * __restrict st,
                                AK3MFBuffer           * __restrict contentTypes) {
   const AkPrintPackagePart *part;
+  size_t                    i;
 
   io_buffer_init(contentTypes);
 
@@ -101,7 +103,6 @@ ak_3mf_build_content_types_xml(const AkPrintDocument * __restrict print,
                  "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n"
                  "  <Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n"
                  "  <Default Extension=\"model\" ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>\n");
-
   for (part = print ? print->parts : NULL; part; part = part->next) {
     const char *name;
 
@@ -116,8 +117,31 @@ ak_3mf_build_content_types_xml(const AkPrintDocument * __restrict print,
     AK_3MF_BUF_LIT(contentTypes, "\"/>\n");
   }
 
+  for (i = 0u; st && i < st->imageCount; i++) {
+    AK_3MF_BUF_LIT(contentTypes, "  <Override PartName=\"/");
+    ak_3mf_buf_attr(contentTypes, st->images[i].partName);
+    AK_3MF_BUF_LIT(contentTypes, "\" ContentType=\"");
+    ak_3mf_buf_attr(contentTypes, st->images[i].payload.mimeType);
+    AK_3MF_BUF_LIT(contentTypes, "\"/>\n");
+  }
+
   AK_3MF_BUF_LIT(contentTypes, "</Types>\n");
   return contentTypes->result == AK_OK;
+}
+
+static
+void
+ak_3mf_release_generated_images(AK3MFExportState * __restrict st) {
+  size_t i;
+
+  if (!st)
+    return;
+  for (i = 0u; i < st->imageCount; i++)
+    ak_imageExportPayloadRelease(&st->images[i].payload);
+  free(st->images);
+  st->images        = NULL;
+  st->imageCount    = 0u;
+  st->imageCapacity = 0u;
 }
 
 static
@@ -254,6 +278,7 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
       || st.resources.result != AK_OK
       || st.build.result != AK_OK
       || !ak_3mf_build_model_xml(&st, &model)) {
+    ak_3mf_release_generated_images(&st);
     ak_3mf_buf_free(&st.resources);
     ak_3mf_buf_free(&st.build);
     return AK_ERR;
@@ -261,18 +286,22 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
 
   print          = st.print;
   extraPartCount = ak_3mf_count_extra_parts(print);
-  entryCount     = 3u + extraPartCount;
+  entryCount     = 3u + extraPartCount + st.imageCount;
   entries        = calloc(entryCount, sizeof(*entries));
   if (!entries) {
+    ak_3mf_release_generated_images(&st);
     ak_3mf_buf_free(&model);
     ak_3mf_buf_free(&st.resources);
     ak_3mf_buf_free(&st.build);
     return AK_ERR;
   }
 
-  if (!ak_3mf_build_content_types_xml(print, &contentTypes)
+  if (!ak_3mf_build_content_types_xml(print,
+                                      &st,
+                                      &contentTypes)
       || !ak_3mf_build_rels_xml(print, &rels)) {
     free(entries);
+    ak_3mf_release_generated_images(&st);
     ak_3mf_buf_free(&contentTypes);
     ak_3mf_buf_free(&rels);
     ak_3mf_buf_free(&model);
@@ -315,6 +344,16 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
     }
     entryIndex++;
   }
+  {
+    size_t i;
+
+    for (i = 0u; i < st.imageCount; i++) {
+      entries[entryIndex].name = st.images[i].partName;
+      entries[entryIndex].data = st.images[i].payload.data;
+      entries[entryIndex].size = st.images[i].payload.byteLength;
+      entryIndex++;
+    }
+  }
 
   compressionLevelOpt = ak_opt_get(AK_OPT_ZIP_EXPORT_COMPRESSION_LEVEL);
   compressionLevel    = compressionLevelOpt > 12u ? 12u : (unsigned)compressionLevelOpt;
@@ -325,6 +364,7 @@ ak_3mf_export(AkDoc * __restrict doc, const char * __restrict filepath) {
 
   ak_zip_close(sourceArchive);
   free(entries);
+  ak_3mf_release_generated_images(&st);
   ak_3mf_buf_free(&contentTypes);
   ak_3mf_buf_free(&rels);
   ak_3mf_buf_free(&model);

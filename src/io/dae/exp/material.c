@@ -717,6 +717,7 @@ dae_write_effect(DAEExpState * __restrict st,
   AkTextureRef      *specularLevelTex;
   AkTextureRef      *opacityTex;
   AkTextureRef      *transparentTex;
+  AkTextureRef      *alphaTex;
   DAEExpName         techniqueTag;
   AkColor            color;
   float              opacity;
@@ -741,6 +742,11 @@ dae_write_effect(DAEExpState * __restrict st,
   opacityTex  = dae_material_input_texture(surface ? surface->opacity : NULL);
   transparentTex =
     dae_material_input_texture(classic ? classic->transparency : NULL);
+  alphaTex = opacityTex ? opacityTex : transparentTex;
+  if (!alphaTex
+      && baseTex
+      && (ak_materialAlphaBlend(surface) || ak_materialAlphaMask(surface)))
+    alphaTex = baseTex;
   opacity  = ak_materialOpacityFactor(surface);
 
   if (!dae_texture_ref_mapped(st, baseTex)
@@ -765,7 +771,7 @@ dae_write_effect(DAEExpState * __restrict st,
   dae_write_texture_newparam(st, matIdx, DAE_EXP_NAME_LIT("_specular_level"),
                              specularLevelTex);
   dae_write_texture_newparam(st, matIdx, DAE_EXP_NAME_LIT("_transparent"),
-                             opacityTex ? opacityTex : transparentTex);
+                             alphaTex);
 
   techniqueTag = dae_material_technique_tag(surface);
   useConstant  = surface && surface->type == AK_MATERIAL_TYPE_CONSTANT;
@@ -849,12 +855,13 @@ dae_write_effect(DAEExpState * __restrict st,
   if (dae_material_ior(surface, classic, &ior))
     dae_write_material_float_tag(w, DAE_EXP_NAME(index_of_refraction), ior);
 
-  if (dae_texture_image_index(st, opacityTex ? opacityTex : transparentTex)
-      != UINT32_MAX) {
+  if (dae_texture_image_index(st, alphaTex) != UINT32_MAX) {
     dae_w_lit(w, "<transparent opaque=\"A_ONE\">");
     dae_write_texture_value(w, matIdx, DAE_EXP_NAME_LIT("_transparent"),
-                            opacityTex ? opacityTex : transparentTex);
-    dae_w_lit(w, "</transparent><transparency><float>1</float></transparency>");
+                            alphaTex);
+    dae_w_lit(w, "</transparent><transparency><float>");
+    dae_w_float_fast(w, opacity);
+    dae_w_lit(w, "</float></transparency>");
   } else if (opacity < 0.999f
              || ak_materialAlphaBlend(surface)
              || ak_materialAlphaMask(surface)) {

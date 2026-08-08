@@ -20,6 +20,14 @@
 #include "common.h"
 #include "../common/util.h"
 
+typedef struct WObjCompactScratch {
+  void    *storage;
+  size_t   storageSize;
+  size_t   itemCapacity;
+  size_t   tableCapacity;
+  uint32_t generation;
+} WObjCompactScratch;
+
 AK_HIDE
 AkAccessor*
 wobj_acc(WOState         * __restrict wst,
@@ -47,6 +55,17 @@ bool
 wobj_flattenPrimDirect(WOState         * __restrict wst,
                        WOPrim          * __restrict wp,
                        AkMeshPrimitive * __restrict prim);
+
+AK_HIDE
+bool
+wobj_compactIndexedFacePrim(WOState           * __restrict wst,
+                            WOPrim            * __restrict wp,
+                            AkMeshPrimitive   * __restrict prim,
+                            WObjCompactScratch * __restrict scratch);
+
+AK_HIDE
+void
+wobj_compactScratchDestroy(WObjCompactScratch * __restrict scratch);
 
 AK_HIDE
 bool

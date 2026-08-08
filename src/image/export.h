@@ -52,6 +52,12 @@ bool
 ak_imageExportPNG(AkImageExportRequest * __restrict req,
                   AkImageExportPayload * __restrict payload);
 
+/* Copies an already encoded PNG or JPEG source without decoding it. */
+AK_HIDE
+bool
+ak_imageExportPreserved(AkImageExportRequest * __restrict req,
+                        AkImageExportPayload * __restrict payload);
+
 AK_HIDE
 void
 ak_imageExportPayloadRelease(AkImageExportPayload * __restrict payload);

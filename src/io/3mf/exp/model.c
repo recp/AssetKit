@@ -15,7 +15,53 @@
  */
 
 #include "common.h"
+#include "../../common/export_space.h"
 #include "../../../color.h"
+
+typedef struct AK3MFExportUnit {
+  const char *name;
+  float       coordinateScale;
+} AK3MFExportUnit;
+
+static
+AK3MFExportUnit
+ak_3mf_export_unit(AkDoc * __restrict doc) {
+  AK3MFExportUnit unit;
+  double          dist;
+
+  unit.name            = "meter";
+  unit.coordinateScale = 1.0f;
+  dist = doc && doc->unit ? doc->unit->dist : 1.0;
+  if (!(dist > 0.0) || !isfinite(dist))
+    return unit;
+
+  if (fabs(dist - 0.000001) < 0.000000001)
+    unit.name = "micron";
+  else if (fabs(dist - 0.001) < 0.0000001)
+    unit.name = "millimeter";
+  else if (fabs(dist - 0.01) < 0.0000001)
+    unit.name = "centimeter";
+  else if (fabs(dist - 0.0254) < 0.0000001)
+    unit.name = "inch";
+  else if (fabs(dist - 0.3048) < 0.0000001)
+    unit.name = "foot";
+  else if (fabs(dist - 1.0) < 0.0000001)
+    unit.name = "meter";
+  else if (dist <= FLT_MAX)
+    unit.coordinateScale = (float)dist;
+
+  return unit;
+}
+
+static
+void
+ak_3mf_export_root(AkDoc * __restrict doc,
+                   mat4                root) {
+  AK3MFExportUnit unit;
+
+  unit = ak_3mf_export_unit(doc);
+  io_export_root(doc, AK_ZUP, unit.coordinateScale, root);
+}
 
 static
 void
@@ -386,6 +432,228 @@ ak_3mf_find_color_input(AkMeshPrimitive * __restrict prim) {
                                      3u);
 }
 
+typedef enum AK3MFPropertyKind {
+  AK_3MF_PROPERTY_NONE = 0,
+  AK_3MF_PROPERTY_BASE_COLOR,
+  AK_3MF_PROPERTY_VERTEX_COLOR,
+  AK_3MF_PROPERTY_TEXTURE
+} AK3MFPropertyKind;
+
+typedef struct AK3MFPropertyWrite {
+  AkTextureRef      *textureRef;
+  AkInput           *texcoordInput;
+  AK3MFImageOut     *image;
+  uint32_t           propertyId;
+  uint8_t            rgba[4];
+  AK3MFPropertyKind  kind;
+} AK3MFPropertyWrite;
+
+static uint8_t
+ak_3mf_color_u8(float value);
+
+static
+AkInput*
+ak_3mf_find_texcoord_input(AkMeshPrimitive     * __restrict prim,
+                           AkInstanceGeometry  * __restrict inst,
+                           AkTextureRef        * __restrict texref) {
+  AkInput *input;
+  AkInput *fallback;
+  int      slot;
+
+  /* See the equivalent PLY path: instance bind_vertex_input can override
+   * a material texture's default slot (notably in COLLADA). */
+  slot = ak_materialTextureSlot(prim, inst, texref);
+
+  fallback = NULL;
+  for (input = prim ? prim->input : NULL; input; input = input->next) {
+    if ((input->semantic != AK_INPUT_TEXCOORD && input->semantic != AK_INPUT_UV)
+        || !input->accessor
+        || input->accessor->componentCount < 2u)
+      continue;
+    if ((int)input->set == slot)
+      return input;
+    if (!fallback)
+      fallback = input;
+  }
+  return fallback;
+}
+
+static
+bool
+ak_3mf_material_input_color(const AkMaterialInput * __restrict input,
+                            AkColor               * __restrict color) {
+  if (!input || !color)
+    return false;
+
+  color->rgba.R = 1.0f;
+  color->rgba.G = 1.0f;
+  color->rgba.B = 1.0f;
+  color->rgba.A = 1.0f;
+  switch (input->valueType) {
+    case AK_MATERIAL_VALUE_COLOR:
+    case AK_MATERIAL_VALUE_FLOAT4:
+      memcpy(color->vec, input->value, sizeof(color->vec));
+      return true;
+    case AK_MATERIAL_VALUE_FLOAT3:
+      color->rgba.R = input->value[0];
+      color->rgba.G = input->value[1];
+      color->rgba.B = input->value[2];
+      return true;
+    case AK_MATERIAL_VALUE_FLOAT2:
+      color->rgba.R = input->value[0];
+      color->rgba.G = input->value[1];
+      return true;
+    case AK_MATERIAL_VALUE_FLOAT:
+      color->rgba.R = input->value[0];
+      color->rgba.G = input->value[0];
+      color->rgba.B = input->value[0];
+      return true;
+    default:
+      return false;
+  }
+}
+
+static
+AK3MFImageOut*
+ak_3mf_plan_image(AK3MFExportState * __restrict st,
+                  AkImage          * __restrict image) {
+  AkImageExportRequest req;
+  AK3MFImageOut       *out;
+  AK3MFImageOut       *items;
+  size_t               capacity;
+  size_t               i;
+
+  if (!st || !image)
+    return NULL;
+  for (i = 0u; i < st->imageCount; i++) {
+    if (st->images[i].image == image)
+      return &st->images[i];
+  }
+
+  if (st->imageCount == st->imageCapacity) {
+    capacity = st->imageCapacity ? st->imageCapacity * 2u : 8u;
+    if (capacity < st->imageCapacity
+        || capacity > SIZE_MAX / sizeof(*st->images))
+      return NULL;
+    items = realloc(st->images, capacity * sizeof(*st->images));
+    if (!items)
+      return NULL;
+    st->images        = items;
+    st->imageCapacity = capacity;
+  }
+
+  out = &st->images[st->imageCount];
+  memset(out, 0, sizeof(*out));
+  req.doc            = st->doc;
+  req.image          = image;
+  req.targetMimeType = "image/png";
+  if ((!ak_imageExportPreserved(&req, &out->payload)
+       && !ak_imageExportPNG(&req, &out->payload))
+      || !out->payload.data
+      || out->payload.byteLength == 0u) {
+    ak_imageExportPayloadRelease(&out->payload);
+    return NULL;
+  }
+
+  out->image     = image;
+  out->textureId = st->nextObjectId++;
+  if (snprintf(out->partName,
+               sizeof(out->partName),
+               ak_str_eq_cstr_fast(out->payload.mimeType,
+                                   "image/jpeg",
+                                   sizeof("image/jpeg") - 1u)
+                 ? "3D/Textures/texture_%u.jpg"
+                 : "3D/Textures/texture_%u.png",
+               out->textureId) <= 0) {
+    ak_imageExportPayloadRelease(&out->payload);
+    memset(out, 0, sizeof(*out));
+    return NULL;
+  }
+
+  AK_3MF_BUF_LIT(&st->resources, "      <m:texture2d id=\"");
+  ak_3mf_buf_u32(&st->resources, out->textureId);
+  AK_3MF_BUF_LIT(&st->resources, "\" path=\"");
+  ak_3mf_buf_3mf_path_attr(&st->resources, out->partName);
+  AK_3MF_BUF_LIT(&st->resources, "\" contenttype=\"");
+  ak_3mf_buf_attr(&st->resources, out->payload.mimeType);
+  AK_3MF_BUF_LIT(&st->resources, "\"/>\n");
+  if (st->resources.result != AK_OK) {
+    ak_imageExportPayloadRelease(&out->payload);
+    memset(out, 0, sizeof(*out));
+    return NULL;
+  }
+
+  st->usesMaterialExtension = true;
+  st->imageCount++;
+  return out;
+}
+
+static
+void
+ak_3mf_rgba8(AkColor color, uint8_t rgba[4]) {
+  rgba[0] = ak_linear_to_srgb8_fast(color.rgba.R);
+  rgba[1] = ak_linear_to_srgb8_fast(color.rgba.G);
+  rgba[2] = ak_linear_to_srgb8_fast(color.rgba.B);
+  rgba[3] = ak_3mf_color_u8(color.rgba.A);
+}
+
+static
+bool
+ak_3mf_plan_property(AK3MFExportState * __restrict st,
+                     AkMeshPrimitive  * __restrict prim,
+                     AkInstanceGeometry * __restrict inst,
+                     AkInput          * __restrict colorInput,
+                     AK3MFPropertyWrite * __restrict property) {
+  AkResolvedMaterial resolved;
+  AkMaterialProperty *materialProperty;
+  AkMaterialInput    *baseColor;
+  AkTextureRef       *texref;
+  AkTexture          *texture;
+  AkColor             color;
+
+  memset(property, 0, sizeof(*property));
+  if (colorInput) {
+    property->kind = AK_3MF_PROPERTY_VERTEX_COLOR;
+    return true;
+  }
+
+  memset(&resolved, 0, sizeof(resolved));
+  if (!ak_materialResolve(prim, inst, UINT32_MAX, &resolved))
+    return true;
+
+  materialProperty = ak_resolvedMaterialProperty(&resolved);
+  baseColor = materialProperty && materialProperty->baseColor
+              ? materialProperty->baseColor
+              : resolved.surface ? resolved.surface->baseColor : NULL;
+  texref  = ak_materialInputTexture(baseColor);
+  texture = texref ? texref->texture : NULL;
+  if (texture && texture->image) {
+    property->texcoordInput = ak_3mf_find_texcoord_input(prim,
+                                                          inst,
+                                                          texref);
+    if (property->texcoordInput) {
+      property->image = ak_3mf_plan_image(st, texture->image);
+      if (property->image) {
+        property->kind       = AK_3MF_PROPERTY_TEXTURE;
+        property->textureRef = texref;
+        property->propertyId = st->nextObjectId++;
+        return true;
+      }
+    }
+  }
+
+  if (!ak_3mf_material_input_color(baseColor, &color)) {
+    if (!materialProperty)
+      return true;
+    color = materialProperty->displayColor;
+  }
+  color.rgba.A *= ak_materialOpacityFactor(resolved.surface);
+  ak_3mf_rgba8(color, property->rgba);
+  property->propertyId = st->nextObjectId++;
+  property->kind       = AK_3MF_PROPERTY_BASE_COLOR;
+  return true;
+}
+
 static
 void
 ak_3mf_vertex_position(AK3MFRows       * __restrict rows,
@@ -469,6 +737,48 @@ ak_3mf_vertex_color(AK3MFRows       * __restrict rows,
   rgba[1] = ak_linear_to_srgb8_fast(ak_3mf_color_component(rows, row, 1u, 1.0f));
   rgba[2] = ak_linear_to_srgb8_fast(ak_3mf_color_component(rows, row, 2u, 1.0f));
   rgba[3] = ak_3mf_color_u8(ak_3mf_color_component(rows, row, 3u, 1.0f));
+}
+
+static
+void
+ak_3mf_vertex_texcoord(AK3MFRows       * __restrict rows,
+                       AkMeshPrimitive * __restrict prim,
+                       AkInput         * __restrict texcoordInput,
+                       AkTextureRef    * __restrict texref,
+                       uint32_t                     vertexIndex,
+                       bool                         flipV,
+                       float                        uv[2]) {
+  const float        *row;
+  AkTextureTransform *transform;
+  uint32_t            texcoordIndex;
+
+  uv[0] = 0.0f;
+  uv[1] = 0.0f;
+  if (!rows || !texcoordInput)
+    return;
+
+  texcoordIndex = io_primitive_input_index(prim, texcoordInput, vertexIndex);
+  row           = ak_3mf_rows_get(rows, texcoordIndex);
+  uv[0] = ak_3mf_row_component(row, rows->componentCount, 0u, 0.0f);
+  uv[1] = ak_3mf_row_component(row, rows->componentCount, 1u, 0.0f);
+
+  transform = texref ? texref->transform : NULL;
+  if (transform) {
+    float u;
+    float v;
+    float c;
+    float s;
+
+    u = uv[0] * transform->scale[0];
+    v = uv[1] * transform->scale[1];
+    c = cosf(transform->rotation);
+    s = sinf(transform->rotation);
+    uv[0] = c * u - s * v + transform->offset[0];
+    uv[1] = s * u + c * v + transform->offset[1];
+  }
+
+  if (flipV)
+    uv[1] = 1.0f - uv[1];
 }
 
 static
@@ -558,12 +868,26 @@ ak_3mf_append_color(AK3MFBuffer * __restrict colors, uint8_t rgba[4]) {
 
 static
 void
+ak_3mf_append_texcoord(AK3MFBuffer * __restrict texcoords,
+                       float                    u,
+                       float                    v) {
+  AK_3MF_BUF_LIT(texcoords, "        <m:tex2coord u=\"");
+  ak_3mf_buf_float(texcoords, u);
+  AK_3MF_BUF_LIT(texcoords, "\" v=\"");
+  ak_3mf_buf_float(texcoords, v);
+  AK_3MF_BUF_LIT(texcoords, "\"/>\n");
+}
+
+static
+void
 ak_3mf_reserve_mesh_buffers(AK3MFBuffer     * __restrict vertices,
                             AK3MFBuffer     * __restrict colors,
+                            AK3MFBuffer     * __restrict texcoords,
                             AK3MFBuffer     * __restrict triangles,
                             AkMeshPrimitive * __restrict prim,
                             AkInput         * __restrict posInput,
                             bool                         hasColorRows,
+                            bool                         hasTexcoordRows,
                             bool                         displacementMesh) {
   size_t triangleRows;
   size_t vertexRows;
@@ -592,31 +916,48 @@ ak_3mf_reserve_mesh_buffers(AK3MFBuffer     * __restrict vertices,
     (void)ak_3mf_buf_reserve(triangles, triangleRows * 112u);
   if (hasColorRows && colors && vertexRows <= SIZE_MAX / 40u)
     (void)ak_3mf_buf_reserve(colors, vertexRows * 40u);
+  if (hasTexcoordRows && texcoords && vertexRows <= SIZE_MAX / 72u)
+    (void)ak_3mf_buf_reserve(texcoords, vertexRows * 72u);
 }
 
 static
 void
 ak_3mf_append_displacement_triangle_attrs(
                        AK3MFBuffer                       * __restrict triangles,
-                       const AkPrintDisplacementTriangle * __restrict displacement) {
+                       const AkPrintDisplacementTriangle * __restrict displacement,
+                       bool                                           mirrored) {
+  uint32_t d1;
+  uint32_t d3;
+  bool     hasD1;
+  bool     hasD3;
+
   if (!displacement)
     return;
+
+  hasD1 = (displacement->flags & (mirrored
+                                  ? AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D3
+                                  : AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D1)) != 0u;
+  hasD3 = (displacement->flags & (mirrored
+                                  ? AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D1
+                                  : AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D3)) != 0u;
+  d1 = mirrored ? displacement->d3 : displacement->d1;
+  d3 = mirrored ? displacement->d1 : displacement->d3;
 
   if ((displacement->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_GROUP) != 0u) {
     AK_3MF_BUF_LIT(triangles, "\" did=\"");
     ak_3mf_buf_u32(triangles, displacement->groupId);
   }
-  if ((displacement->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D1) != 0u) {
+  if (hasD1) {
     AK_3MF_BUF_LIT(triangles, "\" d1=\"");
-    ak_3mf_buf_u32(triangles, displacement->d1);
+    ak_3mf_buf_u32(triangles, d1);
   }
   if ((displacement->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D2) != 0u) {
     AK_3MF_BUF_LIT(triangles, "\" d2=\"");
     ak_3mf_buf_u32(triangles, displacement->d2);
   }
-  if ((displacement->flags & AK_PRINT_DISPLACEMENT_TRIANGLE_HAS_D3) != 0u) {
+  if (hasD3) {
     AK_3MF_BUF_LIT(triangles, "\" d3=\"");
-    ak_3mf_buf_u32(triangles, displacement->d3);
+    ak_3mf_buf_u32(triangles, d3);
   }
 }
 
@@ -642,10 +983,19 @@ ak_3mf_append_triangle(AK3MFBuffer * __restrict triangles,
                        uint32_t                 i2,
                        uint32_t                 propertyId,
                        bool                     displacementMesh,
+                       bool                     mirrored,
                        const AkPrintDisplacementTriangle * __restrict displacement) {
   const char *prefix;
   char       *p;
   size_t      prefixLen;
+
+  if (mirrored) {
+    uint32_t swap;
+
+    swap = i0;
+    i0   = i2;
+    i2   = swap;
+  }
 
   if (displacementMesh) {
     prefix    = "          <d:triangle v1=\"";
@@ -705,7 +1055,9 @@ ak_3mf_append_triangle(AK3MFBuffer * __restrict triangles,
     AK_3MF_BUF_LIT(triangles, "\" p3=\"");
     ak_3mf_buf_u32(triangles, i2);
   }
-  ak_3mf_append_displacement_triangle_attrs(triangles, displacement);
+  ak_3mf_append_displacement_triangle_attrs(triangles,
+                                            displacement,
+                                            mirrored);
   AK_3MF_BUF_LIT(triangles, "\"/>\n");
 }
 
@@ -962,17 +1314,23 @@ static
 bool
 ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
                      AK3MFRows       * __restrict colorRows,
+                     AK3MFRows       * __restrict texcoordRows,
                      AkMeshPrimitive * __restrict prim,
                      AkInput         * __restrict posInput,
                      AkInput         * __restrict colorInput,
+                     AkInput         * __restrict texcoordInput,
+                     AkTextureRef    * __restrict textureRef,
                      uint32_t                     i0,
                      uint32_t                     i1,
                      uint32_t                     i2,
                      AK3MFBuffer     * __restrict vertices,
                      AK3MFBuffer     * __restrict colors,
+                     AK3MFBuffer     * __restrict texcoords,
                      AK3MFBuffer     * __restrict triangles,
                      uint32_t                     propertyId,
                      bool                         displacementMesh,
+                     bool                         mirrored,
+                     bool                         flipTexcoordV,
                      AK3MFDisplacementWrite * __restrict displacement,
                      uint32_t        * __restrict vertexCount,
                      uint32_t        * __restrict triangleCount) {
@@ -980,6 +1338,7 @@ ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
   vec3 b;
   vec3 c;
   uint8_t rgba[4];
+  float uv[2];
 
   if (*vertexCount > UINT32_MAX - 3u)
     return false;
@@ -992,12 +1351,24 @@ ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
   ak_3mf_append_vertex(vertices, b[0], b[1], b[2], displacementMesh);
   ak_3mf_append_vertex(vertices, c[0], c[1], c[2], displacementMesh);
   if (propertyId != 0u) {
-    ak_3mf_vertex_color(colorRows, prim, colorInput, i0, rgba);
-    ak_3mf_append_color(colors, rgba);
-    ak_3mf_vertex_color(colorRows, prim, colorInput, i1, rgba);
-    ak_3mf_append_color(colors, rgba);
-    ak_3mf_vertex_color(colorRows, prim, colorInput, i2, rgba);
-    ak_3mf_append_color(colors, rgba);
+    if (texcoordRows && texcoordInput) {
+      ak_3mf_vertex_texcoord(texcoordRows, prim, texcoordInput, textureRef,
+                             i0, flipTexcoordV, uv);
+      ak_3mf_append_texcoord(texcoords, uv[0], uv[1]);
+      ak_3mf_vertex_texcoord(texcoordRows, prim, texcoordInput, textureRef,
+                             i1, flipTexcoordV, uv);
+      ak_3mf_append_texcoord(texcoords, uv[0], uv[1]);
+      ak_3mf_vertex_texcoord(texcoordRows, prim, texcoordInput, textureRef,
+                             i2, flipTexcoordV, uv);
+      ak_3mf_append_texcoord(texcoords, uv[0], uv[1]);
+    } else if (colorRows && colorInput) {
+      ak_3mf_vertex_color(colorRows, prim, colorInput, i0, rgba);
+      ak_3mf_append_color(colors, rgba);
+      ak_3mf_vertex_color(colorRows, prim, colorInput, i1, rgba);
+      ak_3mf_append_color(colors, rgba);
+      ak_3mf_vertex_color(colorRows, prim, colorInput, i2, rgba);
+      ak_3mf_append_color(colors, rgba);
+    }
   }
   ak_3mf_append_triangle(triangles,
                          *vertexCount,
@@ -1005,11 +1376,15 @@ ak_3mf_emit_triangle(AK3MFRows       * __restrict rows,
                          *vertexCount + 2u,
                          propertyId,
                          displacementMesh,
+                         mirrored,
                          ak_3mf_displacement_write_next(displacement));
 
   *vertexCount += 3u;
   (*triangleCount)++;
-  return vertices->result == AK_OK && triangles->result == AK_OK;
+  return vertices->result == AK_OK
+         && colors->result == AK_OK
+         && texcoords->result == AK_OK
+         && triangles->result == AK_OK;
 }
 
 static
@@ -1019,6 +1394,7 @@ ak_3mf_emit_indexed_position_primitive(AK3MFRows       * __restrict rows,
                                        AkInput         * __restrict posInput,
                                        AK3MFBuffer     * __restrict vertices,
                                        AK3MFBuffer     * __restrict triangles,
+                                       bool                         mirrored,
                                        uint32_t        * __restrict vertexCount,
                                        uint32_t        * __restrict triangleCount) {
   IOTriangleIter iter;
@@ -1063,6 +1439,7 @@ ak_3mf_emit_indexed_position_primitive(AK3MFRows       * __restrict rows,
                            (uint32_t)i2,
                            0u,
                            false,
+                           mirrored,
                            NULL);
     (*triangleCount)++;
   }
@@ -1074,14 +1451,20 @@ static
 bool
 ak_3mf_emit_triangles_primitive(AK3MFRows       * __restrict rows,
                                 AK3MFRows       * __restrict colorRows,
+                                AK3MFRows       * __restrict texcoordRows,
                                 AkMeshPrimitive * __restrict prim,
                                 AkInput         * __restrict posInput,
                                 AkInput         * __restrict colorInput,
+                                AkInput         * __restrict texcoordInput,
+                                AkTextureRef    * __restrict textureRef,
                                 AK3MFBuffer     * __restrict vertices,
                                 AK3MFBuffer     * __restrict colors,
+                                AK3MFBuffer     * __restrict texcoords,
                                 AK3MFBuffer     * __restrict triangles,
                                 uint32_t                     propertyId,
                                 bool                         displacementMesh,
+                                bool                         mirrored,
+                                bool                         flipTexcoordV,
                                 AK3MFDisplacementWrite * __restrict displacement,
                                 uint32_t        * __restrict vertexCount,
                                 uint32_t        * __restrict triangleCount) {
@@ -1092,10 +1475,12 @@ ak_3mf_emit_triangles_primitive(AK3MFRows       * __restrict rows,
     return true;
 
   while (io_triangle_iter_next(&iter, tri)) {
-    if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
+    if (!ak_3mf_emit_triangle(rows, colorRows, texcoordRows,
+                              prim, posInput, colorInput,
+                              texcoordInput, textureRef,
                               tri[0], tri[1], tri[2],
-                              vertices, colors, triangles, propertyId,
-                              displacementMesh, displacement,
+                              vertices, colors, texcoords, triangles, propertyId,
+                              displacementMesh, mirrored, flipTexcoordV, displacement,
                               vertexCount, triangleCount))
       return false;
   }
@@ -1107,14 +1492,20 @@ static
 bool
 ak_3mf_emit_polygon_primitive(AK3MFRows       * __restrict rows,
                               AK3MFRows       * __restrict colorRows,
+                              AK3MFRows       * __restrict texcoordRows,
                               AkMeshPrimitive * __restrict prim,
                               AkInput         * __restrict posInput,
                               AkInput         * __restrict colorInput,
+                              AkInput         * __restrict texcoordInput,
+                              AkTextureRef    * __restrict textureRef,
                               AK3MFBuffer     * __restrict vertices,
                               AK3MFBuffer     * __restrict colors,
+                              AK3MFBuffer     * __restrict texcoords,
                               AK3MFBuffer     * __restrict triangles,
                               uint32_t                     propertyId,
                               bool                         displacementMesh,
+                              bool                         mirrored,
+                              bool                         flipTexcoordV,
                               AK3MFDisplacementWrite * __restrict displacement,
                               uint32_t        * __restrict vertexCount,
                               uint32_t        * __restrict triangleCount) {
@@ -1138,12 +1529,14 @@ ak_3mf_emit_polygon_primitive(AK3MFRows       * __restrict rows,
     }
 
     for (j = 1u; j + 1u < vc; j++) {
-      if (!ak_3mf_emit_triangle(rows, colorRows, prim, posInput, colorInput,
+      if (!ak_3mf_emit_triangle(rows, colorRows, texcoordRows,
+                                prim, posInput, colorInput,
+                                texcoordInput, textureRef,
                                 (uint32_t)cursor,
                                 (uint32_t)(cursor + j),
                                 (uint32_t)(cursor + j + 1u),
-                                vertices, colors, triangles, propertyId,
-                                displacementMesh, displacement,
+                                vertices, colors, texcoords, triangles, propertyId,
+                                displacementMesh, mirrored, flipTexcoordV, displacement,
                                 vertexCount, triangleCount))
         return false;
     }
@@ -1189,7 +1582,9 @@ ak_3mf_write_plain_indexed_primitive(AK3MFExportState * __restrict st,
                                      AkMeshPrimitive  * __restrict prim,
                                      AkInput          * __restrict posInput,
                                      AK3MFRows        * __restrict rows,
-                                     mat4                           world) {
+                                     const AK3MFPropertyWrite * __restrict property,
+                                     mat4                           world,
+                                     bool                           mirrored) {
   IOTriangleIter iter;
   uint32_t       vertexCount;
   uint32_t       objectId;
@@ -1215,6 +1610,11 @@ ak_3mf_write_plain_indexed_primitive(AK3MFExportState * __restrict st,
   }
   AK_3MF_BUF_LIT(&st->resources, "      <object id=\"");
   ak_3mf_buf_u32(&st->resources, objectId);
+  if (property && property->kind == AK_3MF_PROPERTY_BASE_COLOR) {
+    AK_3MF_BUF_LIT(&st->resources, "\" pid=\"");
+    ak_3mf_buf_u32(&st->resources, property->propertyId);
+    AK_3MF_BUF_LIT(&st->resources, "\" pindex=\"0");
+  }
   AK_3MF_BUF_LIT(&st->resources, "\" type=\"model\">\n"
                                 "        <mesh>\n"
                                 "          <vertices>\n");
@@ -1253,6 +1653,7 @@ ak_3mf_write_plain_indexed_primitive(AK3MFExportState * __restrict st,
                            (uint32_t)i2,
                            0u,
                            false,
+                           mirrored,
                            NULL);
   }
 
@@ -1269,12 +1670,16 @@ static
 bool
 ak_3mf_write_primitive(AK3MFExportState * __restrict st,
                        AkMeshPrimitive  * __restrict prim,
+                       AkInstanceGeometry * __restrict inst,
                        mat4                           world) {
   AK3MFBuffer vertices;
   AK3MFBuffer colors;
+  AK3MFBuffer texcoords;
   AK3MFBuffer triangles;
   AK3MFRows   rows;
   AK3MFRows   colorRows;
+  AK3MFRows   texcoordRows;
+  AK3MFPropertyWrite property;
   AkInput    *posInput;
   AkInput    *colorInput;
   uint32_t    vertexCount;
@@ -1290,6 +1695,9 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   AK3MFDisplacementWrite displacementWrite;
   bool        ok;
   bool        hasColorRows;
+  bool        hasTexcoordRows;
+  bool        mirrored;
+  bool        flipTexcoordV;
 
   if (!prim)
     return true;
@@ -1302,24 +1710,80 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
     return true;
 
   colorInput = ak_3mf_find_color_input(prim);
+  mirrored   = glm_mat4_det(world) < 0.0f;
+  /*
+   * 3MF uses the same texture-coordinate convention as glTF.  Formats whose
+   * source images are vertically flipped on load (DAE, OBJ, PLY, STL) need
+   * their V coordinate converted once at this export boundary.
+   */
+  flipTexcoordV = st->doc->inf && st->doc->inf->flipImage;
   if (!ak_3mf_rows_init(&rows, posInput->accessor))
     return false;
+  if (!ak_3mf_plan_property(st, prim, inst, colorInput, &property)) {
+    ak_3mf_rows_destroy(&rows);
+    return false;
+  }
+
+  if (property.kind == AK_3MF_PROPERTY_BASE_COLOR) {
+    AK_3MF_BUF_LIT(&st->resources, "      <basematerials id=\"");
+    ak_3mf_buf_u32(&st->resources, property.propertyId);
+    AK_3MF_BUF_LIT(&st->resources, "\">\n        <base name=\"Material\" displaycolor=\"#");
+    {
+      static const char hex[] = "0123456789ABCDEF";
+      uint32_t i;
+
+      for (i = 0u; i < 4u; i++) {
+        ak_3mf_buf_ch(&st->resources, hex[property.rgba[i] >> 4u]);
+        ak_3mf_buf_ch(&st->resources, hex[property.rgba[i] & 0x0fu]);
+      }
+    }
+    AK_3MF_BUF_LIT(&st->resources, "\"/>\n      </basematerials>\n");
+  }
 
   if (!st->print
       && !st->suppressBuildItems
       && prim->type == AK_PRIMITIVE_TRIANGLES
-      && !colorInput) {
-    ok = ak_3mf_write_plain_indexed_primitive(st, prim, posInput, &rows, world);
+      && (property.kind == AK_3MF_PROPERTY_NONE
+          || property.kind == AK_3MF_PROPERTY_BASE_COLOR)) {
+    ok = ak_3mf_write_plain_indexed_primitive(st,
+                                               prim,
+                                               posInput,
+                                               &rows,
+                                               &property,
+                                               world,
+                                               mirrored);
     ak_3mf_rows_destroy(&rows);
     return ok;
   }
 
   memset(&colorRows, 0, sizeof(colorRows));
-  hasColorRows = colorInput && ak_3mf_rows_init(&colorRows, colorInput->accessor);
-  propertyId   = hasColorRows ? st->nextObjectId++ : 0u;
+  memset(&texcoordRows, 0, sizeof(texcoordRows));
+  hasColorRows = property.kind == AK_3MF_PROPERTY_VERTEX_COLOR
+                 && colorInput
+                 && ak_3mf_rows_init(&colorRows, colorInput->accessor);
+  hasTexcoordRows = property.kind == AK_3MF_PROPERTY_TEXTURE
+                    && property.texcoordInput
+                    && ak_3mf_rows_init(&texcoordRows,
+                                        property.texcoordInput->accessor);
+  if ((property.kind == AK_3MF_PROPERTY_VERTEX_COLOR && !hasColorRows)
+      || (property.kind == AK_3MF_PROPERTY_TEXTURE && !hasTexcoordRows)) {
+    ak_3mf_rows_destroy(&rows);
+    if (hasColorRows)
+      ak_3mf_rows_destroy(&colorRows);
+    if (hasTexcoordRows)
+      ak_3mf_rows_destroy(&texcoordRows);
+    return false;
+  }
+  if (property.kind == AK_3MF_PROPERTY_VERTEX_COLOR)
+    property.propertyId = st->nextObjectId++;
+  propertyId = (property.kind == AK_3MF_PROPERTY_VERTEX_COLOR
+                || property.kind == AK_3MF_PROPERTY_TEXTURE)
+               ? property.propertyId
+               : 0u;
 
   io_buffer_init(&vertices);
   io_buffer_init(&colors);
+  io_buffer_init(&texcoords);
   io_buffer_init(&triangles);
   vertexCount      = 0;
   triangleCount    = 0;
@@ -1334,47 +1798,63 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   }
   ak_3mf_reserve_mesh_buffers(&vertices,
                               &colors,
+                              &texcoords,
                               &triangles,
                               prim,
                               posInput,
                               hasColorRows,
+                              hasTexcoordRows,
                               displacementMesh != NULL);
 
   if (!displacementMesh
       && !hasColorRows
+      && !hasTexcoordRows
       && prim->type == AK_PRIMITIVE_TRIANGLES) {
     ok = ak_3mf_emit_indexed_position_primitive(&rows,
                                                 prim,
                                                 posInput,
                                                 &vertices,
                                                 &triangles,
+                                                mirrored,
                                                 &vertexCount,
                                                 &triangleCount);
   } else if (prim->type == AK_PRIMITIVE_TRIANGLES) {
     ok = ak_3mf_emit_triangles_primitive(&rows,
                                          hasColorRows ? &colorRows : NULL,
+                                         hasTexcoordRows ? &texcoordRows : NULL,
                                          prim,
                                          posInput,
                                          hasColorRows ? colorInput : NULL,
+                                         hasTexcoordRows ? property.texcoordInput : NULL,
+                                         hasTexcoordRows ? property.textureRef : NULL,
                                          &vertices,
                                          &colors,
+                                         &texcoords,
                                          &triangles,
                                          propertyId,
                                          displacementMesh != NULL,
+                                         mirrored,
+                                         flipTexcoordV,
                                          displacementMesh ? &displacementWrite : NULL,
                                          &vertexCount,
                                          &triangleCount);
   } else {
     ok = ak_3mf_emit_polygon_primitive(&rows,
                                        hasColorRows ? &colorRows : NULL,
+                                       hasTexcoordRows ? &texcoordRows : NULL,
                                        prim,
                                        posInput,
                                        hasColorRows ? colorInput : NULL,
+                                       hasTexcoordRows ? property.texcoordInput : NULL,
+                                       hasTexcoordRows ? property.textureRef : NULL,
                                        &vertices,
                                        &colors,
+                                       &texcoords,
                                        &triangles,
                                        propertyId,
                                        displacementMesh != NULL,
+                                       mirrored,
+                                       flipTexcoordV,
                                        displacementMesh ? &displacementWrite : NULL,
                                        &vertexCount,
                                        &triangleCount);
@@ -1383,9 +1863,16 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   ak_3mf_rows_destroy(&rows);
   if (hasColorRows)
     ak_3mf_rows_destroy(&colorRows);
-  if (!ok || vertices.result != AK_OK || colors.result != AK_OK || triangles.result != AK_OK) {
+  if (hasTexcoordRows)
+    ak_3mf_rows_destroy(&texcoordRows);
+  if (!ok
+      || vertices.result != AK_OK
+      || colors.result != AK_OK
+      || texcoords.result != AK_OK
+      || triangles.result != AK_OK) {
     ak_3mf_buf_free(&vertices);
     ak_3mf_buf_free(&colors);
+    ak_3mf_buf_free(&texcoords);
     ak_3mf_buf_free(&triangles);
     return false;
   }
@@ -1393,6 +1880,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
   if (triangleCount == 0 && !beamLattice) {
     ak_3mf_buf_free(&vertices);
     ak_3mf_buf_free(&colors);
+    ak_3mf_buf_free(&texcoords);
     ak_3mf_buf_free(&triangles);
     return true;
   }
@@ -1454,12 +1942,21 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
       st->nextObjectId = objectId + 1u;
   }
 
-  if (propertyId != 0u) {
+  if (property.kind == AK_3MF_PROPERTY_VERTEX_COLOR) {
     AK_3MF_BUF_LIT(&st->resources, "      <m:colorgroup id=\"");
     ak_3mf_buf_u32(&st->resources, propertyId);
     AK_3MF_BUF_LIT(&st->resources, "\">\n");
     ak_3mf_buf_raw(&st->resources, colors.data, colors.len);
     AK_3MF_BUF_LIT(&st->resources, "      </m:colorgroup>\n");
+    st->usesMaterialExtension = true;
+  } else if (property.kind == AK_3MF_PROPERTY_TEXTURE) {
+    AK_3MF_BUF_LIT(&st->resources, "      <m:texture2dgroup id=\"");
+    ak_3mf_buf_u32(&st->resources, propertyId);
+    AK_3MF_BUF_LIT(&st->resources, "\" texid=\"");
+    ak_3mf_buf_u32(&st->resources, property.image->textureId);
+    AK_3MF_BUF_LIT(&st->resources, "\">\n");
+    ak_3mf_buf_raw(&st->resources, texcoords.data, texcoords.len);
+    AK_3MF_BUF_LIT(&st->resources, "      </m:texture2dgroup>\n");
     st->usesMaterialExtension = true;
   }
 
@@ -1523,6 +2020,7 @@ ak_3mf_write_primitive(AK3MFExportState * __restrict st,
 
   ak_3mf_buf_free(&vertices);
   ak_3mf_buf_free(&colors);
+  ak_3mf_buf_free(&texcoords);
   ak_3mf_buf_free(&triangles);
 
   return st->resources.result == AK_OK && st->build.result == AK_OK;
@@ -1532,6 +2030,7 @@ static
 bool
 ak_3mf_write_mesh_instance(AK3MFExportState * __restrict st,
                            AkGeometry       * __restrict geom,
+                           AkInstanceGeometry * __restrict inst,
                            mat4                           world) {
   AkMesh          *mesh;
   AkMeshPrimitive *prim;
@@ -1544,7 +2043,7 @@ ak_3mf_write_mesh_instance(AK3MFExportState * __restrict st,
     return true;
 
   for (prim = mesh->primitive; prim; prim = prim->next) {
-    if (!ak_3mf_write_primitive(st, prim, world))
+    if (!ak_3mf_write_primitive(st, prim, inst, world))
       return false;
   }
 
@@ -1583,9 +2082,10 @@ ak_3mf_write_node(AK3MFExportState * __restrict st,
   ak_transformCombine(node->transform, localMatrix.val[0]);
   glm_mat4_mul(parentWorld, localMatrix.val, world);
 
-  for (base = node->geometry ? &node->geometry->base : NULL;
-       base;
-       base = base->next) {
+  base = node->geometry ? &node->geometry->base : NULL;
+  while (base && base->next)
+    base = base->next;
+  for (; base; base = base->prev) {
     AkInstanceGeometry *inst;
     AkGeometry         *geom;
 
@@ -1594,7 +2094,7 @@ ak_3mf_write_node(AK3MFExportState * __restrict st,
 
     inst = (AkInstanceGeometry *)base;
     geom = ak_3mf_instance_geometry(inst);
-    if (!ak_3mf_write_mesh_instance(st, geom, world))
+    if (!ak_3mf_write_mesh_instance(st, geom, inst, world))
       return false;
   }
 
@@ -1617,11 +2117,11 @@ ak_3mf_write_node(AK3MFExportState * __restrict st,
 AK_HIDE
 bool
 ak_3mf_write_scene(AK3MFExportState * __restrict st) {
-  mat4 identity;
+  mat4 root;
 
-  glm_mat4_identity(identity);
+  ak_3mf_export_root(st->doc, root);
   if (st->doc->scene && st->doc->scene->node)
-    return ak_3mf_write_node(st, st->doc->scene->node, identity, 0u);
+    return ak_3mf_write_node(st, st->doc->scene->node, root, 0u);
 
   return true;
 }
@@ -1630,13 +2130,13 @@ AK_HIDE
 bool
 ak_3mf_write_library_fallback(AK3MFExportState * __restrict st) {
   AkGeometry *geom;
-  mat4        identity;
+  mat4        root;
   bool        savedSuppressBuildItems;
 
   if (st->objectCount > 0)
     return true;
 
-  glm_mat4_identity(identity);
+  ak_3mf_export_root(st->doc, root);
   savedSuppressBuildItems = st->suppressBuildItems;
   if (st->usesBooleanExtension
       || (st->usesVolumetricExtension
@@ -1644,7 +2144,7 @@ ak_3mf_write_library_fallback(AK3MFExportState * __restrict st) {
           && st->print->levelSetCount > 0u))
     st->suppressBuildItems = true;
   for (geom = st->doc->lib.geometries.first; geom; geom = geom->next) {
-    if (!ak_3mf_write_mesh_instance(st, geom, identity)) {
+    if (!ak_3mf_write_mesh_instance(st, geom, NULL, root)) {
       st->suppressBuildItems = savedSuppressBuildItems;
       return false;
     }
@@ -2375,28 +2875,6 @@ ak_3mf_write_slice_stacks(AK3MFExportState * __restrict st) {
   return st->resources.result == AK_OK;
 }
 
-static
-const char*
-ak_3mf_export_unit_name(AkDoc * __restrict doc) {
-  double dist;
-
-  dist = doc && doc->unit ? doc->unit->dist : 0.001;
-  if (fabs(dist - 0.000001) < 0.000000001)
-    return "micron";
-  if (fabs(dist - 0.001) < 0.0000001)
-    return "millimeter";
-  if (fabs(dist - 0.01) < 0.0000001)
-    return "centimeter";
-  if (fabs(dist - 0.0254) < 0.0000001)
-    return "inch";
-  if (fabs(dist - 0.3048) < 0.0000001)
-    return "foot";
-  if (fabs(dist - 1.0) < 0.0000001)
-    return "meter";
-
-  return "millimeter";
-}
-
 AK_HIDE
 bool
 ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
@@ -2404,7 +2882,7 @@ ak_3mf_build_model_xml(AK3MFExportState * __restrict st,
   const char *unitName;
 
   io_buffer_init(model);
-  unitName = ak_3mf_export_unit_name(st->doc);
+  unitName = ak_3mf_export_unit(st->doc).name;
 
   AK_3MF_BUF_LIT(model, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                         "<model unit=\"");

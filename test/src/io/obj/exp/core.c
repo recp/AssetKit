@@ -148,6 +148,7 @@ TEST_IMPL(obj_export_triangle_smoke) {
   mat->name          = "obj_mat";
   mat->surface       = surface;
   surface->type      = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
+  surface->flags     = AK_MATERIAL_FLAG_ALPHA_BLEND;
   surface->baseColor = baseColor;
   surface->metallic  = metallic;
   surface->opacity   = opacity;
@@ -168,7 +169,10 @@ TEST_IMPL(obj_export_triangle_smoke) {
   baseColor->color.rgba.R = 0.25f;
   baseColor->color.rgba.G = 0.5f;
   baseColor->color.rgba.B = 0.75f;
-  baseColor->color.rgba.A = 1.0f;
+  /* SketchUp glass commonly carries alpha on diffuse plus a separate
+     transparency scalar.  OBJ has a single dissolve value, so export must
+     preserve their effective product. */
+  baseColor->color.rgba.A = 0.5019608f;
   clearcoatFactor->source    = AK_MATERIAL_INPUT_CONSTANT;
   clearcoatFactor->valueType = AK_MATERIAL_VALUE_FLOAT;
   clearcoatFactor->value[0]  = 0.75f;
@@ -189,7 +193,7 @@ TEST_IMPL(obj_export_triangle_smoke) {
   metallic->value[0]  = 0.6f;
   opacity->source    = AK_MATERIAL_INPUT_CONSTANT;
   opacity->valueType = AK_MATERIAL_VALUE_FLOAT;
-  opacity->value[0]  = 0.8f;
+  opacity->value[0]  = 0.787769f;
   roughness->source    = AK_MATERIAL_INPUT_CONSTANT;
   roughness->valueType = AK_MATERIAL_VALUE_FLOAT;
   roughness->value[0]  = 0.4f;
@@ -225,7 +229,7 @@ TEST_IMPL(obj_export_triangle_smoke) {
   ASSERT(ak_test_file_contains(mtlPath, "Pcr 0.2"));
   ASSERT(ak_test_file_contains(mtlPath, "aniso 0.4"));
   ASSERT(ak_test_file_contains(mtlPath, "anisor 0.5"));
-  ASSERT(ak_test_file_contains(mtlPath, "d 0.8"));
+  ASSERT(ak_test_file_contains(mtlPath, "d 0.395429"));
 
   roundTrip = NULL;
   ASSERT(ak_load(&roundTrip, objPath, AK_FILE_TYPE_WAVEFRONT) == AK_OK);
@@ -256,6 +260,10 @@ TEST_IMPL(obj_export_triangle_smoke) {
   ASSERT(roundTrip->lib.materials.first != NULL);
   roundSurface = roundTrip->lib.materials.first->surface;
   ASSERT(roundSurface != NULL);
+  ASSERT(roundSurface->type == AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS);
+  ASSERT((roundSurface->flags & AK_MATERIAL_FLAG_ALPHA_BLEND) != 0);
+  ASSERT(fabsf(ak_materialOpacityFactor(roundSurface) - 0.395429f)
+         < 0.00001f);
   ASSERT(roundSurface->roughness != NULL);
   ASSERT(roundSurface->metallic != NULL);
   ASSERT(ak_materialRoughnessFactor(roundSurface) > 0.399f);
@@ -608,6 +616,7 @@ TEST_IMPL(obj_export_material_texture_copy) {
   AkSampler         *sampler;
   AkImage           *image;
   AkImageSource     *source;
+  AkBuffer          *buffer;
   AkMaterialSurface *roundSurface;
   struct stat        stTex;
   const char        *outDir  = "./assetkit_export_obj_texture_copy";
@@ -617,6 +626,12 @@ TEST_IMPL(obj_export_material_texture_copy) {
   const char        *sourceDir = "./assetkit_export_obj_texture_copy_src";
   const char        *sourceTexDir = "./assetkit_export_obj_texture_copy_src/textures";
   const char        *sourceTexPath = "./assetkit_export_obj_texture_copy_src/textures/Extra.PNG";
+  const char        *bufferOutDir = "./assetkit_export_obj_buffer_texture";
+  const char        *bufferMtlPath = "./assetkit_export_obj_buffer_texture/model.mtl";
+  const char        *bufferTexturePath = "./assetkit_export_obj_buffer_texture/image_0.png";
+  static const unsigned char bufferBytes[] = {
+    0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a
+  };
   const float positions[9] = {
     0.0f, 0.0f, 0.0f,
     1.0f, 0.0f, 0.0f,
@@ -624,6 +639,7 @@ TEST_IMPL(obj_export_material_texture_copy) {
   };
 
   ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(bufferOutDir);
   unlink(sourceTexPath);
   rmdir(sourceTexDir);
   rmdir(sourceDir);
@@ -667,6 +683,7 @@ TEST_IMPL(obj_export_material_texture_copy) {
   sampler   = ak_heap_calloc(heap, doc, sizeof(*sampler));
   image     = ak_heap_calloc(heap, doc, sizeof(*image));
   source    = ak_heap_calloc(heap, image, sizeof(*source));
+  buffer    = ak_heap_calloc(heap, source, sizeof(*buffer));
   ASSERT(mat != NULL);
   ASSERT(surface != NULL);
   ASSERT(classic != NULL);
@@ -680,6 +697,7 @@ TEST_IMPL(obj_export_material_texture_copy) {
   ASSERT(sampler != NULL);
   ASSERT(image != NULL);
   ASSERT(source != NULL);
+  ASSERT(buffer != NULL);
 
   source->type     = AK_IMAGE_SOURCE_URI;
   source->uri      = "textures/Extra.PNG";
@@ -714,6 +732,7 @@ TEST_IMPL(obj_export_material_texture_copy) {
   mat->name          = "tex_mat";
   mat->surface       = surface;
   surface->type      = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
+  surface->flags     = AK_MATERIAL_FLAG_ALPHA_BLEND;
   surface->baseColor = baseColor;
   surface->metallic  = metallic;
   surface->roughness = roughness;
@@ -761,8 +780,28 @@ TEST_IMPL(obj_export_material_texture_copy) {
   ASSERT(ak_materialInputChannels(roundSurface->metallic) == AK_TEXTURE_CHANNEL_B);
   ak_free(roundTrip);
 
+  source->type          = AK_IMAGE_SOURCE_BUFFER;
+  source->uri           = NULL;
+  source->resolvedPath  = NULL;
+  source->mimeType      = "image/png";
+  source->buffer        = buffer;
+  buffer->data          = (void *)bufferBytes;
+  buffer->length        = sizeof(bufferBytes);
+
+  ASSERT(ak_export(doc, bufferOutDir, AK_FILE_TYPE_WAVEFRONT) == AK_OK);
+  ASSERT(stat(bufferTexturePath, &stTex) == 0);
+  ASSERT(stTex.st_size == (off_t)sizeof(bufferBytes));
+  ASSERT(ak_test_file_contains(bufferMtlPath, "map_Kd image_0.png"));
+  ASSERT(ak_test_file_contains(bufferMtlPath,
+                               "map_Pr -imfchan g image_0.png"));
+  ASSERT(ak_test_file_contains(bufferMtlPath,
+                               "map_Pm -imfchan b image_0.png"));
+  ASSERT(ak_test_file_contains(bufferMtlPath,
+                               "map_d -imfchan a image_0.png"));
+
   ak_heap_destroy(heap);
   ak_test_export_cleanup(outDir);
+  ak_test_export_cleanup(bufferOutDir);
   unlink(sourceTexPath);
   rmdir(sourceTexDir);
   rmdir(sourceDir);
@@ -1182,5 +1221,64 @@ TEST_IMPL(obj_export_rejects_nonfinite_float) {
   ak_heap_destroy(heap);
   ak_test_export_cleanup(outDir);
 
+  TEST_SUCCESS
+}
+
+TEST_IMPL(obj_export_unlabelled_space_is_yup_metres) {
+  AkHeap      *heap;
+  AkDoc       *doc;
+  AkScene     *scene;
+  AkNode      *root, *node;
+  AkGeometry  *geom;
+  AkUnit       unit;
+  const char  *outDir  = "./assetkit_export_obj_canonical_space";
+  const char  *objPath = "./assetkit_export_obj_canonical_space/model.obj";
+  const float  matrix[16] = {
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    2.0f, 3.0f, 4.0f, 1.0f
+  };
+  const float positions[9] = {
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+
+  ak_test_export_cleanup(outDir);
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  ASSERT(heap != NULL && doc != NULL);
+  ak_heap_setdata(heap, doc);
+
+  scene = ak_heap_calloc(heap, doc, sizeof(*scene));
+  root  = ak_heap_calloc(heap, scene, sizeof(*root));
+  node  = ak_heap_calloc(heap, doc, sizeof(*node));
+  ASSERT(scene != NULL && root != NULL && node != NULL);
+
+  memset(&unit, 0, sizeof(unit));
+  scene->node   = root;
+  doc->scene    = scene;
+  doc->coordSys = AK_ZUP;
+  doc->unit     = &unit;
+  unit.name     = "inch";
+  unit.dist     = 0.0254;
+
+  geom = ak_test_make_triangle_geom(heap, doc, positions);
+  ASSERT(geom != NULL);
+  doc->lib.geometries.first = geom;
+  doc->lib.geometries.last  = geom;
+  doc->lib.geometries.count = 1;
+
+  ak_addSubNode(root, node, false);
+  ak_nodeSetTransformMatrix(node, matrix);
+  ASSERT(ak_nodeAttachGeometry(node, geom) != NULL);
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_OBJ) == AK_OK);
+  ASSERT(ak_test_file_contains(objPath, "v 0.0508 0.1016 -0.0762"));
+
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
   TEST_SUCCESS
 }

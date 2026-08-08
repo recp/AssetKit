@@ -75,4 +75,10 @@ bool
 io_path_mkdir_parent_dirs(char * __restrict path,
                           bool              normalizeSeparators);
 
+AK_HIDE
+bool
+io_file_write_bytes(const char * __restrict path,
+                    const void * __restrict data,
+                    size_t                  len);
+
 #endif /* io_common_path_h */

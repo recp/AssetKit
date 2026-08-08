@@ -20,6 +20,8 @@
 #include "common.h"
 #include "../../color.h"
 
+#include <math.h>
+
 AK_HIDE
 AkResult
 ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath);
@@ -46,12 +48,33 @@ ply_prepare_color_normalization(PLYState * __restrict pst);
 
 AK_INLINE
 void
+ply_record_alpha_row(PLYState    * __restrict pst,
+                     const float * __restrict row,
+                     uint32_t                  rowIndex) {
+  float alpha;
+
+  if (!pst->alphaBlendBits
+      || rowIndex >= pst->ac_rgb->count
+      || pst->colorComponentCount < 4u)
+    return;
+
+  alpha = row[pst->colorSlot + 3u];
+  if (!isfinite(alpha) || alpha < 1.0f)
+    pst->alphaBlendBits[rowIndex >> 3u]
+      |= (uint8_t)(1u << (rowIndex & 7u));
+}
+
+AK_INLINE
+void
 ply_normalize_color_row(PLYState * __restrict pst,
-                        float    * __restrict row) {
+                        float    * __restrict row,
+                        uint32_t               rowIndex) {
   float *color;
 
-  if (!pst->normalizeColors)
+  if (!pst->normalizeColors) {
+    ply_record_alpha_row(pst, row, rowIndex);
     return;
+  }
 
   color = row + pst->colorSlot;
 
@@ -72,6 +95,8 @@ ply_normalize_color_row(PLYState * __restrict pst,
 
   if (pst->colorComponentCount > 3u)
     color[3] *= pst->colorScale;
+
+  ply_record_alpha_row(pst, row, rowIndex);
 }
 
 #endif /* stl_h */

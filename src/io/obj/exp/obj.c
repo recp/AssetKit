@@ -18,6 +18,7 @@
 #include "material.h"
 #include "mesh.h"
 #include "writer.h"
+#include "../../common/export_space.h"
 #include "../../common/path.h"
 
 #include <stdio.h>
@@ -155,11 +156,11 @@ wobj_write_node(WOBJExpState * __restrict st,
 static
 bool
 wobj_write_scene(WOBJExpState * __restrict st) {
-  mat4 identity;
+  mat4 root;
 
-  glm_mat4_identity(identity);
+  io_export_canonical_root(st->doc, root);
   if (st->doc->scene && st->doc->scene->node)
-    return wobj_write_node(st, st->doc->scene->node, identity, 0u);
+    return wobj_write_node(st, st->doc->scene->node, root, 0u);
 
   return true;
 }
@@ -168,14 +169,14 @@ static
 bool
 wobj_write_library_fallback(WOBJExpState * __restrict st) {
   AkGeometry *geom;
-  mat4        identity;
+  mat4        root;
 
   if (st->objectCount > 0)
     return true;
 
-  glm_mat4_identity(identity);
+  io_export_canonical_root(st->doc, root);
   for (geom = st->doc->lib.geometries.first; geom; geom = geom->next) {
-    if (!wobj_write_mesh_instance(st, NULL, NULL, geom, identity))
+    if (!wobj_write_mesh_instance(st, NULL, NULL, geom, root))
       return false;
   }
 

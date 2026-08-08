@@ -16,6 +16,7 @@
 
 #include "gltf.h"
 #include "../../common/binary.h"
+#include "../../common/export_space.h"
 #include "../../common/path.h"
 #include "accessor.h"
 #include "anim.h"
@@ -64,6 +65,7 @@ gltf_state_destroy(GLTFExpState * __restrict st) {
   if (st->nodeStack)               rb_destroy(st->nodeStack);
   if (st->nodeMap)                 rb_destroy(st->nodeMap);
   if (st->meshes.map)              rb_destroy(st->meshes.map);
+  if (st->materials.map)           rb_destroy(st->materials.map);
   if (st->textures.map)            rb_destroy(st->textures.map);
   if (st->images.map)              rb_destroy(st->images.map);
   if (st->samplers.map)            rb_destroy(st->samplers.map);
@@ -73,8 +75,12 @@ gltf_state_destroy(GLTFExpState * __restrict st) {
   if (st->skinJointRoots.map)      rb_destroy(st->skinJointRoots.map);
   if (st->sceneSkinJointRoots.map) rb_destroy(st->sceneSkinJointRoots.map);
   if (st->accessors.accessorMap)   rb_destroy(st->accessors.accessorMap);
+  if (st->accessors.inputMap)      rb_destroy(st->accessors.inputMap);
   if (st->accessors.primitiveMap)  rb_destroy(st->accessors.primitiveMap);
   if (st->accessors.rawMap)        rb_destroy(st->accessors.rawMap);
+  if (st->normalValidityMap)       rb_destroy(st->normalValidityMap);
+  if (st->primitiveAttributeCountMap)
+    rb_destroy(st->primitiveAttributeCountMap);
 
   for (i = 0; i < st->accessors.count; i++)
     free(st->accessors.items[i].rawPath);
@@ -99,6 +105,10 @@ gltf_state_destroy(GLTFExpState * __restrict st) {
   }
   for (i = 0; i < st->positionAttrs.count; i++)
     free(st->positionAttrs.items[i].data);
+  for (i = 0; i < st->texcoordAttrs.count; i++)
+    free(st->texcoordAttrs.items[i].data);
+  for (i = 0; i < st->normalAttrs.count; i++)
+    free(st->normalAttrs.items[i].data);
   for (i = 0; i < st->bakedAttrs.count; i++) {
     free(st->bakedAttrs.items[i].positionData);
     free(st->bakedAttrs.items[i].normalData);
@@ -125,6 +135,8 @@ gltf_state_destroy(GLTFExpState * __restrict st) {
   free(st->skinAttrs.items);
   free(st->morphAttrs.items);
   free(st->positionAttrs.items);
+  free(st->texcoordAttrs.items);
+  free(st->normalAttrs.items);
   free(st->bakedAttrs.items);
   free(st->animations.items);
   free(st->animSamplers.items);
@@ -349,13 +361,32 @@ gltf_count_material_variants(AkDoc * __restrict doc,
 static
 bool
 gltf_state_init(GLTFExpState * __restrict st, AkDoc * __restrict doc) {
+  const float *root;
+  size_t       i;
+
   memset(st, 0, sizeof(*st));
   st->doc                    = doc;
+  st->unitScale              = io_export_canonical_unit_scale(doc);
+  io_export_root(doc,
+                 AK_YUP,
+                 st->unitScale,
+                 st->exportRootTransform.val);
+  root = &st->exportRootTransform.val[0][0];
+  for (i = 0; i < 16; i++) {
+    float identityValue;
+
+    identityValue = (i % 5u) == 0u ? 1.0f : 0.0f;
+    if (root[i] != identityValue) {
+      st->hasExportRootTransform = true;
+      break;
+    }
+  }
   if (!gltf_count_material_variants(doc, &st->materialVariantCount))
     return false;
   st->nodeStack              = rb_newtree_ptr();
   st->nodeMap                = rb_newtree_ptr();
   st->meshes.map             = rb_newtree_ptr();
+  st->materials.map          = rb_newtree_ptr();
   st->textures.map           = rb_newtree_ptr();
   st->images.map             = rb_newtree_ptr();
   st->samplers.map           = rb_newtree_ptr();
@@ -365,15 +396,21 @@ gltf_state_init(GLTFExpState * __restrict st, AkDoc * __restrict doc) {
   st->skinJointRoots.map     = rb_newtree_ptr();
   st->sceneSkinJointRoots.map = rb_newtree_ptr();
   st->accessors.accessorMap  = rb_newtree_ptr();
+  st->accessors.inputMap     = rb_newtree_ptr();
   st->accessors.primitiveMap = rb_newtree_ptr();
   st->accessors.rawMap       = rb_newtree_ptr();
+  st->normalValidityMap      = rb_newtree_ptr();
+  st->primitiveAttributeCountMap = rb_newtree_ptr();
 
   if (st->nodeStack && st->nodeMap && st->meshes.map
+      && st->materials.map
       && st->textures.map
       && st->images.map && st->samplers.map && st->cameras.map
       && st->lights.map && st->skins.map && st->skinJointRoots.map
       && st->sceneSkinJointRoots.map
-      && st->accessors.accessorMap && st->accessors.primitiveMap
+      && st->accessors.accessorMap && st->accessors.inputMap
+      && st->accessors.primitiveMap
+      && st->normalValidityMap && st->primitiveAttributeCountMap
       && st->accessors.rawMap)
     return true;
 

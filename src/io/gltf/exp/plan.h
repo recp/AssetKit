@@ -26,26 +26,37 @@ bool
 gltf_input_supported(AkInput * __restrict input);
 
 bool
-gltf_normal_input_valid(AkInput * __restrict input);
+gltf_normal_input_valid(GLTFExpState * __restrict st,
+                        AkInput      * __restrict input);
 
 bool
-gltf_input_count_valid(AkMeshPrimitive * __restrict prim,
+gltf_input_count_valid(GLTFExpState    * __restrict st,
+                       AkMeshPrimitive * __restrict prim,
                        AkInput         * __restrict input,
                        AkInput         * __restrict posInput);
+
+bool
+gltf_primitive_export_attribute_count(GLTFExpState    * __restrict st,
+                                      AkMeshPrimitive * __restrict prim,
+                                      AkInput         * __restrict posInput,
+                                      uint32_t        * __restrict outCount);
 
 uint32_t
 gltf_input_source_set(AkInput * __restrict input);
 
 uint32_t
-gltf_input_export_set(AkMeshPrimitive * __restrict prim,
+gltf_input_export_set(GLTFExpState    * __restrict st,
+                      AkMeshPrimitive * __restrict prim,
                       AkInput         * __restrict input);
 
 int32_t
-gltf_texcoord_export_set(AkMeshPrimitive * __restrict prim,
+gltf_texcoord_export_set(GLTFExpState    * __restrict st,
+                         AkMeshPrimitive * __restrict prim,
                          int32_t                       sourceSet);
 
 bool
-gltf_texcoord_source_set_valid(AkMeshPrimitive * __restrict prim,
+gltf_texcoord_source_set_valid(GLTFExpState    * __restrict st,
+                               AkMeshPrimitive * __restrict prim,
                                int32_t                       sourceSet);
 
 AkInput*
@@ -73,8 +84,20 @@ gltf_accessor_index(GLTFExpAccessorTable * __restrict table,
                     AkAccessor           * __restrict accessor);
 
 GLTFExpIndex
+gltf_input_accessor_index(GLTFExpAccessorTable * __restrict table,
+                          AkInput              * __restrict input);
+
+GLTFExpIndex
+gltf_raw_accessor_index(GLTFExpAccessorTable * __restrict table,
+                        const void           * __restrict key);
+
+GLTFExpIndex
 gltf_position_accessor_index(GLTFExpState    * __restrict st,
                              AkMeshPrimitive * __restrict prim);
+
+GLTFExpIndex
+gltf_texcoord_accessor_index(GLTFExpState * __restrict st,
+                             AkInput      * __restrict input);
 
 GLTFExpIndex
 gltf_baked_accessor_index(GLTFExpState     * __restrict st,

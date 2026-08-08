@@ -181,6 +181,47 @@ gltf_accessors_add_accessor_target_flags(GLTFExpAccessorTable * __restrict table
 
 AK_HIDE
 bool
+gltf_accessors_add_input_view(GLTFExpAccessorTable * __restrict table,
+                              AkInput              * __restrict input,
+                              uint32_t                           count,
+                              uint32_t                           target,
+                              bool                               normalizeVec3) {
+  GLTFExpAccessorOut out;
+
+  if (!input || !input->accessor || count == 0
+      || count > input->accessor->count
+      || !gltf_accessor_supported(input->accessor))
+    return false;
+
+  memset(&out, 0, sizeof(out));
+  out.kind             = GLTF_EXP_ACCESSOR_ASSETKIT;
+  out.accessor         = input->accessor;
+  out.assetkitCount    = count;
+  out.bufferViewTarget = target;
+  out.normalizeVec3    = normalizeVec3;
+
+  return gltf_accessors_add_out(table, &out, input, table->inputMap);
+}
+
+AK_HIDE
+bool
+gltf_input_accessor_require_minmax(GLTFExpAccessorTable * __restrict table,
+                                   AkInput              * __restrict input) {
+  uintptr_t idx;
+
+  if (!input)
+    return false;
+
+  idx = (uintptr_t)rb_find(table->inputMap, input);
+  if (idx == 0)
+    return false;
+
+  table->items[(size_t)idx - 1u].minMaxRequired = true;
+  return true;
+}
+
+AK_HIDE
+bool
 gltf_accessors_require_minmax_target(GLTFExpAccessorTable * __restrict table,
                                      AkAccessor           * __restrict accessor,
                                      uint32_t                          target) {
@@ -481,6 +522,21 @@ gltf_accessor_index(GLTFExpAccessorTable * __restrict table,
 }
 
 GLTFExpIndex
+gltf_input_accessor_index(GLTFExpAccessorTable * __restrict table,
+                          AkInput              * __restrict input) {
+  uintptr_t idx;
+
+  if (!input)
+    return GLTF_EXP_INDEX_NONE;
+
+  idx = (uintptr_t)rb_find(table->inputMap, input);
+  if (idx == 0)
+    return GLTF_EXP_INDEX_NONE;
+
+  return table->items[(size_t)idx - 1].jsonIndex;
+}
+
+GLTFExpIndex
 gltf_position_accessor_index(GLTFExpState    * __restrict st,
                              AkMeshPrimitive * __restrict prim) {
   size_t i;
@@ -497,6 +553,15 @@ gltf_position_accessor_index(GLTFExpState    * __restrict st,
   }
 
   return GLTF_EXP_INDEX_NONE;
+}
+
+GLTFExpIndex
+gltf_texcoord_accessor_index(GLTFExpState * __restrict st,
+                             AkInput      * __restrict input) {
+  if (!st || !input)
+    return GLTF_EXP_INDEX_NONE;
+
+  return gltf_raw_accessor_index(&st->accessors, input);
 }
 
 GLTFExpIndex
@@ -691,23 +756,45 @@ gltf_accessor_range_ok(AkAccessor * __restrict acc,
 }
 
 bool
-gltf_normal_input_valid(AkInput * __restrict input) {
+gltf_normal_input_valid(GLTFExpState * __restrict st,
+                        AkInput      * __restrict input) {
   AkAccessor          *acc;
   const unsigned char *src;
+  uintptr_t            encoded;
   size_t               fillSize;
   size_t               stride;
   uint32_t             i;
+  bool                 valid;
 
   if (!input || input->semantic != AK_INPUT_NORMAL)
     return true;
 
-  if (!(acc = input->accessor) || !acc->buffer || !acc->buffer->data)
+  /* A generated accessor is already legal even when the source accessor
+     contained rows that required sanitizing. */
+  if (st
+      && gltf_raw_accessor_index(&st->accessors, input)
+         != GLTF_EXP_INDEX_NONE)
+    return true;
+
+  if (!(acc = input->accessor))
     return false;
+
+  encoded = st && st->normalValidityMap
+              ? (uintptr_t)rb_find(st->normalValidityMap, acc)
+              : 0;
+  if (encoded)
+    return encoded == 1u;
+
+  valid = false;
+  if (!acc->buffer || !acc->buffer->data)
+    goto cache;
 
   if (acc->componentType != AKT_FLOAT
       || acc->componentCount != 3
-      || acc->bytesPerComponent != sizeof(float))
-    return true;
+      || acc->bytesPerComponent != sizeof(float)) {
+    valid = true;
+    goto cache;
+  }
 
   fillSize = acc->fillByteSize;
   if (!fillSize)
@@ -717,7 +804,7 @@ gltf_normal_input_valid(AkInput * __restrict input) {
   if (fillSize < sizeof(float) * 3u
       || stride < fillSize
       || !gltf_accessor_range_ok(acc, fillSize, stride))
-    return false;
+    goto cache;
 
   src = (const unsigned char *)acc->buffer->data + acc->byteOffset;
   for (i = 0; i < acc->count; i++) {
@@ -734,10 +821,17 @@ gltf_normal_input_valid(AkInput * __restrict input) {
 
     len2 = x * x + y * y + z * z;
     if (!isfinite(len2) || len2 <= 0.00000001f)
-      return false;
+      goto cache;
   }
 
-  return true;
+  valid = true;
+
+cache:
+  if (st && st->normalValidityMap)
+    rb_insert(st->normalValidityMap,
+              acc,
+              (void *)(uintptr_t)(valid ? 1u : 2u));
+  return valid;
 }
 
 AkInput*
@@ -745,25 +839,118 @@ gltf_primitive_position_input(AkMeshPrimitive * __restrict prim) {
   return io_primitive_find_accessor_input(prim, AK_INPUT_POSITION, 0u);
 }
 
+static
 bool
-gltf_input_count_valid(AkMeshPrimitive * __restrict prim,
+gltf_primitive_export_attribute_count_uncached(
+  GLTFExpState    * __restrict st,
+  AkMeshPrimitive * __restrict prim,
+  AkInput         * __restrict posInput,
+  uint32_t        * __restrict outCount) {
+  AkInput  *input;
+  uint32_t  posCount;
+  uint32_t  count;
+  AkUInt    maxIndex;
+  bool      mismatch;
+
+  if (!prim || !posInput || !posInput->accessor || !outCount)
+    return false;
+
+  posCount = posInput->accessor->count;
+  if (posCount == 0)
+    return false;
+
+  mismatch = false;
+  for (input = prim->input; input; input = input->next) {
+    if (!input->accessor
+        || !gltf_input_supported(input)
+        || !gltf_normal_input_valid(st, input))
+      continue;
+    if (input->accessor->count != posCount) {
+      mismatch = true;
+      break;
+    }
+  }
+
+  if (!mismatch) {
+    *outCount = posCount;
+    return true;
+  }
+
+  if (!prim->indices || prim->indices->count == 0)
+    return false;
+
+  maxIndex = gltf_index_array_max(prim->indices);
+  if (maxIndex == UINT32_MAX)
+    return false;
+  count = maxIndex + 1u;
+
+  if (count > posCount)
+    return false;
+
+  for (input = prim->input; input; input = input->next) {
+    if (!input->accessor
+        || !gltf_input_supported(input)
+        || !gltf_normal_input_valid(st, input))
+      continue;
+    if (input->accessor->count < count)
+      return false;
+  }
+
+  *outCount = count;
+  return true;
+}
+
+bool
+gltf_primitive_export_attribute_count(GLTFExpState    * __restrict st,
+                                      AkMeshPrimitive * __restrict prim,
+                                      AkInput         * __restrict posInput,
+                                      uint32_t        * __restrict outCount) {
+  uintptr_t encoded;
+  uint32_t  count;
+  bool      valid;
+
+  if (!prim || !outCount)
+    return false;
+
+  encoded = st && st->primitiveAttributeCountMap
+              ? (uintptr_t)rb_find(st->primitiveAttributeCountMap, prim)
+              : 0;
+  if (encoded) {
+    if (encoded == 1u)
+      return false;
+    *outCount = (uint32_t)(encoded - 2u);
+    return true;
+  }
+
+  valid = gltf_primitive_export_attribute_count_uncached(st,
+                                                         prim,
+                                                         posInput,
+                                                         &count);
+  if (st && st->primitiveAttributeCountMap)
+    rb_insert(st->primitiveAttributeCountMap,
+              prim,
+              (void *)(uintptr_t)(valid ? (uintptr_t)count + 2u : 1u));
+  if (!valid)
+    return false;
+
+  *outCount = count;
+  return true;
+}
+
+bool
+gltf_input_count_valid(GLTFExpState    * __restrict st,
+                       AkMeshPrimitive * __restrict prim,
                        AkInput         * __restrict input,
                        AkInput         * __restrict posInput) {
-  AkAccessor *posAcc;
-
-  (void)prim;
+  uint32_t count;
 
   if (!input || !input->accessor)
     return false;
 
-  if (input == posInput || input->semantic == AK_INPUT_POSITION)
-    return true;
-
-  posAcc = posInput ? posInput->accessor : NULL;
-  if (!posAcc)
+  if (!gltf_primitive_export_attribute_count(st, prim, posInput, &count))
     return false;
 
-  return input->accessor->count == posAcc->count;
+  return input->accessor->count >= count;
 }
 
 uint32_t
@@ -797,7 +984,8 @@ gltf_export_nonsequential_attribute_sets(void) {
 }
 
 bool
-gltf_input_has_source_set_before(AkMeshPrimitive * __restrict prim,
+gltf_input_has_source_set_before(GLTFExpState    * __restrict st,
+                                 AkMeshPrimitive * __restrict prim,
                                  AkInput         * __restrict first,
                                  AkInput         * __restrict limit,
                                  AkInput         * __restrict posInput,
@@ -808,7 +996,7 @@ gltf_input_has_source_set_before(AkMeshPrimitive * __restrict prim,
   for (scan = first; scan && scan != limit; scan = scan->next) {
     if (!scan->accessor
         || !gltf_input_supported(scan)
-        || !gltf_input_count_valid(prim, scan, posInput))
+        || !gltf_input_count_valid(st, prim, scan, posInput))
       continue;
     if (gltf_input_set_kind(scan) != kind)
       continue;
@@ -820,7 +1008,8 @@ gltf_input_has_source_set_before(AkMeshPrimitive * __restrict prim,
 }
 
 uint32_t
-gltf_input_export_set(AkMeshPrimitive * __restrict prim,
+gltf_input_export_set(GLTFExpState    * __restrict st,
+                      AkMeshPrimitive * __restrict prim,
                       AkInput         * __restrict input) {
   AkInput *scan;
   AkInput *posInput;
@@ -844,7 +1033,7 @@ gltf_input_export_set(AkMeshPrimitive * __restrict prim,
 
     if (!scan->accessor
         || !gltf_input_supported(scan)
-        || !gltf_input_count_valid(prim, scan, posInput))
+        || !gltf_input_count_valid(st, prim, scan, posInput))
       continue;
 
     if (gltf_input_set_kind(scan) != kind)
@@ -854,7 +1043,8 @@ gltf_input_export_set(AkMeshPrimitive * __restrict prim,
     if (scanSet >= sourceSet)
       continue;
 
-    if (gltf_input_has_source_set_before(prim,
+    if (gltf_input_has_source_set_before(st,
+                                         prim,
                                          prim->input,
                                          scan,
                                          posInput,
@@ -869,7 +1059,8 @@ gltf_input_export_set(AkMeshPrimitive * __restrict prim,
 }
 
 int32_t
-gltf_texcoord_export_set(AkMeshPrimitive * __restrict prim,
+gltf_texcoord_export_set(GLTFExpState    * __restrict st,
+                         AkMeshPrimitive * __restrict prim,
                          int32_t                       sourceSet) {
   AkInput *input;
   AkInput *posInput;
@@ -881,21 +1072,22 @@ gltf_texcoord_export_set(AkMeshPrimitive * __restrict prim,
   for (input = prim ? prim->input : NULL; input; input = input->next) {
     if (!input->accessor
         || !gltf_input_supported(input)
-        || !gltf_input_count_valid(prim, input, posInput))
+        || !gltf_input_count_valid(st, prim, input, posInput))
       continue;
   
     if (input->semantic != AK_INPUT_TEXCOORD && input->semantic != AK_INPUT_UV)
       continue;
     
     if ((int32_t)gltf_input_source_set(input) == sourceSet)
-      return (int32_t)gltf_input_export_set(prim, input);
+      return (int32_t)gltf_input_export_set(st, prim, input);
   }
 
   return 0;
 }
 
 bool
-gltf_texcoord_source_set_valid(AkMeshPrimitive * __restrict prim,
+gltf_texcoord_source_set_valid(GLTFExpState    * __restrict st,
+                               AkMeshPrimitive * __restrict prim,
                                int32_t                       sourceSet) {
   AkInput *input;
   AkInput *posInput;
@@ -907,7 +1099,7 @@ gltf_texcoord_source_set_valid(AkMeshPrimitive * __restrict prim,
   for (input = prim ? prim->input : NULL; input; input = input->next) {
     if (!input->accessor
         || !gltf_input_supported(input)
-        || !gltf_input_count_valid(prim, input, posInput))
+        || !gltf_input_count_valid(st, prim, input, posInput))
       continue;
     
     if (input->semantic != AK_INPUT_TEXCOORD && input->semantic != AK_INPUT_UV)

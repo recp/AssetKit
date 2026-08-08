@@ -34,6 +34,17 @@ typedef struct WObjIndexSlot {
   uint32_t compact;
 } WObjIndexSlot;
 
+typedef struct WObjFaceTuple {
+  uint32_t pos;
+  uint32_t tex;
+  uint32_t nor;
+} WObjFaceTuple;
+
+typedef struct WObjTupleSlot {
+  uint32_t generation;
+  uint32_t compact;
+} WObjTupleSlot;
+
 #define WOBJ_JOIN_INDICES(TYPE)                                               \
   do {                                                                        \
     TYPE *dst_;                                                               \
@@ -514,6 +525,282 @@ wobj_copy_compact_accessor(AkAccessor    * __restrict dstAcc,
     memcpy(dst, src + srcStride * compactSources[i], bytes);
     dst += bytes;
   }
+}
+
+static
+uint32_t
+wobj_face_tuple_hash(WObjFaceTuple tuple) {
+  uint32_t hash;
+
+  hash = 2166136261u;
+  hash = (hash ^ tuple.pos) * 16777619u;
+  hash = (hash ^ tuple.tex) * 16777619u;
+  hash = (hash ^ tuple.nor) * 16777619u;
+
+  return hash;
+}
+
+static
+bool
+wobj_compact_scratch_begin(WOState           * __restrict wst,
+                           WObjCompactScratch * __restrict scratch,
+                           size_t                          count) {
+  size_t itemCapacity, tableCapacity;
+  size_t tableBytes, tupleBytes, indexBytes, storageSize;
+  void  *storage;
+
+  if (count == 0)
+    return false;
+
+  if (count <= scratch->itemCapacity) {
+    scratch->generation++;
+    if (scratch->generation == 0) {
+      memset(scratch->storage,
+             0,
+             sizeof(WObjTupleSlot) * scratch->tableCapacity);
+      scratch->generation = 1;
+    }
+    return true;
+  }
+
+  itemCapacity = scratch->itemCapacity ? scratch->itemCapacity : 16;
+  while (itemCapacity < count) {
+    if (itemCapacity > SIZE_MAX / 2)
+      return false;
+    itemCapacity <<= 1;
+  }
+
+  if (itemCapacity > SIZE_MAX / 2)
+    return false;
+  tableCapacity = itemCapacity << 1;
+
+  if (tableCapacity > SIZE_MAX / sizeof(WObjTupleSlot)
+      || itemCapacity > SIZE_MAX / sizeof(WObjFaceTuple)
+      || itemCapacity > SIZE_MAX / sizeof(uint32_t))
+    return false;
+
+  tableBytes = sizeof(WObjTupleSlot) * tableCapacity;
+  tupleBytes = sizeof(WObjFaceTuple) * itemCapacity;
+  indexBytes = sizeof(uint32_t) * itemCapacity;
+  if (tupleBytes > SIZE_MAX - tableBytes
+      || indexBytes > SIZE_MAX - tableBytes - tupleBytes)
+    return false;
+  storageSize = tableBytes + tupleBytes + indexBytes;
+
+  storage = ak_heap_realloc(wst->heap,
+                            NULL,
+                            scratch->storage,
+                            storageSize);
+  if (!storage)
+    return false;
+
+  scratch->storage       = storage;
+  scratch->storageSize   = storageSize;
+  scratch->itemCapacity  = itemCapacity;
+  scratch->tableCapacity = tableCapacity;
+  scratch->generation    = 1;
+  memset(storage, 0, tableBytes);
+
+  return true;
+}
+
+AK_HIDE
+void
+wobj_compactScratchDestroy(WObjCompactScratch * __restrict scratch) {
+  if (!scratch)
+    return;
+
+  if (scratch->storage)
+    ak_free(scratch->storage);
+  memset(scratch, 0, sizeof(*scratch));
+}
+
+AK_HIDE
+bool
+wobj_compactIndexedFacePrim(WOState           * __restrict wst,
+                            WOPrim            * __restrict wp,
+                            AkMeshPrimitive   * __restrict prim,
+                            WObjCompactScratch * __restrict scratch) {
+  AkAccessor      *posAcc, *texAcc, *norAcc, *colAcc;
+  AkInput         *posInp, *texInp, *norInp, *colInp;
+  AkIndexArray    *indices;
+  AkDataChunk     *chunk;
+  WObjTupleSlot   *table, *slot;
+  WObjFaceTuple   *tuples;
+  uint32_t        *tmpIndices;
+  const AkInt     *face;
+  size_t           count, tableMask, nitems, i, outIndex;
+  uint32_t         posCount, texCount, norCount, uniqueCount, generation;
+  AkTypeId         componentType;
+
+  if (wp->kind == AK_PRIMITIVE_LINES || wp->kind == AK_PRIMITIVE_POINTS)
+    return false;
+  if (!wp->hasTexture && !wp->hasNormal)
+    return false;
+  if (!wp->dc_face || !wp->dc_face->data || wp->dc_face->itemcount == 0)
+    return false;
+  if (!(posAcc = wst->ac_pos) || !posAcc->buffer || !posAcc->buffer->data)
+    return false;
+
+  count    = wp->dc_face->itemcount;
+  posCount = posAcc->count;
+  if (posCount == 0 || count > UINT32_MAX)
+    return false;
+
+  texAcc   = wst->ac_tex;
+  norAcc   = wst->ac_nor;
+  colAcc   = wst->ac_col;
+  texCount = texAcc ? texAcc->count : 0;
+  norCount = norAcc ? norAcc->count : 0;
+  if (wp->hasTexture
+      && (!texAcc || !texAcc->buffer || !texAcc->buffer->data || texCount == 0))
+    return false;
+  if (wp->hasNormal
+      && (!norAcc || !norAcc->buffer || !norAcc->buffer->data || norCount == 0))
+    return false;
+  if (colAcc
+      && (!colAcc->buffer || !colAcc->buffer->data || colAcc->count < posCount))
+    return false;
+  if (!wobj_compact_scratch_begin(wst, scratch, count))
+    return false;
+
+  table = (WObjTupleSlot *)scratch->storage;
+  tuples = (WObjFaceTuple *)((char *)scratch->storage
+                             + sizeof(*table) * scratch->tableCapacity);
+  tmpIndices = (uint32_t *)(void *)(tuples + scratch->itemCapacity);
+  tableMask  = scratch->tableCapacity - 1;
+  generation = scratch->generation;
+  uniqueCount = 0;
+  outIndex    = 0;
+
+  chunk = wp->dc_face->data;
+  while (chunk) {
+    face   = (const AkInt *)(const void *)chunk->data;
+    nitems = chunk->usedsize / sizeof(ivec3);
+    for (i = 0; i < nitems; i++, face += 3) {
+      WObjFaceTuple tuple;
+      uint32_t      compact;
+      size_t        hash;
+
+      tuple.pos = (uint32_t)wobj_real_index(posCount, face[0]);
+      tuple.tex = wp->hasTexture
+                  ? (uint32_t)wobj_optional_index(texCount,
+                                                  face[1],
+                                                  wp->defaultTexIndex,
+                                                  wp->useDefaultTexture)
+                  : 0;
+      tuple.nor = wp->hasNormal
+                  ? (uint32_t)wobj_optional_index(norCount,
+                                                  face[2],
+                                                  wp->defaultNorIndex,
+                                                  wp->useDefaultNormal)
+                  : 0;
+      hash = (size_t)wobj_face_tuple_hash(tuple) & tableMask;
+
+      for (;;) {
+        slot = &table[hash];
+        if (slot->generation != generation) {
+          if (uniqueCount == UINT32_MAX)
+            return false;
+          compact          = uniqueCount++;
+          tuples[compact]  = tuple;
+          slot->compact    = compact;
+          slot->generation = generation;
+          break;
+        }
+        compact = slot->compact;
+        if (tuples[compact].pos == tuple.pos
+            && tuples[compact].tex == tuple.tex
+            && tuples[compact].nor == tuple.nor)
+          break;
+        hash = (hash + 1) & tableMask;
+      }
+
+      tmpIndices[outIndex++] = compact;
+    }
+    chunk = chunk->next;
+  }
+
+  if (outIndex != count || uniqueCount == 0)
+    return false;
+
+  componentType = ak_indexComponentTypeForMax(uniqueCount - 1);
+  indices = ak_indexArrayAlloc(wst->heap, prim, count, componentType);
+  if (!indices)
+    return false;
+  indices->max = uniqueCount - 1;
+  wobj_copy_compact_indices(indices, tmpIndices, count);
+
+  posInp = wobj_flatInput(wst,
+                          prim,
+                          AK_INPUT_POSITION,
+                          _s_POSITION,
+                          posAcc->componentSize,
+                          posAcc->componentType,
+                          uniqueCount);
+  prim->pos = posInp;
+
+  colInp = NULL;
+  if (colAcc) {
+    colInp = wobj_flatInput(wst,
+                            prim,
+                            AK_INPUT_COLOR,
+                            _s_COLOR,
+                            colAcc->componentSize,
+                            colAcc->componentType,
+                            uniqueCount);
+  }
+
+  texInp = NULL;
+  if (wp->hasTexture) {
+    texInp = wobj_flatInput(wst,
+                            prim,
+                            AK_INPUT_TEXCOORD,
+                            _s_TEXCOORD,
+                            texAcc->componentSize,
+                            texAcc->componentType,
+                            uniqueCount);
+  }
+
+  norInp = NULL;
+  if (wp->hasNormal) {
+    norInp = wobj_flatInput(wst,
+                            prim,
+                            AK_INPUT_NORMAL,
+                            _s_NORMAL,
+                            norAcc->componentSize,
+                            norAcc->componentType,
+                            uniqueCount);
+  }
+
+  {
+    uint32_t *sources;
+
+    sources = tmpIndices;
+    for (i = 0; i < uniqueCount; i++)
+      sources[i] = tuples[i].pos;
+    wobj_copy_compact_accessor(posInp->accessor, posAcc, sources, uniqueCount);
+    if (colInp)
+      wobj_copy_compact_accessor(colInp->accessor, colAcc, sources, uniqueCount);
+
+    if (texInp) {
+      for (i = 0; i < uniqueCount; i++)
+        sources[i] = tuples[i].tex;
+      wobj_copy_compact_accessor(texInp->accessor, texAcc, sources, uniqueCount);
+    }
+
+    if (norInp) {
+      for (i = 0; i < uniqueCount; i++)
+        sources[i] = tuples[i].nor;
+      wobj_copy_compact_accessor(norInp->accessor, norAcc, sources, uniqueCount);
+    }
+  }
+
+  prim->indices       = indices;
+  prim->indexAccessor = NULL;
+  prim->indexStride   = 1;
+
+  return true;
 }
 
 AK_HIDE

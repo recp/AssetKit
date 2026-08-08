@@ -296,9 +296,9 @@ dae_image_write_buffer(DAEExpState  * __restrict st,
     return false;
 
   ok = io_path_mkdir_parent_dirs(dstPath, false)
-       && dae_write_file_bytes(dstPath,
-                               source->buffer->data,
-                               source->buffer->length);
+       && io_file_write_bytes(dstPath,
+                              source->buffer->data,
+                              source->buffer->length);
   if (heapPath)
     free(dstPath);
 

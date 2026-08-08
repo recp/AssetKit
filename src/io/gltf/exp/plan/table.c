@@ -148,13 +148,20 @@ gltf_materials_reserve(GLTFExpMaterialTable * __restrict table,
 
 AK_HIDE
 bool
-gltf_materials_add(GLTFExpMaterialTable * __restrict table,
-                   AkMaterial           * __restrict material,
-                   AkMeshPrimitive      * __restrict prim,
-                   AkInstanceGeometry   * __restrict inst) {
+gltf_materials_add(GLTFExpState        * __restrict st,
+                   AkMaterial         * __restrict material,
+                   AkMeshPrimitive    * __restrict prim,
+                   AkInstanceGeometry * __restrict inst) {
   GLTFExpMaterialOut *entry;
-  size_t              i;
+  GLTFExpMaterialTable *table;
+  GLTFExpIndex         index;
+  GLTFExpIndex         previous;
+  uintptr_t            encoded;
   size_t              newCap;
+
+  if (!st)
+    return false;
+  table = &st->materials;
 
   if (!material || gltf_material_is_default_noop(material))
     return true;
@@ -162,12 +169,20 @@ gltf_materials_add(GLTFExpMaterialTable * __restrict table,
   if (table->count >= GLTF_EXP_INDEX_NONE)
     return false;
 
-  for (i = 0; i < table->count; i++) {
-    entry = &table->items[i];
-    if (entry->material == material
-        && entry->primitive == prim
-        && entry->instance == inst)
+  encoded = (uintptr_t)rb_find(table->map, material);
+  previous = GLTF_EXP_INDEX_NONE;
+  index = encoded ? (GLTFExpIndex)(encoded - 1u) : GLTF_EXP_INDEX_NONE;
+  while (index != GLTF_EXP_INDEX_NONE) {
+    entry = &table->items[index];
+    if (gltf_material_binding_equal(st,
+                                    material,
+                                    entry->primitive,
+                                    entry->instance,
+                                    prim,
+                                    inst))
       return true;
+    previous = index;
+    index = entry->nextVariant;
   }
 
   if (table->count == table->capacity) {
@@ -177,10 +192,17 @@ gltf_materials_add(GLTFExpMaterialTable * __restrict table,
       return false;
   }
 
-  entry            = &table->items[table->count++];
+  index             = (GLTFExpIndex)table->count++;
+  entry             = &table->items[index];
   entry->material  = material;
   entry->primitive = prim;
   entry->instance  = inst;
+  entry->nextVariant = GLTF_EXP_INDEX_NONE;
+
+  if (previous == GLTF_EXP_INDEX_NONE)
+    rb_insert(table->map, material, (void *)(uintptr_t)(index + 1u));
+  else
+    table->items[previous].nextVariant = index;
 
   return true;
 }
@@ -497,6 +519,49 @@ gltf_position_attrs_add(GLTFExpPositionAttrTable * __restrict table,
   entry = &table->items[table->count++];
   memset(entry, 0, sizeof(*entry));
   entry->primitive     = prim;
+  entry->accessorIndex = GLTF_EXP_INDEX_NONE;
+
+  return entry;
+}
+
+AK_HIDE
+bool
+gltf_texcoord_attrs_reserve(GLTFExpTexcoordAttrTable * __restrict table,
+                            size_t                                capacity) {
+  GLTFExpTexcoordAttrOut *items;
+
+  if (capacity <= table->capacity)
+    return true;
+
+  items = gltf_realloc_array(table->items, capacity, sizeof(*items));
+  if (!items)
+    return false;
+
+  table->items    = items;
+  table->capacity = capacity;
+
+  return true;
+}
+
+AK_HIDE
+GLTFExpTexcoordAttrOut*
+gltf_texcoord_attrs_add(GLTFExpTexcoordAttrTable * __restrict table,
+                        AkInput                  * __restrict input) {
+  GLTFExpTexcoordAttrOut *entry;
+  size_t                  newCap;
+
+  if (!input)
+    return NULL;
+
+  if (table->count == table->capacity) {
+    if (!gltf_next_capacity(table->capacity, 16, &newCap)
+        || !gltf_texcoord_attrs_reserve(table, newCap))
+      return NULL;
+  }
+
+  entry = &table->items[table->count++];
+  memset(entry, 0, sizeof(*entry));
+  entry->input         = input;
   entry->accessorIndex = GLTF_EXP_INDEX_NONE;
 
   return entry;

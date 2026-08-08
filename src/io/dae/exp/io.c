@@ -19,7 +19,6 @@
 #include "../../common/path.h"
 #include "../../common/uri.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -47,29 +46,4 @@ dae_uri_rel_safe(const char * __restrict uri) {
   }
 
   return true;
-}
-
-AK_HIDE
-bool
-dae_write_file_bytes(const char * __restrict dst,
-                     const void * __restrict data,
-                     size_t                  len) {
-  FILE *out;
-  bool  ok;
-
-  if (!dst || !data || len == 0)
-    return false;
-
-  out = fopen(dst, "wb");
-  if (!out)
-    return false;
-
-  ok = fwrite(data, 1, len, out) == len;
-  if (fclose(out) != 0)
-    ok = false;
-
-  if (!ok)
-    remove(dst);
-
-  return ok;
 }

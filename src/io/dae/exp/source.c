@@ -81,6 +81,7 @@ dae_write_source(DAEExpState  * __restrict st,
   uint32_t      c;
   uint32_t      componentCount;
   bool          direct;
+  bool          flipTexcoordV;
 
   w   = &st->w;
   acc = input ? input->accessor : NULL;
@@ -94,6 +95,10 @@ dae_write_source(DAEExpState  * __restrict st,
   semanticName   = DAE_EXP_NAME_CSTR(semantic);
   componentCount = acc->componentCount;
   direct         = io_accessor_float_direct(acc);
+  flipTexcoordV  = (input->semantic == AK_INPUT_TEXCOORD
+                    || input->semantic == AK_INPUT_UV)
+                   && (!st->doc->inf || !st->doc->inf->flipImage)
+                   && componentCount > 1u;
   scratch        = NULL;
 
   if (!direct) {
@@ -131,7 +136,7 @@ dae_write_source(DAEExpState  * __restrict st,
     for (c = 0; c < componentCount; c++) {
       if (i > 0 || c > 0)
         dae_w_ch(w, ' ');
-      dae_w_float_fast(w, row[c]);
+      dae_w_float_fast(w, flipTexcoordV && c == 1u ? 1.0f - row[c] : row[c]);
     }
   }
 

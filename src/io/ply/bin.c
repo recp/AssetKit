@@ -30,6 +30,7 @@
 #endif
 
 #define PLY_BIN_FAST_MAX_SLOTS 16
+#define PLY_FACE_INLINE_CAPACITY 64u
 
 typedef enum PLYBinFastKind {
   PLY_BIN_FAST_NONE = 0,
@@ -196,9 +197,9 @@ ply_bin_vertex_fast(char        ** __restrict src,
 
     if (allFloatContiguous) {
       memcpy(dst, p, (size_t)count * inputStride);
-      if (pst->normalizeColors) {
+      if (pst->normalizeColors || pst->alphaBlendBitsValid) {
         for (i = 0; i < count; i++)
-          ply_normalize_color_row(pst, dst + i * stride);
+          ply_normalize_color_row(pst, dst + i * stride, (uint32_t)i);
       }
       *src = p + (size_t)count * inputStride;
       return true;
@@ -244,6 +245,7 @@ ply_bin_vertex_fast(char        ** __restrict src,
 #endif
           for (i = 0u; i < count; i++) {
             ply_bin_srgb_rgba_row(p, dst, table, alphaScale);
+            ply_record_alpha_row(pst, dst, (uint32_t)i);
             p   += 16u;
             dst += 7u;
           }
@@ -273,6 +275,7 @@ ply_bin_vertex_fast(char        ** __restrict src,
           memcpy(dst, p, sizeof(float) * 3u);
           for (j = 3; j < stride; j++)
             dst[j] = (float)(uint8_t)p[offsets[j]] * scale;
+          ply_record_alpha_row(pst, dst, (uint32_t)i);
           p   += inputStride;
           dst += stride;
         }
@@ -294,7 +297,7 @@ ply_bin_vertex_fast(char        ** __restrict src,
         }
         for (j = 3; j < stride; j++)
           dst[j] = (float)*(const uint8_t *)(const void *)(p + offsets[j]);
-        ply_normalize_color_row(pst, dst);
+        ply_normalize_color_row(pst, dst, (uint32_t)i);
         p   += inputStride;
         dst += stride;
       }
@@ -316,7 +319,7 @@ ply_bin_vertex_fast(char        ** __restrict src,
           break;
       }
     }
-    ply_normalize_color_row(pst, dst);
+    ply_normalize_color_row(pst, dst, (uint32_t)i);
     p   += inputStride;
     dst += stride;
   }
@@ -371,12 +374,17 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
   PLYProperty *prop;
   AkBuffer    *buff;
   char        *e;
+  AkUInt       faceInline[PLY_FACE_INLINE_CAPACITY];
+  AkUInt      *faceHeap;
+  size_t       faceHeapCapacity;
   uint32_t     i, stride, vertcount;
   
   p         = src;
   elem      = pst->element;
   vertcount = pst->vertcount;
   e         = pst->end;
+  faceHeap         = NULL;
+  faceHeapCapacity = 0;
 
   while (elem) {
     if (elem->type == PLY_ELEM_VERTEX) {
@@ -390,10 +398,10 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
 
       /* stop */
       if (!elem->buff || elem->buff->length == 0)
-        return;
+        goto fns;
 
       if (!ply_bin_vertex_fast(&p, e, elem, pst, b, elemc, stride, le)) {
-        while (i++ < elemc) {
+        while (i < elemc) {
           prop = elem->property;
           while (prop) {
             if (!prop->ignore) {
@@ -408,19 +416,20 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
             prop = prop->next;
           }
 
-          ply_normalize_color_row(pst, b);
+          ply_normalize_color_row(pst, b, i);
           b += stride;
+          i++;
         }
       }
     } else if (elem->type == PLY_ELEM_FACE) {
-      AkUInt *f, fc, j, count, last_fc, valid, elemc;
+      AkUInt *f, fc, j, count, valid, elemc;
 
       pst->dc_ind = ply_index_data_new_estimated(pst, (size_t)elem->count * 3u);
+      pst->faceAlphaBlendCount = 0u;
       elemc       = elem->count;
-      f           = NULL;
+      f           = faceInline;
       i           = 0;
       count       = 0;
-      last_fc     = 0;
 
       while (i++ < elemc) {
         prop = elem->property;
@@ -449,8 +458,24 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
               if (f0 < vertcount && f1 < vertcount && f2 < vertcount)
                 PLY_INDEX_APPEND_TRI(pst, f0, f1, f2, count);
             } else if (fc > 3) {
-              if (!f || fc > last_fc)
-                f = AK_ALLOCA(sizeof(*f) * fc);
+              if (fc <= PLY_FACE_INLINE_CAPACITY) {
+                f = faceInline;
+              } else {
+                if ((size_t)fc > faceHeapCapacity) {
+                  AkUInt *grown;
+
+                  if ((size_t)fc > ((size_t)-1) / sizeof(*f))
+                    goto fns;
+
+                  grown = realloc(faceHeap, sizeof(*f) * (size_t)fc);
+                  if (!grown)
+                    goto fns;
+
+                  faceHeap = grown;
+                  faceHeapCapacity = fc;
+                }
+                f = faceHeap;
+              }
 
               valid = 0;
 
@@ -473,7 +498,6 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
                 p += prop->typeDesc->size;
             }
             
-            last_fc = fc;
           } else {
             if (!ply_bin_skip_property(&p, e, prop, le))
               goto fns;
@@ -513,10 +537,12 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
             if ((uint64_t)fc * itemSize > (uint64_t)(e - p))
               goto fns;
 
-            if (!pst->dc_ind)
+            if (!pst->dc_ind) {
               pst->dc_ind = ply_index_data_new_estimated(
                 pst,
                 fc > 2 ? ((size_t)fc - 2u) * 3u : 0);
+              pst->faceAlphaBlendCount = 0u;
+            }
             ply_tri_seen_init(&seen, pst, fc);
             prev0 = prev1 = 0;
             stripLen = 0;
@@ -625,5 +651,6 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
   }
   
 fns:
+  free(faceHeap);
   ply_finish(pst);
 }

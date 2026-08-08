@@ -541,6 +541,29 @@ ply_index_append(PLYState * __restrict pst, AkUInt value) {
 }
 
 static inline
+bool
+ply_vertex_alpha_blended(const PLYState * __restrict pst, AkUInt index) {
+  const uint8_t *bits;
+
+  bits = pst->alphaBlendBits;
+  return bits
+         && (bits[(uint32_t)index >> 3u]
+             & (uint8_t)(1u << ((uint32_t)index & 7u))) != 0u;
+}
+
+static inline
+void
+ply_triangle_alpha_record(PLYState * __restrict pst,
+                          AkUInt                  a,
+                          AkUInt                  b,
+                          AkUInt                  c) {
+  if ((ply_vertex_alpha_blended(pst, a)
+       || ply_vertex_alpha_blended(pst, b)
+       || ply_vertex_alpha_blended(pst, c)))
+    pst->faceAlphaBlendCount++;
+}
+
+static inline
 void
 ply_edge_append(PLYState * __restrict pst, AkUInt a, AkUInt b) {
   if (!pst->dc_edge_ind)
@@ -557,6 +580,9 @@ ply_edge_append(PLYState * __restrict pst, AkUInt a, AkUInt b) {
                       &pst->edgeIndexMax,
                       b);
   pst->edgeIndexCount += 2;
+  if ((ply_vertex_alpha_blended(pst, a)
+       || ply_vertex_alpha_blended(pst, b)))
+    pst->edgeAlphaBlendCount++;
 }
 
 #define PLY_INDEX_APPEND_TYPED(PST, TYPE, VALUE)                              \
@@ -602,6 +628,10 @@ ply_edge_append(PLYState * __restrict pst, AkUInt a, AkUInt b) {
       PLY_INDEX_APPEND_TYPED((PST), TYPE, center_);                           \
       PLY_INDEX_APPEND_TYPED((PST), TYPE, (FACE)[j_ + 1]);                    \
       PLY_INDEX_APPEND_TYPED((PST), TYPE, (FACE)[j_ + 2]);                    \
+      ply_triangle_alpha_record((PST),                                       \
+                                center_,                                     \
+                                (FACE)[j_ + 1],                              \
+                                (FACE)[j_ + 2]);                             \
       (OUT_COUNT) += 3;                                                       \
     }                                                                         \
   } while (0)
@@ -641,6 +671,7 @@ ply_edge_append(PLYState * __restrict pst, AkUInt a, AkUInt b) {
       default:                                                                \
         break;                                                                \
     }                                                                         \
+    ply_triangle_alpha_record((PST), (A), (B), (C));                         \
     (OUT_COUNT) += 3;                                                         \
   } while (0)
 

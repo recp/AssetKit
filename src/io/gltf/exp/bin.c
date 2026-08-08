@@ -393,6 +393,7 @@ gltf_write_accessor_data(FILE * __restrict file,
     const unsigned char *src;
     size_t               fillSize;
     size_t               stride;
+    uint32_t             count;
     bool                 computeMinMax;
 
     acc      = out->accessor;
@@ -401,18 +402,20 @@ gltf_write_accessor_data(FILE * __restrict file,
       fillSize = (size_t)acc->bytesPerComponent * acc->componentCount;
 
     stride = acc->byteStride ? acc->byteStride : fillSize;
+    count  = out->assetkitCount ? out->assetkitCount : acc->count;
 
-    if (!acc->buffer || !acc->buffer->data || fillSize == 0 || stride == 0)
+    if (!acc->buffer || !acc->buffer->data || fillSize == 0 || stride == 0
+        || count == 0 || count > acc->count)
       return false;
 
     if (!gltf_accessor_buffer_range_ok(acc, fillSize, stride))
       return false;
 
     src = (const unsigned char *)acc->buffer->data + acc->byteOffset;
-    if ((size_t)acc->count > (size_t)-1 / fillSize)
+    if ((size_t)count > (size_t)-1 / fillSize)
       return false;
 
-    out->byteLength = (size_t)acc->count * fillSize;
+    out->byteLength = (size_t)count * fillSize;
     computeMinMax   = out->minMaxRequired
                       && acc->componentCount > 0
                       && acc->componentCount <= AK_ARRAY_LEN(out->min)
@@ -429,7 +432,7 @@ gltf_write_accessor_data(FILE * __restrict file,
       if (!gltf_write_normalized_vec3(file,
                                       src,
                                       stride,
-                                      acc->count,
+                                      count,
                                       out,
                                       computeMinMax))
         return false;
@@ -439,7 +442,7 @@ gltf_write_accessor_data(FILE * __restrict file,
     } else {
       uint32_t i;
 
-      for (i = 0; i < acc->count; i++) {
+      for (i = 0; i < count; i++) {
         const unsigned char *item;
 
         item = src + (size_t)i * stride;
@@ -459,7 +462,7 @@ gltf_write_accessor_data(FILE * __restrict file,
 
     if (computeMinMax) {
       out->minMaxCount = acc->componentCount;
-      out->hasMinMax   = acc->count > 0;
+      out->hasMinMax   = count > 0;
     }
   } else if (out->kind == GLTF_EXP_ACCESSOR_INDEX_ARRAY) {
     AkIndexArray *indices;

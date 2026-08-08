@@ -417,18 +417,22 @@ gltf_anim_node_matches(GLTFExpNodeOut  * __restrict out,
 
   switch (path) {
     case GLTF_EXP_ANIM_TRANSLATION:
-      return gltf_node_transform_chain_trs(out->node)
+      return !out->syntheticMeshChild
+             && gltf_node_transform_chain_trs(out->node)
              && gltf_node_transform(out->node, AKT_TRANSLATE) == target->target;
     case GLTF_EXP_ANIM_ROTATION:
-      return gltf_node_transform_chain_trs(out->node)
+      return !out->syntheticMeshChild
+             && gltf_node_transform_chain_trs(out->node)
              && gltf_node_transform(out->node, AKT_QUATERNION) == target->target;
     case GLTF_EXP_ANIM_SCALE:
-      return gltf_node_transform_chain_trs(out->node)
+      return !out->syntheticMeshChild
+             && gltf_node_transform_chain_trs(out->node)
              && gltf_node_transform(out->node, AKT_SCALE) == target->target;
     case GLTF_EXP_ANIM_WEIGHTS:
-      return gltf_node_has_morpher(out->node, target->target);
+      return out->instance && out->instance->morpher == target->target;
     case GLTF_EXP_ANIM_POINTER_NODE_VISIBLE:
-      return target->target == &out->node->visible;
+      return !out->syntheticMeshChild
+             && target->target == &out->node->visible;
     default:
       break;
   }

@@ -21,11 +21,17 @@
 
 /* Buffer > Accessor > Input > Prim > Mesh > Geom > InstanceGeom > Node */
 
+/* Material and smoothing boundaries commonly create tiny OBJ primitives.
+   Keep their first chunks cache-sized; global attribute streams retain the
+   larger WOBJ_DATA_NODE_ITEMS batching used by the parser. */
+#define WOBJ_PRIM_DATA_NODE_ITEMS 256
+
 static
 void
 wobj_finishPrim(WOState  * __restrict wst,
                 WOObject * __restrict wo,
-                WOPrim   * __restrict wp);
+                WOPrim   * __restrict wp,
+                WObjCompactScratch * __restrict compactScratch);
 
 static
 void
@@ -35,7 +41,8 @@ static
 void
 wobj_finishPrim(WOState  * __restrict wst,
                 WOObject * __restrict wo,
-                WOPrim   * __restrict wp) {
+                WOPrim   * __restrict wp,
+                WObjCompactScratch * __restrict compactScratch) {
   AkHeap             *heap;
   AkGeometry         *geom;
   AkMesh             *mesh;
@@ -102,6 +109,14 @@ wobj_finishPrim(WOState  * __restrict wst,
 
   if (wp->kind != AK_PRIMITIVE_LINES
       && wp->kind != AK_PRIMITIVE_POINTS
+      && wobj_compactIndexedFacePrim(wst, wp, prim, compactScratch)) {
+    if (wp->maxVC == 3)
+      prim->nPolygons = (uint32_t)prim->indices->count / 3;
+    return;
+  }
+
+  if (wp->kind != AK_PRIMITIVE_LINES
+      && wp->kind != AK_PRIMITIVE_POINTS
       && wp->maxVC == 3
       && wobj_flattenPrimDirect(wst, wp, prim)) {
     prim->nPolygons = (uint32_t)wp->dc_face->itemcount / 3;
@@ -157,11 +172,11 @@ wobj_switchPrim(WOState * __restrict wst, const char * __restrict mtlname) {
 
   wp             = ak_heap_calloc(wst->heap, wst->tmp, sizeof(*wp));
   wp->dc_face    = ak_data_new(wst->tmp,
-                               WOBJ_DATA_NODE_ITEMS,
+                               WOBJ_PRIM_DATA_NODE_ITEMS,
                                sizeof(ivec3),
                                ak_cmp_ivec3);
   wp->dc_vcount  = ak_data_new(wst->tmp,
-                               WOBJ_DATA_NODE_ITEMS,
+                               WOBJ_PRIM_DATA_NODE_ITEMS,
                                sizeof(int32_t),
                                NULL);
   wp->mtlname    = mtlname;
@@ -172,9 +187,11 @@ wobj_switchPrim(WOState * __restrict wst, const char * __restrict mtlname) {
   return wp;
 }
 
-AK_HIDE
+static
 void
-wobj_finishObject(WOState * __restrict wst, WOObject * __restrict obj) {
+wobj_finishObjectScratch(WOState            * __restrict wst,
+                         WOObject           * __restrict obj,
+                         WObjCompactScratch * __restrict compactScratch) {
   WOPrim             *wp, *next;
   AkGeometry         *geom;
   
@@ -197,8 +214,18 @@ wobj_finishObject(WOState * __restrict wst, WOObject * __restrict obj) {
   wp = obj->prim;
   do {
     next = wp->next;
-    wobj_finishPrim(wst, obj, wp);
+    wobj_finishPrim(wst, obj, wp, compactScratch);
   } while ((wp = next));
+}
+
+AK_HIDE
+void
+wobj_finishObject(WOState * __restrict wst, WOObject * __restrict obj) {
+  WObjCompactScratch compactScratch;
+
+  memset(&compactScratch, 0, sizeof(compactScratch));
+  wobj_finishObjectScratch(wst, obj, &compactScratch);
+  wobj_compactScratchDestroy(&compactScratch);
 }
 
 static
@@ -232,10 +259,12 @@ wobj_addPointFallback(WOState * __restrict wst, WOObject * __restrict obj) {
 AK_HIDE
 void
 wobj_finishObjects(WOState * __restrict wst) {
-  WOObject *obj;
-  WOObject *fallbackObj;
-  bool      hasPrimitive;
+  WOObject           *obj;
+  WOObject           *fallbackObj;
+  WObjCompactScratch  compactScratch;
+  bool                hasPrimitive;
 
+  memset(&compactScratch, 0, sizeof(compactScratch));
   obj = wst->obj;
   fallbackObj = NULL;
   hasPrimitive = false;
@@ -245,7 +274,7 @@ wobj_finishObjects(WOState * __restrict wst) {
     if (!fallbackObj && obj->geom)
       fallbackObj = obj;
 
-    wobj_finishObject(wst, obj);
+    wobj_finishObjectScratch(wst, obj, &compactScratch);
     if (obj->geom
         && (mesh = ak_objGet(obj->geom->gdata))
         && mesh->primitive)
@@ -256,6 +285,8 @@ wobj_finishObjects(WOState * __restrict wst) {
 
   if (!hasPrimitive && !wst->hasFreeform)
     wobj_addPointFallback(wst, fallbackObj);
+
+  wobj_compactScratchDestroy(&compactScratch);
 }
 
 AK_HIDE
@@ -283,3 +314,5 @@ wobj_switchObject(WOState * __restrict wst) {
 
   wobj_switchPrim(wst, wst->mtlname);
 }
+
+#undef WOBJ_PRIM_DATA_NODE_ITEMS

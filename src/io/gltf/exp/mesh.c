@@ -49,6 +49,7 @@ gltf_w_semantic_set_key(GLTFExpWriter * __restrict w,
 static
 bool
 gltf_w_input_key(GLTFExpWriter * __restrict w,
+                 GLTFExpState  * __restrict st,
                  AkMeshPrimitive * __restrict prim,
                  AkInput       * __restrict input) {
   uint32_t set;
@@ -56,7 +57,7 @@ gltf_w_input_key(GLTFExpWriter * __restrict w,
   if (!input)
     return false;
 
-  set = gltf_input_export_set(prim, input);
+  set = gltf_input_export_set(st, prim, input);
 
   switch (input->semantic) {
     case AK_INPUT_POSITION:
@@ -90,7 +91,8 @@ gltf_w_input_key(GLTFExpWriter * __restrict w,
 
 static
 bool
-gltf_input_key(AkMeshPrimitive * __restrict prim,
+gltf_input_key(GLTFExpState    * __restrict st,
+               AkMeshPrimitive * __restrict prim,
                AkInput  * __restrict input,
                uint32_t * __restrict kind,
                uint32_t * __restrict set) {
@@ -111,19 +113,19 @@ gltf_input_key(AkMeshPrimitive * __restrict prim,
     case AK_INPUT_TEXCOORD:
     case AK_INPUT_UV:
       *kind = 4;
-      *set  = gltf_input_export_set(prim, input);
+      *set  = gltf_input_export_set(st, prim, input);
       return true;
     case AK_INPUT_COLOR:
       *kind = 5;
-      *set  = gltf_input_export_set(prim, input);
+      *set  = gltf_input_export_set(st, prim, input);
       return true;
     case AK_INPUT_JOINT:
       *kind = 6;
-      *set  = gltf_input_export_set(prim, input);
+      *set  = gltf_input_export_set(st, prim, input);
       return true;
     case AK_INPUT_WEIGHT:
       *kind = 7;
-      *set  = gltf_input_export_set(prim, input);
+      *set  = gltf_input_export_set(st, prim, input);
       return true;
     default:
       break;
@@ -134,7 +136,8 @@ gltf_input_key(AkMeshPrimitive * __restrict prim,
 
 static
 bool
-gltf_input_key_same(AkMeshPrimitive * __restrict prim,
+gltf_input_key_same(GLTFExpState    * __restrict st,
+                    AkMeshPrimitive * __restrict prim,
                     AkInput * __restrict a,
                     AkInput * __restrict b) {
   uint32_t kindA;
@@ -142,8 +145,8 @@ gltf_input_key_same(AkMeshPrimitive * __restrict prim,
   uint32_t setA;
   uint32_t setB;
 
-  if (!gltf_input_key(prim, a, &kindA, &setA)
-      || !gltf_input_key(prim, b, &kindB, &setB))
+  if (!gltf_input_key(st, prim, a, &kindA, &setA)
+      || !gltf_input_key(st, prim, b, &kindB, &setB))
     return false;
 
   return kindA == kindB && setA == setB;
@@ -151,7 +154,8 @@ gltf_input_key_same(AkMeshPrimitive * __restrict prim,
 
 static
 bool
-gltf_input_key_seen_before(AkMeshPrimitive * __restrict prim,
+gltf_input_key_seen_before(GLTFExpState    * __restrict st,
+                           AkMeshPrimitive * __restrict prim,
                            AkInput * __restrict first,
                            AkInput * __restrict input,
                            AkInput * __restrict posInput) {
@@ -160,10 +164,10 @@ gltf_input_key_seen_before(AkMeshPrimitive * __restrict prim,
   for (scan = first; scan && scan != input; scan = scan->next) {
     if (!scan->accessor
         || !gltf_input_supported(scan)
-        || !gltf_normal_input_valid(scan)
-        || (posInput && !gltf_input_count_valid(prim, scan, posInput)))
+        || !gltf_normal_input_valid(st, scan)
+        || (posInput && !gltf_input_count_valid(st, prim, scan, posInput)))
       continue;
-    if (gltf_input_key_same(prim, scan, input))
+    if (gltf_input_key_same(st, prim, scan, input))
       return true;
   }
 
@@ -194,6 +198,8 @@ gltf_write_primitive_attributes(GLTFExpWriter  * __restrict w,
     if (idx == GLTF_EXP_INDEX_NONE)
       idx = gltf_position_accessor_index(st, prim);
     if (idx == GLTF_EXP_INDEX_NONE)
+      idx = gltf_input_accessor_index(&st->accessors, posInput);
+    if (idx == GLTF_EXP_INDEX_NONE)
       idx = gltf_accessor_index(&st->accessors, posInput->accessor);
     if (idx != GLTF_EXP_INDEX_NONE) {
       gltf_w_key(w, _s_gltf_POSITION, _s_gltf_POSITION_len);
@@ -207,9 +213,13 @@ gltf_write_primitive_attributes(GLTFExpWriter  * __restrict w,
 
     if (!input->accessor || input == posInput
         || input->semantic == AK_INPUT_POSITION
-        || !gltf_normal_input_valid(input)
-        || !gltf_input_count_valid(prim, input, posInput)
-        || gltf_input_key_seen_before(prim, prim->input, input, posInput))
+        || !gltf_normal_input_valid(st, input)
+        || !gltf_input_count_valid(st, prim, input, posInput)
+        || gltf_input_key_seen_before(st,
+                                      prim,
+                                      prim->input,
+                                      input,
+                                      posInput))
       continue;
 
     idx = input->semantic == AK_INPUT_NORMAL
@@ -218,7 +228,11 @@ gltf_write_primitive_attributes(GLTFExpWriter  * __restrict w,
     if (idx == GLTF_EXP_INDEX_NONE) {
       if (!gltf_input_supported(input))
         continue;
-      idx = gltf_accessor_index(&st->accessors, input->accessor);
+      idx = gltf_raw_accessor_index(&st->accessors, input);
+      if (idx == GLTF_EXP_INDEX_NONE)
+        idx = gltf_input_accessor_index(&st->accessors, input);
+      if (idx == GLTF_EXP_INDEX_NONE)
+        idx = gltf_accessor_index(&st->accessors, input->accessor);
     }
     if (idx == GLTF_EXP_INDEX_NONE)
       continue;
@@ -226,7 +240,7 @@ gltf_write_primitive_attributes(GLTFExpWriter  * __restrict w,
     if (any)
       gltf_w_ch(w, ',');
 
-    if (!gltf_w_input_key(w, prim, input))
+    if (!gltf_w_input_key(w, st, prim, input))
       continue;
 
     gltf_w_uint(w, idx);
@@ -333,7 +347,11 @@ gltf_morph_target_has_attributes(GLTFExpState * __restrict st,
   for (input = morphable ? morphable->input : NULL; input; input = input->next) {
     if (!input->accessor
         || !gltf_morph_input_supported(input)
-        || gltf_input_key_seen_before(NULL, morphable->input, input, NULL))
+        || gltf_input_key_seen_before(st,
+                                      NULL,
+                                      morphable->input,
+                                      input,
+                                      NULL))
       continue;
     if (gltf_accessor_index(&st->accessors, input->accessor) != GLTF_EXP_INDEX_NONE)
       return true;
@@ -397,7 +415,7 @@ gltf_write_morph_geometry_target(GLTFExpWriter  * __restrict w,
 
     if (!input->accessor
         || !gltf_morph_input_supported(input)
-        || gltf_input_key_seen_before(NULL, prim->input, input, NULL))
+        || gltf_input_key_seen_before(st, NULL, prim->input, input, NULL))
       continue;
 
     idx = gltf_accessor_index(&st->accessors, input->accessor);
@@ -406,7 +424,7 @@ gltf_write_morph_geometry_target(GLTFExpWriter  * __restrict w,
 
     if (any)
       gltf_w_ch(w, ',');
-    if (!gltf_w_input_key(w, NULL, input))
+    if (!gltf_w_input_key(w, st, NULL, input))
       continue;
     gltf_w_uint(w, idx);
     any = true;
@@ -432,7 +450,11 @@ gltf_write_morph_target(GLTFExpWriter * __restrict w,
 
     if (!input->accessor
         || !gltf_morph_input_supported(input)
-        || gltf_input_key_seen_before(NULL, morphable->input, input, NULL))
+        || gltf_input_key_seen_before(st,
+                                      NULL,
+                                      morphable->input,
+                                      input,
+                                      NULL))
       continue;
 
     idx = gltf_accessor_index(&st->accessors, input->accessor);
@@ -441,7 +463,7 @@ gltf_write_morph_target(GLTFExpWriter * __restrict w,
 
     if (any)
       gltf_w_ch(w, ',');
-    if (!gltf_w_input_key(w, NULL, input))
+    if (!gltf_w_input_key(w, st, NULL, input))
       continue;
     gltf_w_uint(w, idx);
     any = true;
@@ -584,7 +606,7 @@ gltf_material_texture_ref_compatible(GLTFExpState       * __restrict st,
   if (slot < 0)
     slot = 0;
 
-  return gltf_texcoord_source_set_valid(prim, slot);
+  return gltf_texcoord_source_set_valid(st, prim, slot);
 }
 
 static

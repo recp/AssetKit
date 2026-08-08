@@ -190,9 +190,12 @@ bool
 wobj_write_texcoords(WOBJExpState * __restrict st,
                      WOBJExpRows  * __restrict rows) {
   uint32_t i;
+  bool     flipV;
 
   if (!wobj_count_add(&st->vtCount, rows->accessor->count))
     return false;
+
+  flipV = !st->doc->inf || !st->doc->inf->flipImage;
 
   for (i = 0; i < rows->accessor->count; i++) {
     const float *row;
@@ -201,7 +204,16 @@ wobj_write_texcoords(WOBJExpState * __restrict st,
     WOBJ_W_LIT(&st->w, "vt ");
     wobj_w_float_fast(&st->w, wobj_row_component(row, rows->componentCount, 0, 0.0f));
     wobj_w_ch(&st->w, ' ');
-    wobj_w_float_fast(&st->w, wobj_row_component(row, rows->componentCount, 1, 0.0f));
+    wobj_w_float_fast(&st->w,
+                      flipV
+                        ? 1.0f - wobj_row_component(row,
+                                                   rows->componentCount,
+                                                   1,
+                                                   0.0f)
+                        : wobj_row_component(row,
+                                             rows->componentCount,
+                                             1,
+                                             0.0f));
     if (rows->componentCount > 2u) {
       wobj_w_ch(&st->w, ' ');
       wobj_w_float_fast(&st->w, row[2]);
@@ -358,7 +370,8 @@ wobj_write_position_only_triangle_list_fast(WOBJExpState    * __restrict st,
                                             AkInput         * __restrict posInput,
                                             uint32_t                     vBase,
                                             uint32_t                     vCount,
-                                            uint32_t                     vertexCount) {
+                                            uint32_t                     vertexCount,
+                                            bool                         mirrored) {
   const AkIndexArray *indices;
   uint32_t            stride;
   uint32_t            offset;
@@ -369,10 +382,15 @@ wobj_write_position_only_triangle_list_fast(WOBJExpState    * __restrict st,
   indices = prim->indices;
   if (!indices) {
     for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
+      uint32_t i0;
+      uint32_t i2;
+
+      i0 = mirrored ? i + 2u : i;
+      i2 = mirrored ? i : i + 2u;
       wobj_write_pos_face3_direct(st,
-                                  wobj_pos_obj_index(i, vBase, vCount),
+                                  wobj_pos_obj_index(i0, vBase, vCount),
                                   wobj_pos_obj_index(i + 1u, vBase, vCount),
-                                  wobj_pos_obj_index(i + 2u, vBase, vCount));
+                                  wobj_pos_obj_index(i2, vBase, vCount));
     }
     return true;
   }
@@ -389,13 +407,17 @@ wobj_write_position_only_triangle_list_fast(WOBJExpState    * __restrict st,
       src = (const uint8_t *)indices->items;
       for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
         size_t slot;
+        size_t first;
+        size_t last;
 
         slot = (size_t)i * stride + offset;
+        first = mirrored ? slot + stride + stride : slot;
+        last  = mirrored ? slot : slot + stride + stride;
         wobj_write_pos_face3_direct(
           st,
-          wobj_pos_obj_index(src[slot], vBase, vCount),
+          wobj_pos_obj_index(src[first], vBase, vCount),
           wobj_pos_obj_index(src[slot + stride], vBase, vCount),
-          wobj_pos_obj_index(src[slot + stride + stride], vBase, vCount));
+          wobj_pos_obj_index(src[last], vBase, vCount));
       }
       return true;
     }
@@ -405,13 +427,17 @@ wobj_write_position_only_triangle_list_fast(WOBJExpState    * __restrict st,
       src = (const uint16_t *)indices->items;
       for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
         size_t slot;
+        size_t first;
+        size_t last;
 
         slot = (size_t)i * stride + offset;
+        first = mirrored ? slot + stride + stride : slot;
+        last  = mirrored ? slot : slot + stride + stride;
         wobj_write_pos_face3_direct(
           st,
-          wobj_pos_obj_index(src[slot], vBase, vCount),
+          wobj_pos_obj_index(src[first], vBase, vCount),
           wobj_pos_obj_index(src[slot + stride], vBase, vCount),
-          wobj_pos_obj_index(src[slot + stride + stride], vBase, vCount));
+          wobj_pos_obj_index(src[last], vBase, vCount));
       }
       return true;
     }
@@ -421,13 +447,17 @@ wobj_write_position_only_triangle_list_fast(WOBJExpState    * __restrict st,
       src = (const uint32_t *)indices->items;
       for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
         size_t slot;
+        size_t first;
+        size_t last;
 
         slot = (size_t)i * stride + offset;
+        first = mirrored ? slot + stride + stride : slot;
+        last  = mirrored ? slot : slot + stride + stride;
         wobj_write_pos_face3_direct(
           st,
-          wobj_pos_obj_index(src[slot], vBase, vCount),
+          wobj_pos_obj_index(src[first], vBase, vCount),
           wobj_pos_obj_index(src[slot + stride], vBase, vCount),
-          wobj_pos_obj_index(src[slot + stride + stride], vBase, vCount));
+          wobj_pos_obj_index(src[last], vBase, vCount));
       }
       return true;
     }
@@ -601,7 +631,8 @@ wobj_write_index_accessor_triangles_fast(WOBJExpState    * __restrict st,
                                          uint32_t                     vnCount,
                                          uint32_t                     vertexCount,
                                          bool                         hasTexcoord,
-                                         bool                         hasNormal) {
+                                         bool                         hasNormal,
+                                         bool                         mirrored) {
   IOIndexRows indexRows;
 
   if (!prim->indexAccessor
@@ -615,27 +646,26 @@ wobj_write_index_accessor_triangles_fast(WOBJExpState    * __restrict st,
     return false;
 
   for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
-    uint32_t index;
+    uint32_t indices[3];
+
+    indices[0] = io_index_rows_get_unchecked(&indexRows,
+                                              mirrored ? i + 2u : i);
+    indices[1] = io_index_rows_get_unchecked(&indexRows, i + 1u);
+    indices[2] = io_index_rows_get_unchecked(&indexRows,
+                                              mirrored ? i : i + 2u);
 
     if (!hasTexcoord && !hasNormal) {
       wobj_write_pos_face3_direct(
         st,
-        wobj_pos_obj_index(io_index_rows_get_unchecked(&indexRows, i),
-                           vBase,
-                           vCount),
-        wobj_pos_obj_index(io_index_rows_get_unchecked(&indexRows, i + 1u),
-                           vBase,
-                           vCount),
-        wobj_pos_obj_index(io_index_rows_get_unchecked(&indexRows, i + 2u),
-                           vBase,
-                           vCount));
+        wobj_pos_obj_index(indices[0], vBase, vCount),
+        wobj_pos_obj_index(indices[1], vBase, vCount),
+        wobj_pos_obj_index(indices[2], vBase, vCount));
       continue;
     }
 
     wobj_w_ch2(&st->w, 'f', ' ');
-    index = io_index_rows_get_unchecked(&indexRows, i);
     wobj_write_shared_accessor_ref(st,
-                                   index,
+                                   indices[0],
                                    vBase,
                                    vtBase,
                                    vnBase,
@@ -643,9 +673,8 @@ wobj_write_index_accessor_triangles_fast(WOBJExpState    * __restrict st,
                                    hasTexcoord,
                                    hasNormal);
     wobj_w_ch(&st->w, ' ');
-    index = io_index_rows_get_unchecked(&indexRows, i + 1u);
     wobj_write_shared_accessor_ref(st,
-                                   index,
+                                   indices[1],
                                    vBase,
                                    vtBase,
                                    vnBase,
@@ -653,9 +682,8 @@ wobj_write_index_accessor_triangles_fast(WOBJExpState    * __restrict st,
                                    hasTexcoord,
                                    hasNormal);
     wobj_w_ch(&st->w, ' ');
-    index = io_index_rows_get_unchecked(&indexRows, i + 2u);
     wobj_write_shared_accessor_ref(st,
-                                   index,
+                                   indices[2],
                                    vBase,
                                    vtBase,
                                    vnBase,
@@ -681,7 +709,8 @@ wobj_write_triangle_list_fast(WOBJExpState    * __restrict st,
                               uint32_t                     vCount,
                               uint32_t                     vtCount,
                               uint32_t                     vnCount,
-                              uint32_t                     vertexCount) {
+                              uint32_t                     vertexCount,
+                              bool                         mirrored) {
   const AkIndexArray *indices;
   uint32_t            stride;
   bool                hasTexcoord;
@@ -699,17 +728,23 @@ wobj_write_triangle_list_fast(WOBJExpState    * __restrict st,
                                                      posInput,
                                                      vBase,
                                                      vCount,
-                                                     vertexCount))
+                                                     vertexCount,
+                                                     mirrored))
     return;
 
   for (uint32_t i = 0; i + 2u < vertexCount; i += 3u) {
+    uint32_t i0;
+    uint32_t i2;
+
+    i0 = mirrored ? i + 2u : i;
+    i2 = mirrored ? i : i + 2u;
     wobj_w_ch2(&st->w, 'f', ' ');
     wobj_write_tuple_ref_fast(st,
                               prim,
                               posInput,
                               texInput,
                               normInput,
-                              i,
+                              i0,
                               vBase,
                               vtBase,
                               vnBase,
@@ -743,7 +778,7 @@ wobj_write_triangle_list_fast(WOBJExpState    * __restrict st,
                               posInput,
                               texInput,
                               normInput,
-                              i + 2u,
+                              i2,
                               vBase,
                               vtBase,
                               vnBase,
@@ -772,7 +807,8 @@ wobj_write_face_vertices(WOBJExpState    * __restrict st,
                          uint32_t                     vnBase,
                          uint32_t                     vCount,
                          uint32_t                     vtCount,
-                         uint32_t                     vnCount) {
+                         uint32_t                     vnCount,
+                         bool                         mirrored) {
   uint32_t i;
 
   WOBJ_W_LIT(&st->w, "f");
@@ -783,7 +819,7 @@ wobj_write_face_vertices(WOBJExpState    * __restrict st,
                      posInput,
                      texInput,
                      normInput,
-                     vertexIndices[i],
+                     vertexIndices[mirrored ? vertexCount - 1u - i : i],
                      vBase,
                      vtBase,
                      vnBase,
@@ -824,7 +860,8 @@ wobj_write_triangles(WOBJExpState    * __restrict st,
                      uint32_t                     vnBase,
                      uint32_t                     vCount,
                      uint32_t                     vtCount,
-                     uint32_t                     vnCount) {
+                     uint32_t                     vnCount,
+                     bool                         mirrored) {
   AkTriangleMode mode;
   uint32_t       vertexCount;
   IOTriangleIter iter;
@@ -854,7 +891,8 @@ wobj_write_triangles(WOBJExpState    * __restrict st,
                                                  vnCount,
                                                  vertexCount,
                                                  hasTexcoord,
-                                                 hasNormal))
+                                                 hasNormal,
+                                                 mirrored))
       return;
   }
 
@@ -872,7 +910,8 @@ wobj_write_triangles(WOBJExpState    * __restrict st,
                                   vCount,
                                   vtCount,
                                   vnCount,
-                                  vertexCount);
+                                  vertexCount,
+                                  mirrored);
     return;
   }
 
@@ -882,7 +921,7 @@ wobj_write_triangles(WOBJExpState    * __restrict st,
   while (io_triangle_iter_next(&iter, tri)) {
     wobj_write_face_vertices(st, prim, posInput, texInput, normInput,
                              tri, 3u, vBase, vtBase, vnBase,
-                             vCount, vtCount, vnCount);
+                             vCount, vtCount, vnCount, mirrored);
   }
 }
 
@@ -964,7 +1003,8 @@ wobj_write_polygons(WOBJExpState    * __restrict st,
                     uint32_t                     vnBase,
                     uint32_t                     vCount,
                     uint32_t                     vtCount,
-                    uint32_t                     vnCount) {
+                    uint32_t                     vnCount,
+                    bool                         mirrored) {
   AkPolygon *poly;
   size_t     cursor;
   size_t     i;
@@ -992,7 +1032,7 @@ wobj_write_polygons(WOBJExpState    * __restrict st,
         local[j] = (uint32_t)(cursor + j);
       wobj_write_face_vertices(st, prim, posInput, texInput, normInput,
                                local, vc, vBase, vtBase, vnBase,
-                               vCount, vtCount, vnCount);
+                               vCount, vtCount, vnCount, mirrored);
     } else {
       uint32_t *heapLocal;
 
@@ -1005,7 +1045,7 @@ wobj_write_polygons(WOBJExpState    * __restrict st,
         heapLocal[j] = (uint32_t)(cursor + j);
       wobj_write_face_vertices(st, prim, posInput, texInput, normInput,
                                heapLocal, vc, vBase, vtBase, vnBase,
-                               vCount, vtCount, vnCount);
+                               vCount, vtCount, vnCount, mirrored);
       free(heapLocal);
     }
 
@@ -1054,6 +1094,7 @@ wobj_write_primitive(WOBJExpState      * __restrict st,
   uint32_t      vnBase;
   bool          hasTexcoord;
   bool          hasNormal;
+  bool          mirrored;
   bool          ok;
 
   posInput = io_primitive_find_input(prim, AK_INPUT_POSITION);
@@ -1063,6 +1104,7 @@ wobj_write_primitive(WOBJExpState      * __restrict st,
   colorInput = wobj_find_vertex_color_input(prim, posInput);
   texInput   = wobj_find_texcoord_input(prim);
   normInput  = io_primitive_find_input(prim, AK_INPUT_NORMAL);
+  mirrored   = glm_mat4_det(world) < 0.0f;
 
   memset(&colorRows, 0, sizeof(colorRows));
   memset(&texRows, 0, sizeof(texRows));
@@ -1102,7 +1144,8 @@ wobj_write_primitive(WOBJExpState      * __restrict st,
                              vBase, vtBase, vnBase,
                              posRows.accessor->count,
                              hasTexcoord ? texRows.accessor->count : 0u,
-                             hasNormal ? normRows.accessor->count : 0u);
+                             hasNormal ? normRows.accessor->count : 0u,
+                             mirrored);
         break;
       case AK_PRIMITIVE_POLYGONS:
         wobj_write_polygons(st, prim, posInput,
@@ -1111,7 +1154,8 @@ wobj_write_primitive(WOBJExpState      * __restrict st,
                             vBase, vtBase, vnBase,
                             posRows.accessor->count,
                             hasTexcoord ? texRows.accessor->count : 0u,
-                            hasNormal ? normRows.accessor->count : 0u);
+                            hasNormal ? normRows.accessor->count : 0u,
+                            mirrored);
         break;
       case AK_PRIMITIVE_LINES:
         wobj_write_lines(st, prim, posInput, vBase, posRows.accessor->count);

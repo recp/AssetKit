@@ -44,6 +44,8 @@ typedef struct AK3MFComponent {
 
 typedef struct AK3MFPropertyGroup {
   AkMaterialPropertySet *set;
+  AkMaterial            *material;
+  AkTexture             *texture;
   const char            *path;
   uint8_t               *colors;
   float                 *texcoords;
@@ -53,6 +55,14 @@ typedef struct AK3MFPropertyGroup {
   bool                   hasColors;
   bool                   hasTexcoords;
 } AK3MFPropertyGroup;
+
+typedef struct AK3MFTextureResource {
+  AkTexture  *texture;
+  AkMaterial *material;
+  const char *path;
+  const char *modelPath;
+  uint32_t    id;
+} AK3MFTextureResource;
 
 typedef struct AK3MFObject {
   AK3MFComponent *components;
@@ -76,6 +86,7 @@ typedef struct AK3MFImportState {
   AkPrintDocument             *print;
   AK3MFObject                 *objects;
   AK3MFPropertyGroup          *properties;
+  AK3MFTextureResource        *textures;
   AK3MFBambuOrcaPartMaterial  *bambuOrcaParts;
   AkMaterial                 **bambuOrcaMaterials;
   uint8_t                    (*bambuOrcaColors)[4];
@@ -89,6 +100,8 @@ typedef struct AK3MFImportState {
   size_t                       objectCapacity;
   size_t                       propertyCount;
   size_t                       propertyCapacity;
+  size_t                       textureCount;
+  size_t                       textureCapacity;
   size_t                       loadedModelCount;
   size_t                       loadedModelCapacity;
   size_t                       bambuOrcaPartCount;

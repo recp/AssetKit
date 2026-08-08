@@ -179,6 +179,11 @@ typedef enum AkOption {
 
   /* AkPlyImportColorMode. */
   AK_OPT_PLY_IMPORT_COLOR_MODE         = 47, /* SRGB     */
+
+  /* Bake base-color textures into PLY vertex colors. This can subdivide
+     textured faces to retain image detail; disabled keeps the original
+     topology and never loads texture images. */
+  AK_OPT_PLY_EXPORT_BAKE_TEXTURES      = 48, /* false    */
 } AkOption;
 
 AK_EXPORT

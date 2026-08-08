@@ -22,6 +22,7 @@
 #include "../../common/primitive.h"
 #include "../../common/text_number.h"
 #include "../../common/zip.h"
+#include "../../../image/export.h"
 #include "../../../string_fast.h"
 
 #include <math.h>
@@ -41,11 +42,21 @@ typedef IOFloatRows AK3MFRows;
 
 typedef IOBuffer AK3MFBuffer;
 
+typedef struct AK3MFImageOut {
+  AkImage             *image;
+  AkImageExportPayload payload;
+  char                 partName[64];
+  uint32_t             textureId;
+} AK3MFImageOut;
+
 typedef struct AK3MFExportState {
   AkDoc           *doc;
   AkPrintDocument *print;
   AK3MFBuffer      resources;
   AK3MFBuffer      build;
+  AK3MFImageOut   *images;
+  size_t           imageCount;
+  size_t           imageCapacity;
   uint32_t         objectCount;
   uint32_t         nextObjectId;
   AkResult         result;

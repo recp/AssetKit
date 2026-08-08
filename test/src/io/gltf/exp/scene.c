@@ -16,6 +16,214 @@
 
 #include "../../../test_export_common.h"
 
+TEST_IMPL(gltf_export_shared_accessor_prefix) {
+  AkHeap            *heap;
+  AkDoc             *doc;
+  AkDoc             *roundTrip;
+  AkScene           *scene;
+  AkNode            *root, *node;
+  AkGeometry        *geom;
+  AkMesh            *mesh;
+  AkMeshPrimitive   *prim;
+  AkInput           *texcoord;
+  AkInput           *input;
+  AkMaterial        *material;
+  AkMaterialSurface *surface;
+  AkMaterialInput   *baseColor;
+  uint8_t           *indices;
+  bool               foundTexcoord;
+  AK_TEST_EXPORT_GLTF_PATHS("assetkit_export_shared_accessor_prefix");
+  const float positions[18] = {
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    2.0f, 0.0f, 0.0f,
+    3.0f, 0.0f, 0.0f,
+    2.0f, 1.0f, 0.0f
+  };
+  const float texcoords[12] = {
+    0.0f, 0.0f,
+    1.0f, 0.0f,
+    0.0f, 1.0f,
+    0.0f, 0.0f,
+    1.0f, 0.0f,
+    0.0f, 1.0f
+  };
+
+  ak_test_export_cleanup(outDir);
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  ak_heap_setdata(heap, doc);
+
+  scene         = ak_heap_calloc(heap, doc, sizeof(*scene));
+  root          = ak_heap_calloc(heap, scene, sizeof(*root));
+  node          = ak_heap_calloc(heap, doc, sizeof(*node));
+  root->visible = true;
+  node->visible = true;
+  scene->node   = root;
+  doc->scene    = scene;
+
+  geom = ak_test_make_geom_with_positions(heap, doc, positions, 6u);
+  ASSERT(geom != NULL);
+  mesh = ak_objGet(geom->gdata);
+  ASSERT(mesh != NULL);
+  prim = mesh->primitive;
+  ASSERT(prim != NULL);
+
+  texcoord = ak_heap_calloc(heap, prim, sizeof(*texcoord));
+  ASSERT(texcoord != NULL);
+  texcoord->semantic = AK_INPUT_TEXCOORD;
+  texcoord->set      = 0u;
+  texcoord->index    = 0u;
+  texcoord->accessor = ak_test_make_float_accessor(heap,
+                                                    texcoord,
+                                                    texcoords,
+                                                    2u,
+                                                    6u);
+  ASSERT(texcoord->accessor != NULL);
+  texcoord->next   = prim->input;
+  prim->input      = texcoord;
+  prim->inputCount = 2u;
+
+  prim->indices = ak_indexArrayAlloc(heap, prim, 3u, AKT_UBYTE);
+  ASSERT(prim->indices != NULL);
+  indices    = prim->indices->items;
+  indices[0] = 0u;
+  indices[1] = 1u;
+  indices[2] = 2u;
+  prim->indices->max = 2u;
+  prim->indexStride  = 1u;
+
+  material  = ak_heap_calloc(heap, doc, sizeof(*material));
+  surface   = ak_heap_calloc(heap, material, sizeof(*surface));
+  baseColor = ak_test_material_input(heap, surface);
+  ASSERT(material != NULL);
+  ASSERT(surface != NULL);
+  ASSERT(baseColor != NULL);
+  material->name       = "Prefix Material";
+  material->surface    = surface;
+  surface->type        = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
+  surface->baseColor   = baseColor;
+  baseColor->source    = AK_MATERIAL_INPUT_CONSTANT;
+  baseColor->valueType = AK_MATERIAL_VALUE_COLOR;
+  baseColor->color.rgba.R = 0.25f;
+  baseColor->color.rgba.G = 0.5f;
+  baseColor->color.rgba.B = 0.75f;
+  baseColor->color.rgba.A = 1.0f;
+  prim->material = material;
+
+  doc->lib.geometries.first = geom;
+  doc->lib.geometries.last  = geom;
+  doc->lib.geometries.count = 1u;
+  doc->lib.materials.first  = material;
+  doc->lib.materials.last   = material;
+  doc->lib.materials.count  = 1u;
+
+  ak_addSubNode(root, node, false);
+  ASSERT(ak_nodeAttachGeometry(node, geom) != NULL);
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"material\":0"));
+
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, gltfPath, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->lib.geometries.count == 1u);
+  ASSERT(roundTrip->lib.materials.count == 1u);
+  geom = roundTrip->lib.geometries.first;
+  ASSERT(geom != NULL);
+  mesh = geom->gdata ? ak_objGet(geom->gdata) : NULL;
+  ASSERT(mesh != NULL);
+  prim = mesh->primitive;
+  ASSERT(prim != NULL);
+  ASSERT(prim->material != NULL);
+  ASSERT(prim->pos != NULL);
+  ASSERT(prim->pos->accessor != NULL);
+  ASSERT(prim->pos->accessor->count == 3u);
+
+  foundTexcoord = false;
+  for (input = prim->input; input; input = input->next) {
+    if (input->semantic == AK_INPUT_TEXCOORD) {
+      foundTexcoord = true;
+      ASSERT(input->accessor != NULL);
+      ASSERT(input->accessor->count == 3u);
+      break;
+    }
+  }
+  ASSERT(foundTexcoord);
+
+  ak_free(roundTrip);
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(gltf_export_multiple_geometries_on_node) {
+  AkHeap     *heap;
+  AkDoc      *doc;
+  AkDoc      *roundTrip;
+  AkScene    *scene;
+  AkNode     *root, *node;
+  AkGeometry *geomA, *geomB;
+  AK_TEST_EXPORT_GLTF_PATHS("assetkit_export_multiple_geometries_on_node");
+  const float positionsA[9] = {
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+  const float positionsB[9] = {
+    2.0f, 0.0f, 0.0f,
+    3.0f, 0.0f, 0.0f,
+    2.0f, 1.0f, 0.0f
+  };
+
+  ak_test_export_cleanup(outDir);
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  ak_heap_setdata(heap, doc);
+
+  scene       = ak_heap_calloc(heap, doc, sizeof(*scene));
+  root        = ak_heap_calloc(heap, scene, sizeof(*root));
+  node        = ak_heap_calloc(heap, doc, sizeof(*node));
+  scene->node = root;
+  doc->scene  = scene;
+  root->visible = true;
+  node->visible = true;
+  node->name    = "MultiMesh";
+
+  geomA = ak_test_make_triangle_geom(heap, doc, positionsA);
+  geomB = ak_test_make_triangle_geom(heap, doc, positionsB);
+  geomA->name = "First";
+  geomB->name = "Second";
+  geomA->next = geomB;
+  doc->lib.geometries.first = geomA;
+  doc->lib.geometries.last  = geomB;
+  doc->lib.geometries.count = 2;
+
+  ak_addSubNode(root, node, false);
+  ASSERT(ak_nodeAttachGeometry(node, geomA) != NULL);
+  ASSERT(ak_nodeAttachGeometry(node, geomB) != NULL);
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"name\":\"MultiMesh\""));
+  ASSERT(ak_test_file_contains(gltfPath, "\"name\":\"First\""));
+  ASSERT(ak_test_file_contains(gltfPath, "\"name\":\"Second\""));
+
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, gltfPath, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->lib.geometries.count == 2);
+  ak_free(roundTrip);
+
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(gltf_export_perspective_camera) {
   AkHeap   *heap;
   AkDoc    *doc;

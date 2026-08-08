@@ -26,10 +26,4 @@ AK_HIDE
 bool
 dae_uri_rel_safe(const char * __restrict uri);
 
-AK_HIDE
-bool
-dae_write_file_bytes(const char * __restrict dst,
-                     const void * __restrict data,
-                     size_t                  len);
-
 #endif /* assetkit_dae_exp_io_h */

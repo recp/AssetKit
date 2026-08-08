@@ -562,6 +562,55 @@ TEST_IMPL(gltf_export_scene_entrypoint_transform) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(gltf_export_converts_document_units_to_metres) {
+  AkHeap     *heap;
+  AkDoc      *doc;
+  AkScene    *scene;
+  AkNode     *root, *node;
+  AkGeometry *geom;
+  AK_TEST_EXPORT_GLTF_PATHS("assetkit_export_document_units_to_metres");
+  const float positions[9] = {
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
+  };
+
+  ak_test_export_cleanup(outDir);
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  ak_heap_setdata(heap, doc);
+
+  scene         = ak_heap_calloc(heap, doc, sizeof(*scene));
+  root          = ak_heap_calloc(heap, scene, sizeof(*root));
+  node          = ak_heap_calloc(heap, doc, sizeof(*node));
+  doc->unit     = ak_heap_calloc(heap, doc, sizeof(*doc->unit));
+  ASSERT(doc->unit != NULL);
+  doc->unit->name = "inch";
+  doc->unit->dist = 0.0254;
+  doc->coordSys   = AK_YUP;
+  scene->node     = root;
+  doc->scene      = scene;
+  root->visible   = true;
+  node->visible   = true;
+
+  geom = ak_test_make_triangle_geom(heap, doc, positions);
+  ak_addSubNode(root, node, false);
+  ASSERT(ak_nodeAttachGeometry(node, geom) != NULL);
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath,
+    "\"matrix\":[0.0254,0,0,0,0,0.0254,0,0,0,0,0.0254,0,0,0,0,1]"));
+  ASSERT(ak_test_file_contains(gltfPath,
+                               "\"scenes\":[{\"nodes\":[1]}]"));
+  ASSERT(ak_test_file_contains(gltfPath, "\"children\":[0]"));
+
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(gltf_export_nested_sibling_children_are_contiguous) {
   AkHeap  *heap;
   AkDoc   *doc;
@@ -1215,6 +1264,143 @@ TEST_IMPL(gltf_export_normalizes_float_normals) {
   ak_heap_destroy(heap);
   ak_test_export_cleanup(outDir);
   ak_test_export_cleanup(roundDir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(gltf_export_sanitizes_mixed_invalid_normals) {
+  AkHeap          *heap;
+  AkDoc           *doc;
+  AkDoc           *roundTrip;
+  AkScene         *scene;
+  AkNode          *root, *node;
+  AkGeometry      *geom;
+  AkGeometry      *roundGeom;
+  AkMesh          *mesh;
+  AkMesh          *roundMesh;
+  AkMeshPrimitive *prim;
+  AkMeshPrimitive *roundPrim;
+  AkInput         *normal;
+  AkInput         *roundInput;
+  AkAccessor      *normalAcc;
+  uint32_t         i;
+  AK_TEST_EXPORT_GLTF_PATHS("assetkit_export_sanitized_normals");
+  const float positions[21] = {
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    2.0f, 0.0f, 0.0f,
+    3.0f, 0.0f, 0.0f,
+    2.0f, 1.0f, 0.0f,
+    9.0f, 9.0f, 9.0f
+  };
+  const float normals[21] = {
+     0.0f,  0.0f, -2.0f,
+     0.0f, -3.0f,  0.0f,
+    -4.0f,  0.0f,  0.0f,
+     0.0f,  0.0f, -5.0f,
+     0.0f,  0.0f, -6.0f,
+     0.0f,  0.0f,  0.0f,
+     NAN,   0.0f,  0.0f
+  };
+  const float expected[21] = {
+     0.0f,  0.0f, -1.0f,
+     0.0f, -1.0f,  0.0f,
+    -1.0f,  0.0f,  0.0f,
+     0.0f,  0.0f, -1.0f,
+     0.0f,  0.0f, -1.0f,
+     0.0f,  0.0f,  1.0f,
+     0.0f,  0.0f,  1.0f
+  };
+
+  ak_test_export_cleanup(outDir);
+
+  heap = ak_heap_new(NULL, NULL, NULL);
+  doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+  ak_heap_setdata(heap, doc);
+
+  scene       = ak_heap_calloc(heap, doc, sizeof(*scene));
+  root        = ak_heap_calloc(heap, scene, sizeof(*root));
+  node        = ak_heap_calloc(heap, doc, sizeof(*node));
+  scene->node = root;
+  doc->scene  = scene;
+  root->visible = true;
+  node->visible = true;
+
+  geom = ak_test_make_geom_with_positions(heap, doc, positions, 7u);
+  ASSERT(geom != NULL);
+  mesh = ak_objGet(geom->gdata);
+  ASSERT(mesh != NULL);
+  prim = mesh->primitive;
+  ASSERT(prim != NULL);
+
+  normal = ak_heap_calloc(heap, prim, sizeof(*normal));
+  ASSERT(normal != NULL);
+  normal->semantic = AK_INPUT_NORMAL;
+  normal->accessor = ak_test_make_float_accessor(heap,
+                                                  normal,
+                                                  normals,
+                                                  3u,
+                                                  7u);
+  ASSERT(normal->accessor != NULL);
+  normal->next = prim->input;
+  prim->input  = normal;
+  prim->inputCount++;
+
+  ak_addSubNode(root, node, false);
+  ASSERT(ak_nodeAttachGeometry(node, geom) != NULL);
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"NORMAL\""));
+
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, gltfPath, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  roundGeom = roundTrip->lib.geometries.first;
+  ASSERT(roundGeom != NULL);
+  roundMesh = ak_objGet(roundGeom->gdata);
+  ASSERT(roundMesh != NULL);
+  roundPrim = roundMesh->primitive;
+  ASSERT(roundPrim != NULL);
+
+  normalAcc = NULL;
+  for (roundInput = roundPrim->input; roundInput; roundInput = roundInput->next) {
+    if (roundInput->semantic == AK_INPUT_NORMAL) {
+      normalAcc = roundInput->accessor;
+      break;
+    }
+  }
+  ASSERT(normalAcc != NULL);
+  ASSERT(normalAcc->count == 7u);
+  ASSERT(normalAcc->componentType == AKT_FLOAT);
+  ASSERT(normalAcc->componentCount == 3u);
+
+  for (i = 0; i < normalAcc->count; i++) {
+    const unsigned char *item;
+    size_t               stride;
+    float                value[3];
+    float                len2;
+    uint32_t             c;
+
+    stride = normalAcc->byteStride
+             ? normalAcc->byteStride
+             : normalAcc->fillByteSize;
+    item = (const unsigned char *)normalAcc->buffer->data
+           + normalAcc->byteOffset
+           + (size_t)i * stride;
+    memcpy(value, item, sizeof(value));
+    len2 = value[0] * value[0]
+           + value[1] * value[1]
+           + value[2] * value[2];
+    ASSERT(isfinite(len2));
+    ASSERT(fabsf(len2 - 1.0f) < 0.00001f);
+    for (c = 0; c < 3u; c++)
+      ASSERT(fabsf(value[c] - expected[(size_t)i * 3u + c]) < 0.00001f);
+  }
+
+  ak_free(roundTrip);
+  ak_heap_destroy(heap);
+  ak_test_export_cleanup(outDir);
 
   TEST_SUCCESS
 }

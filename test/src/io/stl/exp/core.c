@@ -117,3 +117,32 @@ TEST_IMPL(stl_export_ascii_triangle_smoke) {
   ak_test_export_cleanup(outDir);
   TEST_SUCCESS
 }
+
+TEST_IMPL(stl_export_unlabelled_space_is_yup_metres) {
+  AkDoc      *doc;
+  AkUnit      unit;
+  uintptr_t   savedFormat;
+  const char *outDir  = "./assetkit_export_stl_canonical_space";
+  const char *stlPath = "./assetkit_export_stl_canonical_space/model.stl";
+
+  ak_test_export_cleanup(outDir);
+  doc = ak_test_make_stl_triangle_doc();
+  ASSERT(doc != NULL);
+
+  memset(&unit, 0, sizeof(unit));
+  unit.name     = "inch";
+  unit.dist     = 0.0254;
+  doc->unit     = &unit;
+  doc->coordSys = AK_ZUP;
+
+  savedFormat = ak_opt_get(AK_OPT_STL_EXPORT_FORMAT);
+  ak_opt_set(AK_OPT_STL_EXPORT_FORMAT, AK_STL_EXPORT_ASCII);
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_STL) == AK_OK);
+  ak_opt_set(AK_OPT_STL_EXPORT_FORMAT, savedFormat);
+
+  ASSERT(ak_test_file_contains(stlPath,
+                               "vertex 0.0508 0.1016 -0.0762"));
+
+  ak_test_export_cleanup(outDir);
+  TEST_SUCCESS
+}

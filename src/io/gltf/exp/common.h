@@ -34,6 +34,7 @@ typedef uint32_t GLTFExpIndex;
 
 typedef struct GLTFExpNodeOut {
   AkNode     *node;
+  AkInstanceGeometry *instance;
   AkFloatArray *morphWeights;
   const char *name;
   GLTFExpIndex childOffset;
@@ -46,8 +47,11 @@ typedef struct GLTFExpNodeOut {
   bool        hasCamera;
   bool        hasLight;
   bool        hasSkin;
+  bool        hasGpuInstancing;
   bool        forceTRS;
   bool        bakeLocalTransform;
+  bool        syntheticMeshChild;
+  bool        syntheticExportRoot;
   bool        forceVisibilityExtension;
 } GLTFExpNodeOut;
 
@@ -137,6 +141,30 @@ typedef struct GLTFExpPositionAttrTable {
   size_t                  count;
   size_t                  capacity;
 } GLTFExpPositionAttrTable;
+
+typedef struct GLTFExpTexcoordAttrOut {
+  AkInput      *input;
+  float        *data;
+  GLTFExpIndex  accessorIndex;
+} GLTFExpTexcoordAttrOut;
+
+typedef struct GLTFExpTexcoordAttrTable {
+  GLTFExpTexcoordAttrOut *items;
+  size_t                  count;
+  size_t                  capacity;
+} GLTFExpTexcoordAttrTable;
+
+typedef struct GLTFExpNormalAttrOut {
+  AkInput      *input;
+  float        *data;
+  GLTFExpIndex  accessorIndex;
+} GLTFExpNormalAttrOut;
+
+typedef struct GLTFExpNormalAttrTable {
+  GLTFExpNormalAttrOut *items;
+  size_t                count;
+  size_t                capacity;
+} GLTFExpNormalAttrTable;
 
 typedef struct GLTFExpBakedPrimAttrOut {
   AkNode          *node;
@@ -240,10 +268,12 @@ typedef struct GLTFExpMaterialOut {
   AkMaterial         *material;
   AkMeshPrimitive    *primitive;
   AkInstanceGeometry *instance;
+  GLTFExpIndex        nextVariant;
 } GLTFExpMaterialOut;
 
 typedef struct GLTFExpMaterialTable {
   GLTFExpMaterialOut *items;
+  RBTree             *map;
   size_t              count;
   size_t              capacity;
 } GLTFExpMaterialTable;
@@ -275,6 +305,7 @@ typedef struct GLTFExpAccessorOut {
   AkComponentSize     rawComponentSize;
   uint32_t            rawComponentCount;
   uint32_t            rawCount;
+  uint32_t            assetkitCount;
   uint32_t            minMaxCount;
   bool                minMaxRequired;
   bool                hasMinMax;
@@ -284,6 +315,7 @@ typedef struct GLTFExpAccessorOut {
 typedef struct GLTFExpAccessorTable {
   GLTFExpAccessorOut *items;
   RBTree             *accessorMap;
+  RBTree             *inputMap;
   RBTree             *primitiveMap;
   RBTree             *rawMap;
   size_t              count;
@@ -293,6 +325,7 @@ typedef struct GLTFExpAccessorTable {
 
 typedef struct GLTFExpState {
   AkDoc                *doc;
+  AkMatrix              exportRootTransform;
   GLTFExpNodeTable     nodes;
   GLTFExpSceneTable    scenes;
   GLTFExpIndexList     nodeChildren;
@@ -314,6 +347,8 @@ typedef struct GLTFExpState {
   GLTFExpSkinAttrTable skinAttrs;
   GLTFExpMorphAttrTable morphAttrs;
   GLTFExpPositionAttrTable positionAttrs;
+  GLTFExpTexcoordAttrTable texcoordAttrs;
+  GLTFExpNormalAttrTable normalAttrs;
   GLTFExpBakedAttrTable bakedAttrs;
   GLTFExpAnimTable     animations;
   GLTFExpAnimSamplerTable animSamplers;
@@ -322,6 +357,8 @@ typedef struct GLTFExpState {
   GLTFExpStringTable   preservedExtensions;
   RBTree              *nodeStack;
   RBTree              *nodeMap;
+  RBTree              *normalValidityMap;
+  RBTree              *primitiveAttributeCountMap;
   char                *outDir;
   char                *binPath;
   char                *binUri;
@@ -329,7 +366,9 @@ typedef struct GLTFExpState {
   GLTFExpIndex         defaultSceneIndex;
   GLTFExpIndex         materialVariantCount;
   AkResult             failResult;
+  float                unitScale;
   bool                 failed;
+  bool                 hasExportRootTransform;
   bool                 glb;
   bool                 usesNodeVisibility;
   bool                 usesGpuInstancing;

@@ -258,7 +258,7 @@ gltf_plan_material(GLTFExpState * __restrict st,
   if (gltf_material_index(st, material, prim, inst) != GLTF_EXP_INDEX_NONE)
     return true;
 
-  if (!gltf_materials_add(&st->materials, material, prim, inst))
+  if (!gltf_materials_add(st, material, prim, inst))
     return false;
 
   if (!gltf_plan_extra_extensions(st,

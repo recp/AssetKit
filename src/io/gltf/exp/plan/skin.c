@@ -18,7 +18,8 @@
 
 AK_HIDE
 bool
-gltf_primitive_has_exportable_skin_inputs(AkMeshPrimitive * __restrict prim,
+gltf_primitive_has_exportable_skin_inputs(GLTFExpState    * __restrict st,
+                                          AkMeshPrimitive * __restrict prim,
                                           AkInput         * __restrict posInput) {
   AkInput *input;
   bool     hasJoint;
@@ -30,7 +31,7 @@ gltf_primitive_has_exportable_skin_inputs(AkMeshPrimitive * __restrict prim,
   for (input = prim ? prim->input : NULL; input; input = input->next) {
     if (!input->accessor
         || !gltf_input_supported(input)
-        || !gltf_input_count_valid(prim, input, posInput))
+        || !gltf_input_count_valid(st, prim, input, posInput))
       continue;
 
     if (input->semantic == AK_INPUT_JOINT)
@@ -44,14 +45,15 @@ gltf_primitive_has_exportable_skin_inputs(AkMeshPrimitive * __restrict prim,
 
 AK_HIDE
 bool
-gltf_mesh_needs_generated_skin_attrs(AkMesh * __restrict mesh) {
+gltf_mesh_needs_generated_skin_attrs(GLTFExpState * __restrict st,
+                                     AkMesh       * __restrict mesh) {
   AkMeshPrimitive *prim;
 
   for (prim = mesh ? mesh->primitive : NULL; prim; prim = prim->next) {
     AkInput *posInput;
 
     posInput = gltf_primitive_position_input(prim);
-    if (!gltf_primitive_has_exportable_skin_inputs(prim, posInput))
+    if (!gltf_primitive_has_exportable_skin_inputs(st, prim, posInput))
       return true;
   }
 

@@ -49,7 +49,11 @@ typedef struct AkRenderJob {
   uint32_t                indexCount;
   uint32_t                primitiveCount;
   uint32_t                primitiveType;
+  float                   worldDeterminant;
   bool                    reverseWinding;
+  bool                    worldIdentity;
+  bool                    worldTranslationOnly;
+  bool                    hasDirectionAttribute;
 } AkRenderJob;
 
 typedef struct AkRenderGroupBuilder {
@@ -95,6 +99,24 @@ ak_render_add_overflow_u32(uint32_t a, uint32_t b, uint32_t *out) {
     return true;
   *out = a + b;
   return false;
+}
+
+static
+bool
+ak_render_mat4_is_translation(mat4 matrix) {
+  return matrix[0][0] == 1.0f
+         && matrix[0][1] == 0.0f
+         && matrix[0][2] == 0.0f
+         && matrix[0][3] == 0.0f
+         && matrix[1][0] == 0.0f
+         && matrix[1][1] == 1.0f
+         && matrix[1][2] == 0.0f
+         && matrix[1][3] == 0.0f
+         && matrix[2][0] == 0.0f
+         && matrix[2][1] == 0.0f
+         && matrix[2][2] == 1.0f
+         && matrix[2][3] == 0.0f
+         && matrix[3][3] == 1.0f;
 }
 
 static
@@ -257,11 +279,12 @@ bool
 ak_render_job_layout(AkRenderJob * __restrict job) {
   AkInput *input;
   uint32_t i, count, vertexCount, texcoordCount;
-  bool     havePosition;
+  bool     haveDirectionAttribute, havePosition;
 
   count         = 0;
   vertexCount   = 0;
   texcoordCount = 0;
+  haveDirectionAttribute = false;
   havePosition  = false;
 
   for (input = job->primitive->input; input; input = input->next) {
@@ -289,6 +312,9 @@ ak_render_job_layout(AkRenderJob * __restrict job) {
         return false;
       havePosition = true;
     }
+    if (input->semantic == AK_INPUT_NORMAL
+        || input->semantic == AK_INPUT_TANGENT)
+      haveDirectionAttribute = true;
     if (input->semantic == AK_INPUT_TEXCOORD
         || input->semantic == AK_INPUT_UV)
       texcoordCount++;
@@ -317,6 +343,7 @@ ak_render_job_layout(AkRenderJob * __restrict job) {
 
   job->attributeCount = count;
   job->vertexCount    = vertexCount;
+  job->hasDirectionAttribute = haveDirectionAttribute;
   /*
    * One texture-coordinate stream has no ambiguous instance binding:
    * every texture maps to SceneKit channel zero. Multiple streams require
@@ -473,6 +500,10 @@ ak_render_add_geometry(AkRenderBuildState * __restrict state,
                        mat4                            world) {
   AkMesh          *mesh;
   AkMeshPrimitive *primitive;
+  mat3             linear;
+  float            determinant;
+  bool             worldIdentity;
+  bool             worldTranslationOnly;
 
   if (!geometry || !geometry->gdata
       || geometry->gdata->type != AK_GEOMETRY_MESH)
@@ -482,13 +513,23 @@ ak_render_add_geometry(AkRenderBuildState * __restrict state,
   if (!mesh)
     return true;
 
+  worldTranslationOnly = ak_render_mat4_is_translation(world);
+  worldIdentity        = worldTranslationOnly
+                         && world[3][0] == 0.0f
+                         && world[3][1] == 0.0f
+                         && world[3][2] == 0.0f;
+  if (worldTranslationOnly) {
+    determinant = 1.0f;
+  } else {
+    glm_mat4_pick3(world, linear);
+    determinant = glm_mat3_det(linear);
+  }
+
   for (primitive = mesh->primitive;
        primitive;
        primitive = primitive->next) {
     AkRenderJob        *job;
     AkResolvedMaterial  resolved;
-    mat3                linear;
-    float               determinant;
 
     if (!ak_render_reserve((void **)&group->jobs,
                            sizeof(*group->jobs),
@@ -504,6 +545,9 @@ ak_render_add_geometry(AkRenderBuildState * __restrict state,
     job->geometry  = geometry;
     job->primitive = primitive;
     job->instance  = instance;
+    job->worldDeterminant = determinant;
+    job->worldIdentity    = worldIdentity;
+    job->worldTranslationOnly = worldTranslationOnly;
     glm_mat4_copy(world, job->world);
 
     if (!ak_render_job_layout(job)) {
@@ -519,8 +563,6 @@ ak_render_add_geometry(AkRenderBuildState * __restrict state,
     if (ak_materialResolve(primitive, instance, UINT32_MAX, &resolved))
       job->material = resolved.material;
 
-    glm_mat4_pick3(world, linear);
-    determinant         = glm_mat3_det(linear);
     job->reverseWinding = determinant < 0.0f
                           && primitive->type == AK_PRIMITIVE_TRIANGLES;
     group->jobCount++;
@@ -735,30 +777,34 @@ ak_render_jobs_share_batch(const AkRenderJob * __restrict a,
 
 static
 void
+ak_render_job_normal_matrix(AkRenderJob * __restrict job,
+                            mat3                       normalMatrix) {
+  glm_mat4_pick3(job->world, normalMatrix);
+  if (fabsf(job->worldDeterminant) > 1e-12f) {
+    glm_mat3_inv(normalMatrix, normalMatrix);
+    glm_mat3_transpose(normalMatrix);
+  }
+}
+
+static
+void
 ak_render_transform_attribute(AkRenderJob * __restrict job,
                               uint32_t                  semantic,
                               uint32_t                  componentCount,
-                              float       * __restrict values) {
-  mat3     normalMatrix;
-  mat3     linear;
+                              float       * __restrict values,
+                              mat3                       normalMatrix) {
   uint32_t i;
-  float    determinant;
 
   if (semantic != AK_INPUT_POSITION
       && semantic != AK_INPUT_NORMAL
       && semantic != AK_INPUT_TANGENT)
     return;
 
-  if (semantic != AK_INPUT_POSITION) {
-    glm_mat4_pick3(job->world, linear);
-    determinant = glm_mat3_det(linear);
-    if (fabsf(determinant) > 1e-12f) {
-      glm_mat3_inv(linear, normalMatrix);
-      glm_mat3_transpose(normalMatrix);
-    } else {
-      glm_mat3_copy(linear, normalMatrix);
-    }
-  }
+  if (job->worldIdentity)
+    return;
+
+  if (job->worldTranslationOnly && semantic != AK_INPUT_POSITION)
+    return;
 
   for (i = 0; i < job->vertexCount; i++) {
     float *value;
@@ -769,7 +815,14 @@ ak_render_transform_attribute(AkRenderJob * __restrict job,
     in3[1] = value[1];
     in3[2] = value[2];
 
-    if (semantic == AK_INPUT_POSITION) {
+    if (semantic == AK_INPUT_POSITION && job->worldTranslationOnly) {
+      float positionW;
+
+      positionW = componentCount > 3 ? value[3] : 1.0f;
+      value[0] += job->world[3][0] * positionW;
+      value[1] += job->world[3][1] * positionW;
+      value[2] += job->world[3][2] * positionW;
+    } else if (semantic == AK_INPUT_POSITION) {
       vec4 in4, out4;
 
       in4[0] = in3[0];
@@ -894,10 +947,15 @@ ak_render_build_batch(AkRenderBatch * __restrict batch,
   for (i = 0; i < jobCount; i++) {
     AkRenderJob        *job;
     AkRenderBatchRange *range;
+    mat3                normalMatrix;
     uint32_t            firstPrimitive;
 
     job   = &jobs[i];
     range = &batch->ranges[i];
+    if (job->hasDirectionAttribute
+        && !job->worldIdentity
+        && !job->worldTranslationOnly)
+      ak_render_job_normal_matrix(job, normalMatrix);
     if (batch->primitiveCount > UINT32_MAX - job->primitiveCount)
       return AK_EINVAL;
     firstPrimitive        = batch->primitiveCount;
@@ -936,7 +994,8 @@ ak_render_build_batch(AkRenderBatch * __restrict batch,
       ak_render_transform_attribute(job,
                                     attribute->semantic,
                                     attribute->componentCount,
-                                    destination);
+                                    destination,
+                                    normalMatrix);
     }
 
     for (j = 0; j < job->indexCount; j++) {

@@ -91,10 +91,13 @@ typedef struct PLYState {
   AkDataContext *dc_ind;
   AkDataContext *dc_edge_ind;
   AkAccessor    *ac_pos, *ac_nor, *ac_tex, *ac_rgb;
+  uint8_t       *alphaBlendBits;
   AkNode        *node;
   PLYElement    *element;
   PLYElement    *lastElement;
   size_t         vertBuffsize;
+  size_t         faceAlphaBlendCount;
+  size_t         edgeAlphaBlendCount;
   uint32_t       byteStride;
   uint32_t       count;
   uint32_t       vertcount;
@@ -109,6 +112,7 @@ typedef struct PLYState {
   bool           colorSrgb;
   bool           colorLookup8;
   bool           normalizeColors;
+  bool           alphaBlendBitsValid;
 } PLYState;
 
 #define SKIP_SPACES                                                           \

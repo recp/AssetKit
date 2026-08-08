@@ -167,19 +167,19 @@ ak_normalGeneratedCount(AkMeshPrimitive * __restrict prim,
 AK_HIDE
 void
 ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
-  AkDataContext *dctx;
   AkDoc         *doc;
   AkIndexArray  *srcIndices;
   AkIndexArray  *inpIndices;
   unsigned char *pos;
+  float         *normalData;
   AkHeap        *heap;
   AkInput       *input, *nextInput;
   AkBuffer      *posBuff, *buff;
   AkAccessor    *posAcc, *acc;
   AkTypeId       componentType;
-  AkUInt         st, newst, generatedNormals, indexMax;
+  AkUInt         st, newst, generatedNormals, normalCount, indexMax;
   AkInt          vo;
-  size_t         pos_st;
+  size_t         pos_st, normalBytes;
   uint32_t       count, tuple;
 
   if ((prim->type    != AK_PRIMITIVE_TRIANGLES
@@ -234,11 +234,41 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
                        (size_t)tuple * st,
                        st);
 
-  dctx = ak_data_new(prim, 64, sizeof(vec3), ak_cmp_vec3);
-  if (!dctx) {
+  if ((size_t)generatedNormals > SIZE_MAX / sizeof(vec3)) {
     ak_free(inpIndices);
     return;
   }
+
+  normalBytes = (size_t)generatedNormals * sizeof(vec3);
+  acc          = ak_heap_calloc(heap, doc, sizeof(*acc));
+  buff         = ak_heap_calloc(heap, doc, sizeof(*buff));
+  if (!acc || !buff) {
+    if (acc)
+      ak_free(acc);
+    if (buff)
+      ak_free(buff);
+    ak_free(inpIndices);
+    return;
+  }
+
+  buff->data = ak_heap_alloc(heap, buff, normalBytes);
+  if (!buff->data) {
+    ak_free(acc);
+    ak_free(buff);
+    ak_free(inpIndices);
+    return;
+  }
+  buff->length = normalBytes;
+  normalData   = buff->data;
+  normalCount  = 0;
+
+#define AK_NORMAL_APPEND(NORMAL, INDEX)                                      \
+  do {                                                                        \
+    if (normalCount >= generatedNormals)                                      \
+      goto fail;                                                              \
+    (INDEX) = normalCount++;                                                   \
+    memcpy(normalData + (size_t)(INDEX) * 3u, (NORMAL), sizeof(vec3));         \
+  } while (0)
 
   switch (prim->type) {
     case AK_PRIMITIVE_POLYGONS: {
@@ -265,7 +295,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
           glm_vec3_cross(v1, v2, n);
           glm_vec3_normalize(n);
 
-          idx = ak_data_append(dctx, n);
+          AK_NORMAL_APPEND(n, idx);
 
           for (j = i; j < i + 3; j++)
             ak_normalIndexSet(inpIndices, j * newst + st, idx);
@@ -296,7 +326,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
         glm_vec3_cross(v1, v2, n);
         glm_vec3_normalize(n);
 
-        idx = ak_data_append(dctx, n);
+        AK_NORMAL_APPEND(n, idx);
 
         for (j = i; j < i + vc; j++) {
           ak_normalIndexSet(inpIndices, j * newst + st, idx);
@@ -328,7 +358,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
             glm_vec3_cross(v1, v2, n);
             glm_vec3_normalize(n);
 
-            idx = ak_data_append(dctx, n);
+            AK_NORMAL_APPEND(n, idx);
 
             for (j = i; j < i + 3; j++) {
               ak_normalIndexSet(inpIndices, j * newst + st, idx);
@@ -348,7 +378,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
             glm_vec3_cross(v1, v2, n);
             glm_vec3_normalize(n);
 
-            idx = ak_data_append(dctx, n);
+            AK_NORMAL_APPEND(n, idx);
 
             // Assign normals to central, current, and next vertex
             ak_normalIndexSet(inpIndices, st, idx);
@@ -369,7 +399,7 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
             glm_vec3_cross(v1, v2, n);
             glm_vec3_normalize(n);
 
-            idx = ak_data_append(dctx, n);
+            AK_NORMAL_APPEND(n, idx);
 
             // Assign normals to the three vertices of the triangle
             ak_normalIndexSet(inpIndices, i * newst + st, idx);
@@ -385,25 +415,22 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
       break;
     }
     default:
-      ak_free(inpIndices);
-      return;
+      goto fail;
   }
 
-  acc = ak_heap_calloc(heap, doc, sizeof(*acc));
+  if (normalCount != generatedNormals)
+    goto fail;
+
   ak_setypeid(acc, AKT_ACCESSOR);
 
   acc->componentCount    = 3;
-  acc->count             = (uint32_t)dctx->itemcount;
+  acc->count             = (uint32_t)normalCount;
   acc->componentType     = AKT_FLOAT;
   acc->componentSize     = AK_COMPONENT_SIZE_VEC3;
   acc->bytesPerComponent = ak_typeDesc(acc->componentType)->size;
   acc->byteStride        = acc->componentCount * acc->bytesPerComponent;
   acc->fillByteSize      = acc->byteStride;
   acc->byteLength        = acc->count * acc->byteStride;
-
-  buff                   = ak_heap_calloc(heap, doc, sizeof(*buff));
-  buff->data             = ak_heap_alloc(heap, buff, acc->byteLength);
-  buff->length           = acc->byteLength;
 
   acc->buffer            = buff;
 
@@ -434,9 +461,16 @@ ak_meshPrimGenNormals(AkMeshPrimitive * __restrict prim) {
   prim->indices = inpIndices;
   prim->indexAccessor = NULL;
 
-  (void)ak_data_join(dctx, buff->data, 0, 0);
-  ak_free(dctx);
+#undef AK_NORMAL_APPEND
+#undef AK_NORMAL_POS
+  return;
 
+fail:
+  ak_free(acc);
+  ak_free(buff);
+  ak_free(inpIndices);
+
+#undef AK_NORMAL_APPEND
 #undef AK_NORMAL_POS
 }
 

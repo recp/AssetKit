@@ -139,6 +139,106 @@ ak_imageExportSourcePath(AkImageExportRequest * __restrict req,
 }
 
 static
+const char*
+ak_imageExportPreservedMime(const AkImageSource * __restrict source) {
+  const char *uri;
+  const char *dot;
+
+  if (!source)
+    return NULL;
+  if (source->mimeType) {
+    if (strcmp(source->mimeType, "image/png") == 0)
+      return "image/png";
+    if (strcmp(source->mimeType, "image/jpeg") == 0)
+      return "image/jpeg";
+  }
+
+  uri = source->uri;
+  dot = uri ? strrchr(uri, '.') : NULL;
+  if (!dot)
+    return NULL;
+  if (strcasecmp(dot, ".png") == 0)
+    return "image/png";
+  if (strcasecmp(dot, ".jpg") == 0 || strcasecmp(dot, ".jpeg") == 0)
+    return "image/jpeg";
+  return NULL;
+}
+
+bool
+ak_imageExportPreserved(AkImageExportRequest * __restrict req,
+                        AkImageExportPayload * __restrict payload) {
+  AkImageSource *source;
+  const char    *mime;
+  const char    *path;
+  unsigned char *data;
+  char           pathbuf[PATH_MAX];
+  char           uribuf[PATH_MAX];
+  FILE          *file;
+  long           lengthLong;
+  size_t         length;
+
+  if (!payload)
+    return false;
+  memset(payload, 0, sizeof(*payload));
+  if (!req || !req->image)
+    return false;
+
+  source = ak_imageSource(req->image);
+  mime   = ak_imageExportPreservedMime(source);
+  if (!source || !mime)
+    return false;
+
+  if (source->type == AK_IMAGE_SOURCE_BUFFER) {
+    if (!source->buffer || !source->buffer->data || source->buffer->length == 0u)
+      return false;
+    data = malloc(source->buffer->length);
+    if (!data)
+      return false;
+    memcpy(data, source->buffer->data, source->buffer->length);
+    payload->data       = data;
+    payload->byteLength = source->buffer->length;
+    payload->mimeType   = mime;
+    return true;
+  }
+
+  if (source->type != AK_IMAGE_SOURCE_URI)
+    return false;
+  path = ak_imageExportSourcePath(req, pathbuf, uribuf);
+  if (!path)
+    return false;
+  file = fopen(path, "rb");
+  if (!file)
+    return false;
+  if (fseek(file, 0, SEEK_END) != 0
+      || (lengthLong = ftell(file)) <= 0
+      || fseek(file, 0, SEEK_SET) != 0) {
+    fclose(file);
+    return false;
+  }
+  length = (size_t)lengthLong;
+  if ((long)length != lengthLong) {
+    fclose(file);
+    return false;
+  }
+  data = malloc(length);
+  if (!data) {
+    fclose(file);
+    return false;
+  }
+  if (fread(data, 1u, length, file) != length) {
+    free(data);
+    fclose(file);
+    return false;
+  }
+  fclose(file);
+
+  payload->data       = data;
+  payload->byteLength = length;
+  payload->mimeType   = mime;
+  return true;
+}
+
+static
 bool
 ak_imageExportLoadBMP(AkImageExportRequest * __restrict req,
                       AkImageData          * __restrict out) {

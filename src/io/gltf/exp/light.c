@@ -61,7 +61,8 @@ gltf_w_color3(GLTFExpWriter * __restrict w, AkColor color) {
 static
 void
 gltf_write_light(GLTFExpWriter * __restrict w,
-                 AkLight       * __restrict light) {
+                 AkLight       * __restrict light,
+                 float                       unitScale) {
   AkLightBase *base;
   bool         comma;
 
@@ -118,7 +119,7 @@ gltf_write_light(GLTFExpWriter * __restrict w,
     if (comma)
       gltf_w_ch(w, ',');
     gltf_w_key(w, _s_gltf_range, _s_gltf_range_len);
-    gltf_w_float(w, base->range);
+    gltf_w_float(w, base->range * unitScale);
     comma = true;
   }
 
@@ -176,7 +177,7 @@ gltf_write_lights_punctual_extension(GLTFExpWriter * __restrict w,
   for (i = 0; i < st->lights.count; i++) {
     if (i > 0)
       gltf_w_ch(w, ',');
-    gltf_write_light(w, (AkLight *)st->lights.items[i]);
+    gltf_write_light(w, (AkLight *)st->lights.items[i], st->unitScale);
   }
 
   gltf_w_ch(w, ']');

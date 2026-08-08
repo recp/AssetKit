@@ -381,24 +381,254 @@ gltf_texture_source_extension(AkTexture * __restrict texture) {
   return 0;
 }
 
+static
+bool
+gltf_texture_binding_equal(GLTFExpState       * __restrict st,
+                           AkMeshPrimitive    * __restrict aPrim,
+                           AkInstanceGeometry * __restrict aInst,
+                           AkMeshPrimitive    * __restrict bPrim,
+                           AkInstanceGeometry * __restrict bInst,
+                           AkTextureRef       * __restrict texref) {
+  int32_t aSlot;
+  int32_t bSlot;
+  int32_t aTransformSlot;
+  int32_t bTransformSlot;
+
+  if (!texref || !texref->texture)
+    return true;
+
+  aSlot = ak_materialTextureSlot(aPrim, aInst, texref);
+  bSlot = ak_materialTextureSlot(bPrim, bInst, texref);
+  if (aSlot < 0)
+    aSlot = 0;
+  if (bSlot < 0)
+    bSlot = 0;
+  if (gltf_texcoord_export_set(st, aPrim, aSlot)
+      != gltf_texcoord_export_set(st, bPrim, bSlot))
+    return false;
+
+  aTransformSlot = -1;
+  bTransformSlot = -1;
+  if (texref->transform && texref->transform->slot > -1) {
+    if (gltf_texcoord_source_set_valid(st,
+                                       aPrim,
+                                       texref->transform->slot))
+      aTransformSlot = gltf_texcoord_export_set(st,
+                                                aPrim,
+                                                texref->transform->slot);
+    if (gltf_texcoord_source_set_valid(st,
+                                       bPrim,
+                                       texref->transform->slot))
+      bTransformSlot = gltf_texcoord_export_set(st,
+                                                bPrim,
+                                                texref->transform->slot);
+  }
+
+  return aTransformSlot == bTransformSlot;
+}
+
+static
+bool
+gltf_material_input_binding_equal(
+  GLTFExpState          * __restrict st,
+  AkMeshPrimitive       * __restrict aPrim,
+  AkInstanceGeometry    * __restrict aInst,
+  AkMeshPrimitive       * __restrict bPrim,
+  AkInstanceGeometry    * __restrict bInst,
+  const AkMaterialInput * __restrict input) {
+  return gltf_texture_binding_equal(st,
+                                    aPrim,
+                                    aInst,
+                                    bPrim,
+                                    bInst,
+                                    ak_materialInputTexture(input));
+}
+
+static
+bool
+gltf_material_feature_binding_equal(
+  GLTFExpState       * __restrict st,
+  AkMeshPrimitive    * __restrict aPrim,
+  AkInstanceGeometry * __restrict aInst,
+  AkMeshPrimitive    * __restrict bPrim,
+  AkInstanceGeometry * __restrict bInst,
+  AkMaterialFeature  * __restrict feature) {
+#define GLTF_INPUT_BINDING_EQUAL(INPUT)                                     \
+  gltf_material_input_binding_equal(st, aPrim, aInst, bPrim, bInst, (INPUT))
+
+  switch (feature->type) {
+    case AK_MATERIAL_FEATURE_CLEARCOAT: {
+      AkMaterialClearcoatFeature *f = (AkMaterialClearcoatFeature *)feature;
+      return GLTF_INPUT_BINDING_EQUAL(f->factor)
+             && GLTF_INPUT_BINDING_EQUAL(f->roughness)
+             && GLTF_INPUT_BINDING_EQUAL(f->normal);
+    }
+    case AK_MATERIAL_FEATURE_SPECULAR: {
+      AkMaterialSpecularFeature *f = (AkMaterialSpecularFeature *)feature;
+      return GLTF_INPUT_BINDING_EQUAL(f->factor)
+             && GLTF_INPUT_BINDING_EQUAL(f->color);
+    }
+    case AK_MATERIAL_FEATURE_SPECULAR_GLOSSINESS: {
+      AkMaterialSpecularGlossinessFeature *f;
+      f = (AkMaterialSpecularGlossinessFeature *)feature;
+      return GLTF_INPUT_BINDING_EQUAL(f->diffuse)
+             && GLTF_INPUT_BINDING_EQUAL(f->specular)
+             && GLTF_INPUT_BINDING_EQUAL(f->glossiness);
+    }
+    case AK_MATERIAL_FEATURE_TRANSMISSION: {
+      AkMaterialTransmissionFeature *f;
+      f = (AkMaterialTransmissionFeature *)feature;
+      return GLTF_INPUT_BINDING_EQUAL(f->factor);
+    }
+    case AK_MATERIAL_FEATURE_SHEEN: {
+      AkMaterialSheenFeature *f = (AkMaterialSheenFeature *)feature;
+      return GLTF_INPUT_BINDING_EQUAL(f->color)
+             && GLTF_INPUT_BINDING_EQUAL(f->roughness);
+    }
+    case AK_MATERIAL_FEATURE_IRIDESCENCE: {
+      AkMaterialIridescenceFeature *f;
+      f = (AkMaterialIridescenceFeature *)feature;
+      return GLTF_INPUT_BINDING_EQUAL(f->factor)
+             && GLTF_INPUT_BINDING_EQUAL(f->thickness);
+    }
+    case AK_MATERIAL_FEATURE_VOLUME: {
+      AkMaterialVolumeFeature *f = (AkMaterialVolumeFeature *)feature;
+      return GLTF_INPUT_BINDING_EQUAL(f->thickness);
+    }
+    case AK_MATERIAL_FEATURE_ANISOTROPY: {
+      AkMaterialAnisotropyFeature *f;
+      f = (AkMaterialAnisotropyFeature *)feature;
+      return GLTF_INPUT_BINDING_EQUAL(f->strength)
+             && GLTF_INPUT_BINDING_EQUAL(f->rotation);
+    }
+    case AK_MATERIAL_FEATURE_DIFFUSE_TRANSMISSION: {
+      AkMaterialDiffuseTransmissionFeature *f;
+      f = (AkMaterialDiffuseTransmissionFeature *)feature;
+      return GLTF_INPUT_BINDING_EQUAL(f->factor)
+             && GLTF_INPUT_BINDING_EQUAL(f->color);
+    }
+    case AK_MATERIAL_FEATURE_SUBSURFACE: {
+      AkMaterialSubsurfaceFeature *f;
+      f = (AkMaterialSubsurfaceFeature *)feature;
+      return GLTF_INPUT_BINDING_EQUAL(f->weight)
+             && GLTF_INPUT_BINDING_EQUAL(f->color)
+             && GLTF_INPUT_BINDING_EQUAL(f->radius);
+    }
+    case AK_MATERIAL_FEATURE_CLASSIC: {
+      AkMaterialClassicFeature *f = (AkMaterialClassicFeature *)feature;
+      return GLTF_INPUT_BINDING_EQUAL(f->ambient)
+             && GLTF_INPUT_BINDING_EQUAL(f->diffuse)
+             && GLTF_INPUT_BINDING_EQUAL(f->specular)
+             && GLTF_INPUT_BINDING_EQUAL(f->emission)
+             && GLTF_INPUT_BINDING_EQUAL(f->reflective)
+             && GLTF_INPUT_BINDING_EQUAL(f->transparency);
+    }
+    default:
+      return true;
+  }
+
+#undef GLTF_INPUT_BINDING_EQUAL
+}
+
+bool
+gltf_material_binding_equal(GLTFExpState       * __restrict st,
+                            AkMaterial         * __restrict material,
+                            AkMeshPrimitive    * __restrict aPrim,
+                            AkInstanceGeometry * __restrict aInst,
+                            AkMeshPrimitive    * __restrict bPrim,
+                            AkInstanceGeometry * __restrict bInst) {
+  AkMaterialSurface *surface;
+  AkMaterialFeature *feature;
+
+  if (aPrim == bPrim && aInst == bInst)
+    return true;
+
+  surface = material ? material->surface : NULL;
+  if (!surface)
+    return true;
+
+  if (!gltf_material_input_binding_equal(st,
+                                         aPrim,
+                                         aInst,
+                                         bPrim,
+                                         bInst,
+                                         surface->baseColor)
+      || !gltf_material_input_binding_equal(st,
+                                            aPrim,
+                                            aInst,
+                                            bPrim,
+                                            bInst,
+                                            surface->opacity)
+      || !gltf_material_input_binding_equal(st,
+                                            aPrim,
+                                            aInst,
+                                            bPrim,
+                                            bInst,
+                                            surface->metallic)
+      || !gltf_material_input_binding_equal(st,
+                                            aPrim,
+                                            aInst,
+                                            bPrim,
+                                            bInst,
+                                            surface->roughness)
+      || !gltf_material_input_binding_equal(st,
+                                            aPrim,
+                                            aInst,
+                                            bPrim,
+                                            bInst,
+                                            surface->normal)
+      || !gltf_material_input_binding_equal(st,
+                                            aPrim,
+                                            aInst,
+                                            bPrim,
+                                            bInst,
+                                            surface->occlusion)
+      || !gltf_material_input_binding_equal(st,
+                                            aPrim,
+                                            aInst,
+                                            bPrim,
+                                            bInst,
+                                            surface->emissive))
+    return false;
+
+  for (feature = surface->features; feature; feature = feature->next) {
+    if (!gltf_material_feature_binding_equal(st,
+                                             aPrim,
+                                             aInst,
+                                             bPrim,
+                                             bInst,
+                                             feature))
+      return false;
+  }
+
+  return true;
+}
+
 GLTFExpIndex
 gltf_material_index(GLTFExpState * __restrict st,
                     AkMaterial   * __restrict material,
                     AkMeshPrimitive * __restrict prim,
                     AkInstanceGeometry * __restrict inst) {
-  size_t i;
+  GLTFExpIndex index;
+  uintptr_t    encoded;
 
   if (!material)
     return GLTF_EXP_INDEX_NONE;
 
-  for (i = 0; i < st->materials.count; i++) {
+  encoded = (uintptr_t)rb_find(st->materials.map, material);
+  index = encoded ? (GLTFExpIndex)(encoded - 1u) : GLTF_EXP_INDEX_NONE;
+  while (index != GLTF_EXP_INDEX_NONE) {
     GLTFExpMaterialOut *entry;
 
-    entry = &st->materials.items[i];
-    if (entry->material == material
-        && entry->primitive == prim
-        && entry->instance == inst)
-      return (GLTFExpIndex)i;
+    entry = &st->materials.items[index];
+    if (gltf_material_binding_equal(st,
+                                    material,
+                                    entry->primitive,
+                                    entry->instance,
+                                    prim,
+                                    inst))
+      return index;
+    index = entry->nextVariant;
   }
 
   return GLTF_EXP_INDEX_NONE;
@@ -450,24 +680,26 @@ gltf_texture_transform_has_values(AkTextureTransform * __restrict transform) {
 
 static
 bool
-gltf_texture_transform_has_valid_slot(AkMeshPrimitive * __restrict prim,
+gltf_texture_transform_has_valid_slot(GLTFExpState    * __restrict st,
+                                      AkMeshPrimitive * __restrict prim,
                                       AkTextureRef    * __restrict texref) {
   AkTextureTransform *transform;
 
   transform = texref ? texref->transform : NULL;
   return transform
          && transform->slot > -1
-         && gltf_texcoord_source_set_valid(prim, transform->slot);
+         && gltf_texcoord_source_set_valid(st, prim, transform->slot);
 }
 
 static
 bool
-gltf_texture_transform_used(AkMeshPrimitive * __restrict prim,
+gltf_texture_transform_used(GLTFExpState    * __restrict st,
+                            AkMeshPrimitive * __restrict prim,
                             AkTextureRef    * __restrict texref) {
   return texref
          && texref->transform
          && (gltf_texture_transform_has_values(texref->transform)
-             || gltf_texture_transform_has_valid_slot(prim, texref));
+             || gltf_texture_transform_has_valid_slot(st, prim, texref));
 }
 
 static
@@ -475,7 +707,8 @@ uint32_t
 gltf_material_input_extension_mask(GLTFExpState          * __restrict st,
                                    AkMeshPrimitive       * __restrict prim,
                                    const AkMaterialInput * __restrict input) {
-  return gltf_texture_transform_used(prim,
+  return gltf_texture_transform_used(st,
+                                     prim,
                                      gltf_material_writable_texture(st, input))
            ? GLTF_EXP_MAT_EXT_TEXTURE_TRANSFORM
            : 0;
@@ -859,7 +1092,7 @@ gltf_write_texture_info_base(GLTFExpWriter      * __restrict w,
   slot = ak_materialTextureSlot(prim, inst, texref);
   if (slot < 0)
     slot = 0;
-  slot = gltf_texcoord_export_set(prim, slot);
+  slot = gltf_texcoord_export_set(st, prim, slot);
   if (slot > 0) {
     if (*comma)
       gltf_w_ch(w, ',');
@@ -867,12 +1100,14 @@ gltf_write_texture_info_base(GLTFExpWriter      * __restrict w,
     *comma = true;
   }
 
-  if (gltf_texture_transform_used(prim, texref)) {
+  if (gltf_texture_transform_used(st, prim, texref)) {
     bool extensionComma;
 
     transformSlot = -1;
-    if (gltf_texture_transform_has_valid_slot(prim, texref))
-      transformSlot = gltf_texcoord_export_set(prim, texref->transform->slot);
+    if (gltf_texture_transform_has_valid_slot(st, prim, texref))
+      transformSlot = gltf_texcoord_export_set(st,
+                                               prim,
+                                               texref->transform->slot);
 
     if (*comma)
       gltf_w_ch(w, ',');

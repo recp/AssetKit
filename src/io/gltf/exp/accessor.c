@@ -171,7 +171,7 @@ gltf_write_accessor(GLTFExpWriter      * __restrict w,
     componentType  = acc->componentType;
     componentSize  = acc->componentSize;
     componentCount = acc->componentCount;
-    count          = acc->count;
+    count          = out->assetkitCount ? out->assetkitCount : acc->count;
     normalized     = acc->normalized;
   } else if (out->kind == GLTF_EXP_ACCESSOR_INDEX_ARRAY) {
     componentType = out->indexComponentType

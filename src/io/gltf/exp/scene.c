@@ -28,14 +28,9 @@
 
 static
 void
-gltf_w_matrix(GLTFExpWriter * __restrict w,
-              AkNode        * __restrict node) {
-  AkMatrix       matrix;
-  const AkFloat *val;
-  int            i;
-
-  ak_transformCombine(node->transform, matrix.val[0]);
-  val = &matrix.val[0][0];
+gltf_w_matrix_values(GLTFExpWriter * __restrict w,
+                     const float   * __restrict val) {
+  int i;
 
   gltf_w_key(w, _s_gltf_matrix, _s_gltf_matrix_len);
   gltf_w_ch(w, '[');
@@ -45,6 +40,16 @@ gltf_w_matrix(GLTFExpWriter * __restrict w,
     gltf_w_float(w, val[i]);
   }
   gltf_w_ch(w, ']');
+}
+
+static
+void
+gltf_w_matrix(GLTFExpWriter * __restrict w,
+              AkNode        * __restrict node) {
+  AkMatrix       matrix;
+
+  ak_transformCombine(node->transform, matrix.val[0]);
+  gltf_w_matrix_values(w, &matrix.val[0][0]);
 }
 
 static
@@ -204,6 +209,7 @@ gltf_node_trs(AkNode      * __restrict node,
 static
 void
 gltf_write_node_transform(GLTFExpWriter * __restrict w,
+                          GLTFExpState  * __restrict st,
                           AkNode        * __restrict node,
                           GLTFExpNodeOut * __restrict out,
                           bool          * __restrict comma) {
@@ -214,7 +220,13 @@ gltf_write_node_transform(GLTFExpWriter * __restrict w,
   versor         trsRotation;
   vec3           trsScale;
 
-  if (!node->transform)
+  if (out->syntheticExportRoot) {
+    gltf_w_matrix_values(w, &st->exportRootTransform.val[0][0]);
+    *comma = true;
+    return;
+  }
+
+  if (out->syntheticMeshChild || !node || !node->transform)
     return;
 
   if (out->bakeLocalTransform)
@@ -392,7 +404,7 @@ gltf_write_node_extensions(GLTFExpWriter  * __restrict w,
   AkGpuInstancing *instancing;
   bool comma;
 
-  instancing = node->gpuInstancing;
+  instancing = out->hasGpuInstancing ? node->gpuInstancing : NULL;
   comma = false;
   gltf_w_key(w, _s_gltf_extensions, _s_gltf_extensions_len);
   gltf_w_ch(w, '{');
@@ -458,7 +470,8 @@ gltf_write_node_extensions(GLTFExpWriter  * __restrict w,
     comma = true;
   }
 
-  if (!node->visible || out->forceVisibilityExtension) {
+  if (!out->syntheticMeshChild
+      && (!node->visible || out->forceVisibilityExtension)) {
     if (comma)
       gltf_w_ch(w, ',');
     gltf_w_key(w,
@@ -470,11 +483,13 @@ gltf_write_node_extensions(GLTFExpWriter  * __restrict w,
     comma = true;
   }
 
-  gltf_write_extra_extension_entries(w,
-                                     ak_extra(node),
-                                     gltf_node_core_extension_skip,
-                                     NULL,
-                                     &comma);
+  if (!out->syntheticMeshChild) {
+    gltf_write_extra_extension_entries(w,
+                                       ak_extra(node),
+                                       gltf_node_core_extension_skip,
+                                       NULL,
+                                       &comma);
+  }
   gltf_w_ch(w, '}');
 }
 
@@ -505,7 +520,7 @@ gltf_write_nodes(GLTFExpWriter * __restrict w,
       comma = true;
     }
 
-    gltf_write_node_transform(w, node, out, &comma);
+    gltf_write_node_transform(w, st, node, out, &comma);
 
     if (out->hasMesh) {
       if (comma)
@@ -538,13 +553,15 @@ gltf_write_nodes(GLTFExpWriter * __restrict w,
       comma = true;
     }
 
-    if (out->hasLight
-        || node->gpuInstancing
-        || !node->visible
+    if (node
+        && (out->hasLight
+        || out->hasGpuInstancing
+        || (!out->syntheticMeshChild && !node->visible)
         || out->forceVisibilityExtension
-        || gltf_extra_has_extensions(ak_extra(node),
-                                     gltf_node_core_extension_skip,
-                                     NULL)) {
+        || (!out->syntheticMeshChild
+            && gltf_extra_has_extensions(ak_extra(node),
+                                         gltf_node_core_extension_skip,
+                                         NULL)))) {
       if (comma)
         gltf_w_ch(w, ',');
       gltf_write_node_extensions(w, st, out, node);
@@ -558,7 +575,9 @@ gltf_write_nodes(GLTFExpWriter * __restrict w,
       comma = true;
     }
 
-    if (gltf_extra_has_json_extras(ak_extra(node))) {
+    if (node
+        && !out->syntheticMeshChild
+        && gltf_extra_has_json_extras(ak_extra(node))) {
       if (comma)
         gltf_w_ch(w, ',');
       gltf_w_key(w, _s_gltf_extras, _s_gltf_extras_len);

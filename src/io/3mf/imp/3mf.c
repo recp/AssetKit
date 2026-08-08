@@ -30,6 +30,7 @@
 #include "../../../thread.h"
 #include "../../../id.h"
 #include "../../../../include/ak/path.h"
+#include "ak/coord-util.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -569,6 +570,231 @@ ak_3mf_reserve_properties(AK3MFImportState * __restrict st,
   st->properties        = properties;
   st->propertyCapacity = newCapacity;
   return true;
+}
+
+static
+bool
+ak_3mf_tag_sz(const xml_t * __restrict xml,
+              const char  * __restrict tag,
+              size_t                   tagSize);
+
+static
+bool
+ak_3mf_reserve_textures(AK3MFImportState * __restrict st,
+                        size_t                         extra) {
+  AK3MFTextureResource *textures;
+  size_t                needed;
+  size_t                newCapacity;
+
+  if (!st)
+    return false;
+  if (extra == 0u)
+    return true;
+  if (st->textureCount > SIZE_MAX - extra)
+    return false;
+
+  needed = st->textureCount + extra;
+  if (needed <= st->textureCapacity)
+    return true;
+
+  newCapacity = st->textureCapacity ? st->textureCapacity * 2u : 8u;
+  while (newCapacity < needed) {
+    if (newCapacity > SIZE_MAX / 2u)
+      return false;
+    newCapacity *= 2u;
+  }
+
+  textures = realloc(st->textures, sizeof(*textures) * newCapacity);
+  if (!textures)
+    return false;
+
+  memset(textures + st->textureCapacity,
+         0,
+         sizeof(*textures) * (newCapacity - st->textureCapacity));
+  st->textures        = textures;
+  st->textureCapacity = newCapacity;
+  return true;
+}
+
+static
+size_t
+ak_3mf_count_texture_resources(xml_t * __restrict resourcesXml) {
+  xml_t *xml;
+  size_t count;
+
+  count = 0u;
+  if (!resourcesXml)
+    return 0u;
+
+  for (xml = resourcesXml->val; xml; xml = xml->next) {
+    if (AK_3MF_TAG(xml, texture2d))
+      count++;
+  }
+
+  return count;
+}
+
+static
+AkPrintPackagePart*
+ak_3mf_find_package_part(AK3MFImportState * __restrict st,
+                         const char       * __restrict path) {
+  AkPrintPackagePart *part;
+  size_t              pathLen;
+
+  if (!st || !st->print || !path)
+    return NULL;
+
+  pathLen = strlen(path);
+  for (part = st->print->parts; part; part = part->next) {
+    if (part->name
+        && ak_3mf_entry_name_eq_sz(part->name,
+                                   strlen(part->name),
+                                   path,
+                                   pathLen))
+      return part;
+  }
+
+  return NULL;
+}
+
+static
+AkWrapMode
+ak_3mf_texture_wrap(const xml_attr_t * __restrict attr) {
+  if (!attr || !attr->val)
+    return AK_WRAP_MODE_WRAP;
+  if (ak_3mf_slice_eq_lit_ci(attr->val,
+                             attr->valsize,
+                             "mirror",
+                             sizeof("mirror") - 1u))
+    return AK_WRAP_MODE_MIRROR;
+  if (ak_3mf_slice_eq_lit_ci(attr->val,
+                             attr->valsize,
+                             "clamp",
+                             sizeof("clamp") - 1u))
+    return AK_WRAP_MODE_CLAMP;
+  if (ak_3mf_slice_eq_lit_ci(attr->val,
+                             attr->valsize,
+                             "none",
+                             sizeof("none") - 1u))
+    return AK_WRAP_MODE_BORDER;
+  return AK_WRAP_MODE_WRAP;
+}
+
+static
+AK3MFTextureResource*
+ak_3mf_find_texture_resource(AK3MFImportState * __restrict st,
+                             const char       * __restrict modelPath,
+                             uint32_t                      id) {
+  size_t i;
+
+  if (!st)
+    return NULL;
+
+  for (i = 0u; i < st->textureCount; i++) {
+    if (st->textures[i].id == id
+        && ak_3mf_model_path_eq(st->textures[i].modelPath, modelPath))
+      return &st->textures[i];
+  }
+
+  return NULL;
+}
+
+static
+size_t
+ak_3mf_parse_texture_resources(AK3MFImportState * __restrict st,
+                               xml_t            * __restrict resourcesXml) {
+  AkHeap *heap;
+  xml_t  *xml;
+  size_t  added;
+
+  if (!st || !st->doc || !resourcesXml)
+    return 0u;
+  if (!ak_3mf_reserve_textures(st,
+                               ak_3mf_count_texture_resources(resourcesXml)))
+    return 0u;
+
+  heap  = ak_heap_getheap(st->doc);
+  added = 0u;
+  for (xml = resourcesXml->val; xml; xml = xml->next) {
+    AK3MFTextureResource *resource;
+    AkPrintPackagePart   *part;
+    AkImage              *image;
+    AkImageSource        *source;
+    AkBuffer             *buffer;
+    AkSampler            *sampler;
+    AkTexture            *texture;
+    const char           *path;
+    const char           *mimeType;
+    uint32_t              id;
+
+    if (!AK_3MF_TAG(xml, texture2d))
+      continue;
+
+    id = xmla_u32(AK_3MF_XMLA_LOCAL(xml, id), 0u);
+    if (id == 0u
+        || ak_3mf_find_texture_resource(st, st->currentModelPath, id))
+      continue;
+
+    path = AK_3MF_STRDUP_PATH_ATTR_LOCAL(st->doc, xml, path, st->doc);
+    if (!path)
+      continue;
+    part = ak_3mf_find_package_part(st, path);
+    if (!part || !part->data || part->size == 0u)
+      continue;
+
+    mimeType = part->contentType;
+    if (!mimeType) {
+      xml_attr_t *mimeAttr;
+
+      mimeAttr = AK_3MF_XMLA_LOCAL(xml, contenttype);
+      if (mimeAttr && mimeAttr->val)
+        mimeType = ak_heap_strndup(heap,
+                                   st->doc,
+                                   mimeAttr->val,
+                                   mimeAttr->valsize);
+    }
+
+    image   = ak_heap_calloc(heap, st->doc, sizeof(*image));
+    source  = image ? ak_heap_calloc(heap, image, sizeof(*source)) : NULL;
+    buffer  = source ? ak_heap_calloc(heap, source, sizeof(*buffer)) : NULL;
+    sampler = ak_heap_calloc(heap, st->doc, sizeof(*sampler));
+    texture = ak_heap_calloc(heap, st->doc, sizeof(*texture));
+    if (!image || !source || !buffer || !sampler || !texture)
+      continue;
+
+    buffer->name   = part->name;
+    buffer->data   = (void *)part->data;
+    buffer->length = part->size;
+    source->type     = AK_IMAGE_SOURCE_BUFFER;
+    source->buffer   = buffer;
+    source->mimeType = mimeType;
+    image->name      = part->name;
+    image->source    = source;
+
+    sampler->wrapS = ak_3mf_texture_wrap(
+      AK_3MF_XMLA_LOCAL_LIT(xml, "tilestyleu"));
+    sampler->wrapT = ak_3mf_texture_wrap(
+      AK_3MF_XMLA_LOCAL_LIT(xml, "tilestylev"));
+    ak_setypeid(sampler, AKT_SAMPLER2D);
+
+    texture->name    = part->name;
+    texture->type    = AKT_SAMPLER2D;
+    texture->image   = image;
+    texture->sampler = sampler;
+
+    AK_LIB_PREPEND(st->doc->lib.images, image, next);
+    AK_LIB_PREPEND(st->doc->lib.samplers, sampler, next);
+    AK_LIB_PREPEND(st->doc->lib.textures, texture, next);
+
+    resource            = &st->textures[st->textureCount++];
+    resource->texture   = texture;
+    resource->path      = path;
+    resource->modelPath = st->currentModelPath;
+    resource->id        = id;
+    added++;
+  }
+
+  return added;
 }
 
 static
@@ -1957,6 +2183,10 @@ ak_3mf_doc_new(const char * __restrict filepath,
   doc->inf->base.unit->name = ak_heap_strdup(heap, doc->inf->base.unit, unitName);
   doc->unit                 = doc->inf->base.unit;
 
+  *(AkAssetInf **)ak_heap_ext_add(heap,
+                                  ak__alignof(doc),
+                                  AK_HEAP_NODE_FLAGS_INF) = &doc->inf->base;
+
   return doc;
 }
 
@@ -1973,6 +2203,7 @@ ak_3mf_scene_new(AkDoc * __restrict doc) {
   if (!scene || !root)
     return NULL;
 
+  ak_setypeid(scene, AKT_SCENE);
   ak_setypeid(root, AKT_NODE);
   root->visible = true;
 
@@ -1981,6 +2212,45 @@ ak_3mf_scene_new(AkDoc * __restrict doc) {
   AK_LIB_PREPEND(doc->lib.scenes, scene, next);
 
   return scene;
+}
+
+static
+void
+ak_3mf_postscript(AkDoc * __restrict doc) {
+  AkCoordCvtType coordCvtType;
+  AkCoordSys    *sourceCoordSys;
+  AkCoordSys    *targetCoordSys;
+  AkScene       *scene;
+  bool           fixTransform;
+
+  if (!doc)
+    return;
+
+  coordCvtType   = (AkCoordCvtType)ak_opt_get(AK_OPT_COORD_CONVERT_TYPE);
+  sourceCoordSys = doc->coordSys;
+  targetCoordSys = (void *)ak_opt_get(AK_OPT_COORD);
+
+  if (coordCvtType == AK_COORD_CVT_DISABLED || !targetCoordSys)
+    return;
+
+  if (coordCvtType == AK_COORD_CVT_ALL) {
+    if (sourceCoordSys != targetCoordSys)
+      ak_changeCoordSys(doc, targetCoordSys);
+    return;
+  }
+
+  fixTransform = coordCvtType == AK_COORD_CVT_FIX_TRANSFORM
+                 && sourceCoordSys
+                 && sourceCoordSys != targetCoordSys
+                 && !ak_coordOrientationIsEq(sourceCoordSys, targetCoordSys);
+
+  doc->coordSys = targetCoordSys;
+
+  if (!fixTransform)
+    return;
+
+  for (scene = doc->lib.scenes.first; scene; scene = scene->next)
+    ak_fixSceneCoordSys(scene);
 }
 
 static
@@ -2157,6 +2427,76 @@ ak_3mf_material_scalar_input(AkHeap      * __restrict heap,
   input->colorSpace = AK_TEXTURE_COLORSPACE_LINEAR;
 
   return input;
+}
+
+static
+AkMaterial*
+ak_3mf_texture_material(AK3MFImportState * __restrict st,
+                        AK3MFTextureResource * __restrict resource) {
+  AkHeap            *heap;
+  AkMaterial        *material;
+  AkMaterialSurface *surface;
+  AkMaterialInput   *baseColor;
+  AkTextureRef      *texref;
+
+  if (!st || !st->doc || !resource || !resource->texture)
+    return NULL;
+  if (resource->material)
+    return resource->material;
+
+  heap      = ak_heap_getheap(st->doc);
+  material  = ak_heap_calloc(heap, st->doc, sizeof(*material));
+  surface   = material ? ak_heap_calloc(heap, material, sizeof(*surface)) : NULL;
+  baseColor = surface
+              ? ak_heap_aligned_calloc(heap,
+                                       surface,
+                                       AK_ALIGNOF(AkMaterialInput),
+                                       sizeof(*baseColor))
+              : NULL;
+  texref    = baseColor ? ak_heap_calloc(heap, baseColor, sizeof(*texref)) : NULL;
+  if (!material || !surface || !baseColor || !texref)
+    return NULL;
+
+  ak_setypeid(material, AKT_MATERIAL);
+  ak_setypeid(texref, AKT_TEXTURE_REF);
+  texref->texture        = resource->texture;
+  texref->coordInputName = _s_TEXCOORD;
+  texref->slot           = 0;
+  ak_texref_usage(texref,
+                  AK_TEXTURE_COLORSPACE_SRGB,
+                  AK_TEXTURE_CHANNEL_RGBA);
+
+  baseColor->semantic     = _s_ak_baseColor;
+  baseColor->texture      = texref;
+  baseColor->source       = AK_MATERIAL_INPUT_TEXTURE;
+  baseColor->valueType    = AK_MATERIAL_VALUE_COLOR;
+  baseColor->channels     = AK_TEXTURE_CHANNEL_RGBA;
+  baseColor->colorSpace   = AK_TEXTURE_COLORSPACE_SRGB;
+  baseColor->color.rgba.R = 1.0f;
+  baseColor->color.rgba.G = 1.0f;
+  baseColor->color.rgba.B = 1.0f;
+  baseColor->color.rgba.A = 1.0f;
+
+  surface->baseColor        = baseColor;
+  surface->metallic         = ak_3mf_material_scalar_input(heap,
+                                                           surface,
+                                                           _s_ak_metallic,
+                                                           0.0f);
+  surface->roughness        = ak_3mf_material_scalar_input(heap,
+                                                           surface,
+                                                           _s_ak_roughness,
+                                                           1.0f);
+  surface->type             = AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS;
+  surface->flags            = AK_MATERIAL_FLAG_ALPHA_BLEND;
+  surface->alphaCutoff      = 0.5f;
+  surface->ior              = 1.5f;
+  surface->emissiveStrength = 1.0f;
+
+  material->name    = resource->texture->name;
+  material->surface = surface;
+  AK_LIB_PREPEND(st->doc->lib.materials, material, next);
+  resource->material = material;
+  return material;
 }
 
 typedef enum AK3MFPropertyGroupKind {
@@ -2353,6 +2693,18 @@ ak_3mf_property_has_texcoord(AK3MFImportState * __restrict st,
          && group->hasTexcoords
          && group->texcoords
          && index < group->count;
+}
+
+static
+AkMaterial*
+ak_3mf_property_material(AK3MFImportState * __restrict st,
+                         const char       * __restrict path,
+                         uint32_t                      id,
+                         uint32_t                      index) {
+  AK3MFPropertyGroup *group;
+
+  group = ak_3mf_find_property_group(st, path, id);
+  return group && index < group->count ? group->material : NULL;
 }
 
 static
@@ -2817,6 +3169,18 @@ ak_3mf_parse_property_groups(AK3MFImportState * __restrict st,
     st->doc->materialProperties.count++;
     group->set      = set;
     group->hasColors = false;
+    if (kind == AK_3MF_PROPERTY_GROUP_TEXTURE2D) {
+      AK3MFTextureResource *resource;
+
+      resource = ak_3mf_find_texture_resource(
+        st,
+        st->currentModelPath,
+        xmla_u32(AK_3MF_XMLA_LOCAL(xml, texid), 0u));
+      if (resource) {
+        group->texture  = resource->texture;
+        group->material = ak_3mf_texture_material(st, resource);
+      }
+    }
     if (st->print) {
       st->print->features |= AK_PRINT_FEATURE_MATERIALS;
       if (kind == AK_3MF_PROPERTY_GROUP_TEXTURE2D)
@@ -3698,6 +4062,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   AkBuffer        *posBuff;
   AkAccessor      *posAcc;
   AkIndexArray    *indices;
+  AkMaterial      *textureMaterial;
   uint8_t         *colors;
   float           *texcoords;
   float           *srcPositions;
@@ -3752,6 +4117,7 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
   hasColor      = false;
   hasTexcoord   = false;
   hasAlpha      = false;
+  textureMaterial = NULL;
   if (st->propertyCount > 0u) {
     for (triangleXml = trianglesXml ? trianglesXml->val : NULL;
          triangleXml;
@@ -3770,6 +4136,11 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
           hasColor = true;
         if (ak_3mf_property_has_texcoord(st, st->currentModelPath, pid, p1))
           hasTexcoord = true;
+        if (!textureMaterial)
+          textureMaterial = ak_3mf_property_material(st,
+                                                     st->currentModelPath,
+                                                     pid,
+                                                     p1);
         if (hasColor && hasTexcoord)
           break;
       }
@@ -3790,6 +4161,13 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
                                         defaultPid,
                                         defaultPIndex))
       hasTexcoord = true;
+    if (!textureMaterial
+        && defaultPid != 0u
+        && defaultPIndex != UINT32_MAX)
+      textureMaterial = ak_3mf_property_material(st,
+                                                 st->currentModelPath,
+                                                 defaultPid,
+                                                 defaultPIndex);
   }
 
   heap = ak_heap_getheap(doc);
@@ -4056,9 +4434,10 @@ ak_3mf_parse_mesh(AK3MFImportState * __restrict st,
       return NULL;
     AK_LIB_PREPEND(doc->lib.accessors, texAcc, next);
     io_input(heap, prim, texAcc, AK_INPUT_TEXCOORD, _s_TEXCOORD, 0u);
+    prim->material = textureMaterial;
   }
 
-  if (!hasColor) {
+  if (!hasColor && !prim->material) {
     prim->material = ak_3mf_bambu_orca_material_for_object(st, objectId);
   }
   if (!expandVertices) {
@@ -4961,6 +5340,7 @@ ak_3mf_load_model_part(AK3MFImportState * __restrict st,
   if (st->print)
     ak_3mf_mark_model_extensions(st->print, root);
 
+  (void)ak_3mf_parse_texture_resources(st, resourcesXml);
   (void)ak_3mf_parse_property_groups(st, resourcesXml);
   (void)ak_3mf_parse_displacement_resources(st, resourcesXml);
   (void)ak_3mf_parse_volumetric_resources(st, resourcesXml);
@@ -5330,6 +5710,7 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
 
   resourcesXml   = AK_3MF_CHILD(root, resources);
   buildXml       = AK_3MF_CHILD8(root, build);
+  (void)ak_3mf_parse_texture_resources(&st, resourcesXml);
   (void)ak_3mf_parse_property_groups(&st, resourcesXml);
   (void)ak_3mf_parse_displacement_resources(&st, resourcesXml);
   (void)ak_3mf_parse_volumetric_resources(&st, resourcesXml);
@@ -5347,6 +5728,8 @@ imp_3mf(AkDoc ** __restrict dest, const char * __restrict filepath) {
     }
   }
 
+  ak_3mf_postscript(doc);
+
   *dest  = doc;
   result = AK_OK;
 
@@ -5358,6 +5741,7 @@ cleanup:
     }
   }
   free(st.properties);
+  free(st.textures);
   free(st.objects);
   free(st.loadedModelPaths);
   if (st.preparedModels) {
