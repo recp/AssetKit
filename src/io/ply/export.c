@@ -125,7 +125,6 @@ typedef struct PLYExpPrim {
   bool        hasSampleTexRows;
   bool        hasColorRows;
   bool        hasMaterialColor;
-  bool        flipTextureV;
   bool        bakeTexture;
   bool        mirrored;
   bool        reuseVertices;
@@ -998,9 +997,6 @@ ply_texture_transform_uv(PLYExpPrim * __restrict pc,
     out[0] = c * tx - s * ty + transform->offset[0];
     out[1] = s * tx + c * ty + transform->offset[1];
   }
-
-  if (pc->flipTextureV)
-    out[1] = 1.0f - out[1];
 
   /* A malformed/overflowing texture transform is handled by the same stable
      origin fallback before wrap/filter logic. */
@@ -2376,7 +2372,6 @@ ply_prim_begin(PLYExpState    * __restrict st,
   glm_mat4_inv((vec4 *)world, pc->normalMatrix);
   glm_mat4_transpose(pc->normalMatrix);
   pc->mirrored = mirrored;
-  pc->flipTextureV = st->doc && st->doc->inf && st->doc->inf->flipImage;
   if (st->hasColors) {
     pc->hasMaterialColor = ply_resolved_material_color(prim,
                                                         inst,

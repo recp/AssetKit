@@ -256,6 +256,10 @@ TEST_IMPL(ply_export_bakes_base_color_texture) {
     "./assetkit_export_ply_texture_bake_combined";
   const char        *combinedPath =
     "./assetkit_export_ply_texture_bake_combined/model.ply";
+  const char        *canonicalDir =
+    "./assetkit_export_ply_texture_bake_canonical";
+  const char        *canonicalPath =
+    "./assetkit_export_ply_texture_bake_canonical/model.ply";
   const char        *mirrorDir =
     "./assetkit_export_ply_texture_bake_mirror";
   const char        *mirrorPath =
@@ -358,6 +362,7 @@ TEST_IMPL(ply_export_bakes_base_color_texture) {
   ak_test_export_cleanup(missingImageDir);
   ak_test_export_cleanup(missingUVDir);
   ak_test_export_cleanup(combinedDir);
+  ak_test_export_cleanup(canonicalDir);
   ak_test_export_cleanup(mirrorDir);
   ak_test_export_cleanup(borderDir);
   ak_test_export_cleanup(linearDir);
@@ -500,7 +505,7 @@ TEST_IMPL(ply_export_bakes_base_color_texture) {
   texInput->accessor = savedTexAccessor;
   ak_nodeSetTransformMatrix(doc->scene->node->chld, originalMatrix);
 
-  /* One combined case covers transform-before-flip sampling, clamp+nearest,
+  /* One combined case covers texture transforms, clamp+nearest,
      material/vertex/texture alpha multiplication, and a UV index offset that
      differs from the position offset. */
   memcpy(image->data->data, rgbaPixels, sizeof(rgbaPixels));
@@ -551,7 +556,6 @@ TEST_IMPL(ply_export_bakes_base_color_texture) {
   baseColor->color.rgba.G = 0.25f;
   baseColor->color.rgba.B = 0.75f;
   baseColor->color.rgba.A = 0.8f;
-  doc->inf->flipImage     = true;
   sampler->magfilter      = AK_MAGFILTER_NEAREST;
   sampler->wrapS          = AK_WRAP_MODE_CLAMP;
   sampler->wrapT          = AK_WRAP_MODE_CLAMP;
@@ -562,8 +566,16 @@ TEST_IMPL(ply_export_bakes_base_color_texture) {
   ak_opt_set(AK_OPT_PLY_EXPORT_UV, false);
   ak_opt_set(AK_OPT_PLY_EXPORT_COLOR_MODE, AK_PLY_EXPORT_COLOR_SRGB);
   ak_opt_set(AK_OPT_PLY_EXPORT_BAKE_TEXTURES, true);
+  doc->inf->flipImage = false;
+  ASSERT(ak_export(doc, canonicalDir, AK_FILE_TYPE_PLY) == AK_OK);
+  doc->inf->flipImage = true;
   ASSERT(ak_export(doc, combinedDir, AK_FILE_TYPE_PLY) == AK_OK);
-  ASSERT(ak_test_file_contains(combinedPath, "2 3 4 0 99 0 26"));
+  /* AkImageData is canonical after loading. Source-format image orientation
+     metadata must not change which texel the PLY baker samples. */
+  ASSERT(ak_test_ply_files_equal(canonicalPath, combinedPath));
+  /* Distinct canonical texels stay attached to their authored UV/positions. */
+  ASSERT(ak_test_file_contains(combinedPath, "2 3 4 137 99 165 0"));
+  ASSERT(ak_test_file_contains(combinedPath, "3 3 4 0 137 0 51"));
 
   /* Negative mirror and border coordinates must not collapse to ordinary
      repeat behavior. Keep each triangle's UV constant to isolate sampling. */
@@ -682,6 +694,7 @@ TEST_IMPL(ply_export_bakes_base_color_texture) {
   ak_test_export_cleanup(missingImageDir);
   ak_test_export_cleanup(missingUVDir);
   ak_test_export_cleanup(combinedDir);
+  ak_test_export_cleanup(canonicalDir);
   ak_test_export_cleanup(mirrorDir);
   ak_test_export_cleanup(borderDir);
   ak_test_export_cleanup(linearDir);
