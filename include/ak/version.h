@@ -18,8 +18,8 @@
 #define assetkit_version_h
 
 #define AK_VERSION_MAJOR 0
-#define AK_VERSION_MINOR 6
-#define AK_VERSION_PATCH 9
+#define AK_VERSION_MINOR 7
+#define AK_VERSION_PATCH 0
 
 #define AK_VERSION_STRING_(X) #X
 #define AK_VERSION_STRINGIFY(X) AK_VERSION_STRING_(X)
