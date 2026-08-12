@@ -314,6 +314,7 @@ typedef struct AkSkin       AkSkin;
 typedef struct AkGeometry   AkGeometry;
 typedef struct AkMaterial   AkMaterial;
 typedef struct AkAnimation  AkAnimation;
+typedef struct AkAnimationClip AkAnimationClip;
 typedef struct AkBuffer     AkBuffer;
 typedef struct AkAccessor   AkAccessor;
 typedef struct AkTexture    AkTexture;
@@ -341,6 +342,7 @@ AK_DEFINE_LIB(AkSampler,     AkSamplerLib);
 AK_DEFINE_LIB(AkImage,       AkImageLib);
 AK_DEFINE_LIB(AkMorph,       AkMorphLib);
 AK_DEFINE_LIB(AkSkin,        AkSkinLib);
+AK_DEFINE_LIB(AkAnimationClip, AkAnimationClipLib);
 
 #undef AK_DEFINE_LIB
 
@@ -381,6 +383,10 @@ typedef struct AkDoc {
 
   /* 3MF/X3D/USD-style document-level material/property groups. */
   AkMaterialPropertyRegistry materialProperties;
+
+  /* Appended at the AkDoc tail for ABI stability: named animation groupings,
+     including COLLADA <library_animation_clips>. */
+  AkAnimationClipLib animationClips;
 } AkDoc;
 
 #include "context.h"

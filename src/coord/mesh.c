@@ -35,9 +35,20 @@ ak_changeCoordSysMesh(AkMesh * __restrict mesh,
   map  = ak_map_new(NULL);
 
   /* find sources to update */
-  if (!(primi = mesh->primitive))
-    return;
+  if (mesh->vertices) {
+    input = mesh->vertices->input;
+    while (input) {
+      /* TODO: other semantics which are depend on coord sys */
+      if (input->semantic == AK_INPUT_POSITION
+          || input->semantic == AK_INPUT_NORMAL) {
+        if (input->accessor)
+          ak_map_addptr(map, input->accessor);
+      }
+      input = input->next;
+    }
+  }
 
+  primi = mesh->primitive;
   while (primi) {
     input = primi->input;
     while (input) {

@@ -16,6 +16,117 @@
 
 #include "../../../test_export_common.h"
 
+static
+bool
+ak_test_write_dae_sampler_filter_fixture(const char *path) {
+  FILE *file;
+  bool  ok;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  ok = fputs(
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+    "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
+    "<asset><unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>\n"
+    "<library_images><image id=\"image\"><init_from>missing.png</init_from></image></library_images>\n"
+    "<library_effects>"
+    "<effect id=\"explicit_fx\"><profile_COMMON>"
+    "<newparam sid=\"explicit_surface\"><surface type=\"2D\"><init_from>image</init_from></surface></newparam>"
+    "<newparam sid=\"explicit_sampler\"><sampler2D>"
+    "<source>explicit_surface</source><wrap_s>WRAP</wrap_s><wrap_t>WRAP</wrap_t>"
+    "<minfilter>NONE</minfilter><magfilter>NONE</magfilter><mipfilter>NONE</mipfilter>"
+    "</sampler2D></newparam><technique sid=\"common\"><phong><diffuse>"
+    "<texture texture=\"explicit_sampler\" texcoord=\"TEX0\"><extra>"
+    "<technique profile=\"MAYA\"><wrapU>1</wrapU><wrapV>1</wrapV>"
+    "<mirrorU>0</mirrorU><mirrorV>0</mirrorV><repeatU>1</repeatU><repeatV>1</repeatV>"
+    "</technique></extra></texture></diffuse></phong></technique>"
+    "</profile_COMMON></effect>"
+    "<effect id=\"default_fx\"><profile_COMMON>"
+    "<newparam sid=\"default_surface\"><surface type=\"2D\"><init_from>image</init_from></surface></newparam>"
+    "<newparam sid=\"default_sampler\"><sampler2D><source>default_surface</source></sampler2D></newparam>"
+    "<technique sid=\"common\"><phong><diffuse><texture texture=\"default_sampler\" texcoord=\"TEX0\"/>"
+    "</diffuse></phong></technique></profile_COMMON></effect>"
+    "<effect id=\"control_fx\"><profile_COMMON>"
+    "<newparam sid=\"control_surface\"><surface type=\"2D\"><init_from>image</init_from></surface></newparam>"
+    "<newparam sid=\"control_sampler\"><sampler2D><source>control_surface</source>"
+    "<wrap_s>CLAMP</wrap_s><wrap_t>MIRROR</wrap_t><minfilter>NEAREST</minfilter>"
+    "<magfilter>LINEAR</magfilter><mipfilter>NEAREST</mipfilter>"
+    "</sampler2D></newparam><technique sid=\"common\"><phong><diffuse>"
+    "<texture texture=\"control_sampler\" texcoord=\"TEX0\"/>"
+    "</diffuse></phong></technique></profile_COMMON></effect>"
+    "<effect id=\"mip_nn_fx\"><profile_COMMON>"
+    "<newparam sid=\"mip_nn_surface\"><surface type=\"2D\"><init_from>image</init_from></surface></newparam>"
+    "<newparam sid=\"mip_nn_sampler\"><sampler2D><source>mip_nn_surface</source>"
+    "<minfilter>NEAREST_MIPMAP_NEAREST</minfilter></sampler2D></newparam>"
+    "<technique sid=\"common\"><phong><diffuse><texture texture=\"mip_nn_sampler\" texcoord=\"TEX0\"/>"
+    "</diffuse></phong></technique></profile_COMMON></effect>"
+    "<effect id=\"mip_ln_fx\"><profile_COMMON>"
+    "<newparam sid=\"mip_ln_surface\"><surface type=\"2D\"><init_from>image</init_from></surface></newparam>"
+    "<newparam sid=\"mip_ln_sampler\"><sampler2D><source>mip_ln_surface</source>"
+    "<minfilter>LINEAR_MIPMAP_NEAREST</minfilter></sampler2D></newparam>"
+    "<technique sid=\"common\"><phong><diffuse><texture texture=\"mip_ln_sampler\" texcoord=\"TEX0\"/>"
+    "</diffuse></phong></technique></profile_COMMON></effect>"
+    "<effect id=\"mip_nl_fx\"><profile_COMMON>"
+    "<newparam sid=\"mip_nl_surface\"><surface type=\"2D\"><init_from>image</init_from></surface></newparam>"
+    "<newparam sid=\"mip_nl_sampler\"><sampler2D><source>mip_nl_surface</source>"
+    "<minfilter>NEAREST_MIPMAP_LINEAR</minfilter></sampler2D></newparam>"
+    "<technique sid=\"common\"><phong><diffuse><texture texture=\"mip_nl_sampler\" texcoord=\"TEX0\"/>"
+    "</diffuse></phong></technique></profile_COMMON></effect>"
+    "<effect id=\"mip_ll_fx\"><profile_COMMON>"
+    "<newparam sid=\"mip_ll_surface\"><surface type=\"2D\"><init_from>image</init_from></surface></newparam>"
+    "<newparam sid=\"mip_ll_sampler\"><sampler2D><source>mip_ll_surface</source>"
+    "<minfilter>LINEAR_MIPMAP_LINEAR</minfilter></sampler2D></newparam>"
+    "<technique sid=\"common\"><phong><diffuse><texture texture=\"mip_ll_sampler\" texcoord=\"TEX0\"/>"
+    "</diffuse></phong></technique></profile_COMMON></effect>"
+    "</library_effects>\n"
+    "<library_materials>"
+    "<material id=\"explicit_mat\" name=\"explicit_none\"><instance_effect url=\"#explicit_fx\"/></material>"
+    "<material id=\"default_mat\" name=\"default_none\"><instance_effect url=\"#default_fx\"/></material>"
+    "<material id=\"control_mat\" name=\"control\"><instance_effect url=\"#control_fx\"/></material>"
+    "<material id=\"mip_nn_mat\" name=\"mip_nn\"><instance_effect url=\"#mip_nn_fx\"/></material>"
+    "<material id=\"mip_ln_mat\" name=\"mip_ln\"><instance_effect url=\"#mip_ln_fx\"/></material>"
+    "<material id=\"mip_nl_mat\" name=\"mip_nl\"><instance_effect url=\"#mip_nl_fx\"/></material>"
+    "<material id=\"mip_ll_mat\" name=\"mip_ll\"><instance_effect url=\"#mip_ll_fx\"/></material>"
+    "</library_materials>\n"
+    "<library_visual_scenes><visual_scene id=\"Scene\"/></library_visual_scenes>"
+    "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
+    "</COLLADA>\n",
+    file) >= 0;
+
+  if (fclose(file) != 0)
+    ok = false;
+  return ok;
+}
+
+static
+AkSampler*
+ak_test_dae_material_sampler(AkDoc *doc, const char *name) {
+  AkMaterial *material;
+
+  if (!doc || !name)
+    return NULL;
+
+  for (material = doc->lib.materials.first;
+       material;
+       material = material->next) {
+    AkMaterialInput *baseColor;
+    AkTextureRef    *textureRef;
+
+    if (!material->name || strcmp(material->name, name) != 0)
+      continue;
+
+    baseColor  = material->surface ? material->surface->baseColor : NULL;
+    textureRef = baseColor ? baseColor->texture : NULL;
+    return textureRef && textureRef->texture
+             ? textureRef->texture->sampler
+             : NULL;
+  }
+
+  return NULL;
+}
+
 TEST_IMPL(dae_export_material_texture_smoke) {
   AkHeap            *heap;
   AkDoc             *doc;
@@ -290,6 +401,149 @@ TEST_IMPL(dae_export_material_texture_smoke) {
   unlink(sourceTexPath);
   rmdir(sourceTexDir);
   rmdir(sourceDir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(dae_export_material_sampler_none_roundtrip) {
+  AkDoc      *doc;
+  AkDoc      *roundTrip;
+  AkSampler  *explicitSampler;
+  AkSampler  *defaultSampler;
+  AkSampler  *controlSampler;
+  AkSampler  *mipNN;
+  AkSampler  *mipLN;
+  AkSampler  *mipNL;
+  AkSampler  *mipLL;
+  char        dirTemplate[PATH_MAX];
+  char        sourcePath[PATH_MAX];
+  char        exportedPath[PATH_MAX];
+  char       *tmpdir;
+  const char *tmpBase;
+
+  tmpBase = getenv("TMPDIR");
+  ASSERT(AK_WRAP_MODE_UNSPECIFIED == 0);
+  ASSERT(AK_MINFILTER_UNSPECIFIED == 0);
+  ASSERT(AK_MAGFILTER_UNSPECIFIED == 0);
+  ASSERT(AK_MIPFILTER_UNSPECIFIED == 0);
+  ASSERT(AK_MINFILTER_NONE != AK_MINFILTER_LINEAR);
+  ASSERT(AK_MAGFILTER_NONE != AK_MAGFILTER_LINEAR);
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-dae-sampler-filter-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+  ASSERT(ak_test_path_join(sourcePath,
+                           sizeof(sourcePath),
+                           tmpdir,
+                           "source.dae"));
+  ASSERT(ak_test_path_join(exportedPath,
+                           sizeof(exportedPath),
+                           tmpdir,
+                           "roundtrip.dae"));
+  ASSERT(ak_test_write_dae_sampler_filter_fixture(sourcePath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, sourcePath, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(doc != NULL);
+
+  explicitSampler = ak_test_dae_material_sampler(doc, "explicit_none");
+  defaultSampler  = ak_test_dae_material_sampler(doc, "default_none");
+  controlSampler  = ak_test_dae_material_sampler(doc, "control");
+  mipNN = ak_test_dae_material_sampler(doc, "mip_nn");
+  mipLN = ak_test_dae_material_sampler(doc, "mip_ln");
+  mipNL = ak_test_dae_material_sampler(doc, "mip_nl");
+  mipLL = ak_test_dae_material_sampler(doc, "mip_ll");
+  ASSERT(explicitSampler != NULL);
+  ASSERT(defaultSampler != NULL);
+  ASSERT(controlSampler != NULL);
+  ASSERT(mipNN != NULL && mipLN != NULL && mipNL != NULL && mipLL != NULL);
+  ASSERT(ak_typeid(explicitSampler) == AKT_SAMPLER);
+  ASSERT(explicitSampler->wrapS == AK_WRAP_MODE_WRAP);
+  ASSERT(explicitSampler->wrapT == AK_WRAP_MODE_WRAP);
+  ASSERT(explicitSampler->minfilter == AK_MINFILTER_NONE);
+  ASSERT(explicitSampler->magfilter == AK_MAGFILTER_NONE);
+  ASSERT(explicitSampler->mipfilter == AK_MIPFILTER_NONE);
+  ASSERT(defaultSampler->minfilter == AK_MINFILTER_NONE);
+  ASSERT(defaultSampler->magfilter == AK_MAGFILTER_NONE);
+  ASSERT(defaultSampler->mipfilter == AK_MIPFILTER_NONE);
+  ASSERT(defaultSampler->wrapS == AK_WRAP_MODE_WRAP);
+  ASSERT(defaultSampler->wrapT == AK_WRAP_MODE_WRAP);
+  ASSERT(defaultSampler->wrapP == AK_WRAP_MODE_WRAP);
+  ASSERT(controlSampler->wrapS == AK_WRAP_MODE_CLAMP);
+  ASSERT(controlSampler->wrapT == AK_WRAP_MODE_MIRROR);
+  ASSERT(controlSampler->minfilter == AK_MINFILTER_NEAREST);
+  ASSERT(controlSampler->magfilter == AK_MAGFILTER_LINEAR);
+  ASSERT(controlSampler->mipfilter == AK_MIPFILTER_NEAREST);
+  ASSERT(mipNN->minfilter == AK_MINFILTER_NEAREST_MIPMAP_NEAREST);
+  ASSERT(mipLN->minfilter == AK_MINFILTER_LINEAR_MIPMAP_NEAREST);
+  ASSERT(mipNL->minfilter == AK_MINFILTER_NEAREST_MIPMAP_LINEAR);
+  ASSERT(mipLL->minfilter == AK_MINFILTER_LINEAR_MIPMAP_LINEAR);
+
+  ASSERT(ak_exportFile(doc, exportedPath, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(ak_test_file_count(exportedPath,
+                            "<minfilter>NONE</minfilter>") == 2);
+  ASSERT(ak_test_file_count(exportedPath,
+                            "<magfilter>NONE</magfilter>") == 6);
+  ASSERT(ak_test_file_count(exportedPath,
+                            "<mipfilter>NONE</mipfilter>") == 6);
+  ASSERT(ak_test_file_count(exportedPath,
+                            "<minfilter>NEAREST</minfilter>") == 1);
+  ASSERT(ak_test_file_count(exportedPath,
+                            "<magfilter>LINEAR</magfilter>") == 1);
+  ASSERT(ak_test_file_count(exportedPath,
+                            "<mipfilter>NEAREST</mipfilter>") == 1);
+  ASSERT(ak_test_file_count(exportedPath,
+                            "<minfilter>NEAREST_MIPMAP_NEAREST</minfilter>") == 1);
+  ASSERT(ak_test_file_count(exportedPath,
+                            "<minfilter>LINEAR_MIPMAP_NEAREST</minfilter>") == 1);
+  ASSERT(ak_test_file_count(exportedPath,
+                            "<minfilter>NEAREST_MIPMAP_LINEAR</minfilter>") == 1);
+  ASSERT(ak_test_file_count(exportedPath,
+                            "<minfilter>LINEAR_MIPMAP_LINEAR</minfilter>") == 1);
+
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, exportedPath, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  explicitSampler = ak_test_dae_material_sampler(roundTrip, "explicit_none");
+  defaultSampler  = ak_test_dae_material_sampler(roundTrip, "default_none");
+  controlSampler  = ak_test_dae_material_sampler(roundTrip, "control");
+  mipNN = ak_test_dae_material_sampler(roundTrip, "mip_nn");
+  mipLN = ak_test_dae_material_sampler(roundTrip, "mip_ln");
+  mipNL = ak_test_dae_material_sampler(roundTrip, "mip_nl");
+  mipLL = ak_test_dae_material_sampler(roundTrip, "mip_ll");
+  ASSERT(explicitSampler != NULL);
+  ASSERT(defaultSampler != NULL);
+  ASSERT(controlSampler != NULL);
+  ASSERT(mipNN != NULL && mipLN != NULL && mipNL != NULL && mipLL != NULL);
+  ASSERT(explicitSampler->minfilter == AK_MINFILTER_NONE);
+  ASSERT(explicitSampler->magfilter == AK_MAGFILTER_NONE);
+  ASSERT(explicitSampler->mipfilter == AK_MIPFILTER_NONE);
+  ASSERT(defaultSampler->minfilter == AK_MINFILTER_NONE);
+  ASSERT(defaultSampler->magfilter == AK_MAGFILTER_NONE);
+  ASSERT(defaultSampler->mipfilter == AK_MIPFILTER_NONE);
+  ASSERT(defaultSampler->wrapS == AK_WRAP_MODE_WRAP);
+  ASSERT(defaultSampler->wrapT == AK_WRAP_MODE_WRAP);
+  ASSERT(defaultSampler->wrapP == AK_WRAP_MODE_WRAP);
+  ASSERT(controlSampler->wrapS == AK_WRAP_MODE_CLAMP);
+  ASSERT(controlSampler->wrapT == AK_WRAP_MODE_MIRROR);
+  ASSERT(controlSampler->minfilter == AK_MINFILTER_NEAREST);
+  ASSERT(controlSampler->magfilter == AK_MAGFILTER_LINEAR);
+  ASSERT(controlSampler->mipfilter == AK_MIPFILTER_NEAREST);
+  ASSERT(mipNN->minfilter == AK_MINFILTER_NEAREST_MIPMAP_NEAREST);
+  ASSERT(mipLN->minfilter == AK_MINFILTER_LINEAR_MIPMAP_NEAREST);
+  ASSERT(mipNL->minfilter == AK_MINFILTER_NEAREST_MIPMAP_LINEAR);
+  ASSERT(mipLL->minfilter == AK_MINFILTER_LINEAR_MIPMAP_LINEAR);
+
+  ak_free(roundTrip);
+  ak_free(doc);
+  unlink(exportedPath);
+  unlink(sourcePath);
+  rmdir(tmpdir);
 
   TEST_SUCCESS
 }

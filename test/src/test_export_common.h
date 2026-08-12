@@ -1066,6 +1066,57 @@ ak_test_write_dae_skin_minimal(const char *path) {
 
 static inline
 bool
+ak_test_write_dae_skin_instance_skeletons(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+        "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">"
+        "<asset><unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>"
+        "<library_geometries><geometry id=\"geom\"><mesh>"
+        "<source id=\"pos\"><float_array id=\"pos-array\" count=\"9\">0 0 0 1 0 0 0 1 0</float_array>"
+        "<technique_common><accessor source=\"#pos-array\" count=\"3\" stride=\"3\">"
+        "<param name=\"X\" type=\"float\"/><param name=\"Y\" type=\"float\"/>"
+        "<param name=\"Z\" type=\"float\"/></accessor></technique_common></source>"
+        "<vertices id=\"verts\"><input semantic=\"POSITION\" source=\"#pos\"/></vertices>"
+        "<triangles count=\"1\"><input semantic=\"VERTEX\" source=\"#verts\"/><p>0 1 2</p></triangles>"
+        "</mesh></geometry></library_geometries>"
+        "<library_controllers><controller id=\"skinShared\"><skin source=\"#geom\">"
+        "<bind_shape_matrix>1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</bind_shape_matrix>"
+        "<source id=\"joints\"><Name_array id=\"joints-array\" count=\"1\">joint</Name_array>"
+        "<technique_common><accessor source=\"#joints-array\" count=\"1\" stride=\"1\">"
+        "<param name=\"JOINT\" type=\"Name\"/></accessor></technique_common></source>"
+        "<source id=\"binds\"><float_array id=\"binds-array\" count=\"16\">"
+        "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</float_array><technique_common>"
+        "<accessor source=\"#binds-array\" count=\"1\" stride=\"16\">"
+        "<param name=\"TRANSFORM\" type=\"float4x4\"/></accessor></technique_common></source>"
+        "<source id=\"weights\"><float_array id=\"weights-array\" count=\"1\">1</float_array>"
+        "<technique_common><accessor source=\"#weights-array\" count=\"1\" stride=\"1\">"
+        "<param name=\"WEIGHT\" type=\"float\"/></accessor></technique_common></source>"
+        "<joints><input semantic=\"JOINT\" source=\"#joints\"/>"
+        "<input semantic=\"INV_BIND_MATRIX\" source=\"#binds\"/></joints>"
+        "<vertex_weights count=\"3\"><input semantic=\"JOINT\" source=\"#joints\" offset=\"0\"/>"
+        "<input semantic=\"WEIGHT\" source=\"#weights\" offset=\"1\"/>"
+        "<vcount>1 1 1</vcount><v>0 0 0 0 0 0</v></vertex_weights>"
+        "</skin></controller></library_controllers>"
+        "<library_visual_scenes><visual_scene id=\"Scene\">"
+        "<node id=\"rigA\"><node id=\"jointA\" sid=\"joint\" type=\"JOINT\"/></node>"
+        "<node id=\"rigB\"><node id=\"jointB\" sid=\"joint\" type=\"JOINT\"/></node>"
+        "<node id=\"meshA\"><instance_controller url=\"#skinShared\"><skeleton>#rigA</skeleton>"
+        "</instance_controller></node>"
+        "<node id=\"meshB\"><instance_controller url=\"#skinShared\"><skeleton>#rigB</skeleton>"
+        "</instance_controller></node>"
+        "</visual_scene></library_visual_scenes><scene><instance_visual_scene url=\"#Scene\"/></scene>"
+        "</COLLADA>", file);
+
+  return fclose(file) == 0;
+}
+
+static inline
+bool
 ak_test_write_dae_coord_all_skin_animation(const char *path) {
   FILE *file;
 

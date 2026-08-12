@@ -479,8 +479,17 @@ static
 bool
 dae_min_filter_name(AkMinFilter filter, DAEExpName * __restrict name) {
   switch (filter) {
+    case AK_MINFILTER_NONE:        *name = DAE_EXP_NAME(NONE); return true;
     case AK_MINFILTER_LINEAR:      *name = DAE_EXP_NAME(LINEAR); return true;
     case AK_MINFILTER_NEAREST:     *name = DAE_EXP_NAME(NEAREST); return true;
+    case AK_MINFILTER_NEAREST_MIPMAP_NEAREST:
+      *name = DAE_EXP_NAME(NEAREST_MIPMAP_NEAREST); return true;
+    case AK_MINFILTER_LINEAR_MIPMAP_NEAREST:
+      *name = DAE_EXP_NAME(LINEAR_MIPMAP_NEAREST); return true;
+    case AK_MINFILTER_NEAREST_MIPMAP_LINEAR:
+      *name = DAE_EXP_NAME(NEAREST_MIPMAP_LINEAR); return true;
+    case AK_MINFILTER_LINEAR_MIPMAP_LINEAR:
+      *name = DAE_EXP_NAME(LINEAR_MIPMAP_LINEAR); return true;
     case AK_MINFILTER_ANISOTROPIC: *name = DAE_EXP_NAME(ANISOTROPIC); return true;
     default:                      return false;
   }
@@ -490,6 +499,7 @@ static
 bool
 dae_mag_filter_name(AkMagFilter filter, DAEExpName * __restrict name) {
   switch (filter) {
+    case AK_MAGFILTER_NONE:    *name = DAE_EXP_NAME(NONE); return true;
     case AK_MAGFILTER_LINEAR:  *name = DAE_EXP_NAME(LINEAR); return true;
     case AK_MAGFILTER_NEAREST: *name = DAE_EXP_NAME(NEAREST); return true;
     default:                   return false;

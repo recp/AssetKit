@@ -55,6 +55,7 @@ dae_state_init(DAEExpState          * __restrict st,
   st->morphGeometries       = rb_newtree_ptr();
   st->morphVertexGeometries = rb_newtree_ptr();
   st->morphInstances        = rb_newtree_ptr();
+  st->animations            = rb_newtree_ptr();
 
   return st->outDir
          && st->geometries
@@ -74,7 +75,8 @@ dae_state_init(DAEExpState          * __restrict st,
          && st->morphs
          && st->morphGeometries
          && st->morphVertexGeometries
-         && st->morphInstances;
+         && st->morphInstances
+         && st->animations;
 }
 
 static
@@ -166,6 +168,7 @@ dae_state_destroy(DAEExpState * __restrict st) {
   if (st->morphGeometries)       rb_destroy(st->morphGeometries);
   if (st->morphVertexGeometries) rb_destroy(st->morphVertexGeometries);
   if (st->morphInstances)        rb_destroy(st->morphInstances);
+  if (st->animations)            rb_destroy(st->animations);
 
   free(st->scratch);
   free(st->outDir);

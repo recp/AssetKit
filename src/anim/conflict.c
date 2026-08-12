@@ -47,33 +47,203 @@
  */
 
 #include "../common.h"
+#include "accessor.h"
+
+typedef struct AkAnimationTreeIter {
+  AkAnimation **stack;
+  AkAnimation **seen;
+  size_t       stackCount;
+  size_t       stackCapacity;
+  size_t       seenCount;
+  size_t       seenCapacity;
+  bool         failed;
+} AkAnimationTreeIter;
+
+static bool
+ak_animationTreeIterPush(AkAnimation ***items,
+                         size_t        *count,
+                         size_t        *capacity,
+                         AkAnimation   *animation) {
+  AkAnimation **grown;
+  size_t        newCapacity;
+
+  if (*count == *capacity) {
+    newCapacity = *capacity ? *capacity * 2u : 64u;
+    if (newCapacity < *capacity
+        || newCapacity > SIZE_MAX / sizeof(**items))
+      return false;
+    grown = realloc(*items, newCapacity * sizeof(**items));
+    if (!grown)
+      return false;
+    *items = grown;
+    *capacity = newCapacity;
+  }
+  (*items)[(*count)++] = animation;
+  return true;
+}
+
+static bool
+ak_animationTreeIterInit(AkAnimationTreeIter *iter, AkAnimation *root) {
+  memset(iter, 0, sizeof(*iter));
+  if (root && !ak_animationTreeIterPush(&iter->stack,
+                                        &iter->stackCount,
+                                        &iter->stackCapacity,
+                                        root))
+    iter->failed = true;
+  return !iter->failed;
+}
+
+static void
+ak_animationTreeIterDestroy(AkAnimationTreeIter *iter) {
+  if (!iter)
+    return;
+  free(iter->stack);
+  free(iter->seen);
+  memset(iter, 0, sizeof(*iter));
+}
+
+static AkAnimation*
+ak_animationTreeIterNext(AkAnimationTreeIter *iter) {
+  AkAnimation *animation, *child;
+  size_t       i;
+
+  while (iter->stackCount > 0) {
+    animation = iter->stack[--iter->stackCount];
+    for (i = 0; i < iter->seenCount; i++) {
+      if (iter->seen[i] == animation)
+        break;
+    }
+    if (i < iter->seenCount)
+      continue;
+    if (!ak_animationTreeIterPush(&iter->seen,
+                                  &iter->seenCount,
+                                  &iter->seenCapacity,
+                                  animation)) {
+      iter->failed = true;
+      return NULL;
+    }
+
+    /* A root's `next` is owned by its caller.  Descendant sibling lists are
+     * part of the root subtree and are therefore pushed here in full. */
+    for (child = animation->animation; child; child = child->next) {
+      if (!ak_animationTreeIterPush(&iter->stack,
+                                    &iter->stackCount,
+                                    &iter->stackCapacity,
+                                    child)) {
+        iter->failed = true;
+        return NULL;
+      }
+    }
+    return animation;
+  }
+
+  return NULL;
+}
+
+static bool
+ak_channelTargets(AkContext        *ctx,
+                  AkChannel        *channel,
+                  AkResolvedTarget  local[1],
+                  AkResolvedTarget **targetsOut,
+                  size_t           *countOut) {
+  AkResolvedTarget *targets;
+  size_t            count, confirmed;
+
+  *targetsOut = NULL;
+  *countOut   = 0;
+  count = ak_channelResolvedTargets(ctx, channel, NULL, 0);
+  if (count == SIZE_MAX)
+    return false;
+  if (!count)
+    return true;
+
+  if (count == 1) {
+    targets = local;
+  } else {
+    if (count > SIZE_MAX / sizeof(*targets))
+      return false;
+    targets = malloc(count * sizeof(*targets));
+    if (!targets)
+      return false;
+  }
+
+  confirmed = ak_channelResolvedTargets(ctx, channel, targets, count);
+  if (confirmed != count) {
+    if (targets != local)
+      free(targets);
+    return false;
+  }
+
+  *targetsOut = targets;
+  *countOut   = count;
+  return true;
+}
+
+static bool
+ak_resolvedChannelsConflict(AkContext *ctx,
+                            AkChannel *a,
+                            AkChannel *b) {
+  AkResolvedTarget  localA[1], localB[1];
+  AkResolvedTarget *targetsA, *targetsB;
+  size_t            countA, countB, i, j;
+  bool              conflict;
+
+  for (; a; a = a->next) {
+    if (!ak_channelTargets(ctx, a, localA, &targetsA, &countA))
+      return true;
+    if (!countA)
+      continue;
+
+    for (AkChannel *other = b; other; other = other->next) {
+      if (!ak_channelTargets(ctx, other, localB, &targetsB, &countB)) {
+        if (targetsA != localA)
+          free(targetsA);
+        return true;
+      }
+      if (!countB)
+        continue;
+
+      conflict = false;
+      for (i = 0; i < countA && !conflict; i++) {
+        for (j = 0; j < countB; j++) {
+          if (targetsA[i].target != targetsB[j].target)
+            continue;
+          if (!targetsA[i].isPartial
+              || !targetsB[j].isPartial
+              || targetsA[i].off == targetsB[j].off) {
+            conflict = true;
+            break;
+          }
+        }
+      }
+      if (targetsB != localB)
+        free(targetsB);
+      if (conflict) {
+        if (targetsA != localA)
+          free(targetsA);
+        return true;
+      }
+    }
+    if (targetsA != localA)
+      free(targetsA);
+  }
+
+  return false;
+}
 
 static bool
 ak_animationSamplerTimeRange(AkAnimSampler * __restrict sampler,
                              float         * __restrict outStart,
                              float         * __restrict outEnd) {
-  AkInput    *inp;
-  AkAccessor *acc;
-  AkBuffer   *buff;
-  const float *times;
-  uint32_t    count;
+  AkInput *inp;
 
   if (!sampler) return false;
 
   for (inp = sampler->input; inp; inp = inp->next) {
     if (inp->semantic != AK_INPUT_INPUT)
       continue;
-
-    acc  = inp->accessor;
-    buff = acc ? acc->buffer : NULL;
-    if (!buff || !buff->data || acc->count == 0)
-      continue;
-
-    times    = (const float *)((const char *)buff->data + acc->byteOffset);
-    count    = acc->count;
-    *outStart = times[0];
-    *outEnd   = times[count - 1];
-    return true;
+    if (ak_animAccessorFiniteFloatRange(inp->accessor, outStart, outEnd))
+      return true;
   }
 
   return false;
@@ -84,27 +254,38 @@ bool
 ak_animationsConflict(AkContext   * __restrict ctx,
                       AkAnimation * __restrict a,
                       AkAnimation * __restrict b) {
-  AkChannel        *cha, *chb;
-  AkResolvedTarget  rta, rtb;
+  AkAnimationTreeIter aiter, biter;
+  AkAnimation        *anode, *bnode;
 
   if (!a || !b || a == b) return false;
 
-  for (cha = a->channel; cha; cha = cha->next) {
-    rta = ak_channelTarget(ctx, cha);
-    if (!rta.target) continue;
-
-    for (chb = b->channel; chb; chb = chb->next) {
-      rtb = ak_channelTarget(ctx, chb);
-      if (!rtb.target || rtb.target != rta.target) continue;
-
-      /* at least one side writes the whole target → overlap */
-      if (!rta.isPartial || !rtb.isPartial) return true;
-
-      /* both partial — overlap iff same slot */
-      if (rta.off == rtb.off) return true;
+  if (!ak_animationTreeIterInit(&aiter, a))
+    return true;
+  while ((anode = ak_animationTreeIterNext(&aiter))) {
+    if (!ak_animationTreeIterInit(&biter, b)) {
+      ak_animationTreeIterDestroy(&aiter);
+      return true;
     }
+    while ((bnode = ak_animationTreeIterNext(&biter))) {
+      if (ak_resolvedChannelsConflict(ctx, anode->channel, bnode->channel)) {
+        ak_animationTreeIterDestroy(&biter);
+        ak_animationTreeIterDestroy(&aiter);
+        return true;
+      }
+    }
+    if (biter.failed) {
+      ak_animationTreeIterDestroy(&biter);
+      ak_animationTreeIterDestroy(&aiter);
+      return true;
+    }
+    ak_animationTreeIterDestroy(&biter);
   }
 
+  if (aiter.failed) {
+    ak_animationTreeIterDestroy(&aiter);
+    return true;
+  }
+  ak_animationTreeIterDestroy(&aiter);
   return false;
 }
 
@@ -165,24 +346,24 @@ bool
 ak_animationTimeRange(AkAnimation * __restrict anim,
                       float       * __restrict outStart,
                       float       * __restrict outEnd) {
-  AkAnimation *stack[256], *next;
+  AkAnimationTreeIter iter;
+  AkAnimation *animation;
   AkChannel   *ch;
   AkAnimSampler *sampler;
   float        start, end, minTime, maxTime;
-  int          top;
-  bool         found, includeSiblings;
+  bool         found;
 
   if (!anim || !outStart || !outEnd)
     return false;
 
-  top             = 0;
   found           = false;
-  includeSiblings = false;
   minTime         = 0.0f;
   maxTime         = 0.0f;
 
-  while (anim) {
-    for (ch = anim->channel; ch; ch = ch->next) {
+  if (!ak_animationTreeIterInit(&iter, anim))
+    return false;
+  while ((animation = ak_animationTreeIterNext(&iter))) {
+    for (ch = animation->channel; ch; ch = ch->next) {
       sampler = ak_getObjectByUrl(&ch->source);
       if (!ak_animationSamplerTimeRange(sampler, &start, &end))
         continue;
@@ -192,28 +373,98 @@ ak_animationTimeRange(AkAnimation * __restrict anim,
       found = true;
     }
 
-    if (anim->animation) {
-      next = includeSiblings ? anim->next : NULL;
-      if (next && top < (int)(sizeof(stack) / sizeof(stack[0])))
-        stack[top++] = next;
-      anim = anim->animation;
-      includeSiblings = true;
-    } else if (includeSiblings && anim->next) {
-      anim = anim->next;
-    } else if (top > 0) {
-      anim = stack[--top];
-      includeSiblings = true;
-    } else {
-      anim = NULL;
-    }
   }
 
+  if (iter.failed) {
+    ak_animationTreeIterDestroy(&iter);
+    return false;
+  }
+  ak_animationTreeIterDestroy(&iter);
   if (!found)
     return false;
 
   *outStart = minTime;
   *outEnd   = maxTime;
   return true;
+}
+
+AK_EXPORT
+bool
+ak_animationClipContainsAnimation(AkAnimationClip * __restrict clip,
+                                  AkAnimation     * __restrict animation) {
+  AkAnimationClipMember *member;
+  AkAnimationTreeIter     iter;
+  AkAnimation            *item;
+
+  if (!clip || !animation)
+    return false;
+
+  for (member = clip->members; member; member = member->next) {
+    if (!ak_animationTreeIterInit(&iter, member->animation))
+      return true;
+    while ((item = ak_animationTreeIterNext(&iter))) {
+      if (item == animation) {
+        ak_animationTreeIterDestroy(&iter);
+        return true;
+      }
+    }
+    if (iter.failed) {
+      ak_animationTreeIterDestroy(&iter);
+      return true;
+    }
+    ak_animationTreeIterDestroy(&iter);
+  }
+  return false;
+}
+
+AK_EXPORT
+bool
+ak_animationIsClipped(AkDoc       * __restrict doc,
+                      AkAnimation * __restrict animation) {
+  AkAnimationClip *clip;
+
+  if (!doc || !animation)
+    return false;
+  for (clip = doc->animationClips.first; clip; clip = clip->next) {
+    if (ak_animationClipContainsAnimation(clip, animation))
+      return true;
+  }
+  return false;
+}
+
+AK_EXPORT
+bool
+ak_animationClipTimeRange(AkAnimationClip * __restrict clip,
+                          float           * __restrict outStart,
+                          float           * __restrict outEnd) {
+  AkAnimationClipMember *member;
+  float                  memberStart, memberEnd, derivedStart, derivedEnd;
+  bool                   found;
+
+  if (!clip || !outStart || !outEnd)
+    return false;
+
+  found        = false;
+  derivedStart = 0.0f;
+  derivedEnd   = 0.0f;
+  for (member = clip->members; member; member = member->next) {
+    if (!ak_animationTimeRange(member->animation, &memberStart, &memberEnd))
+      continue;
+    if (!found || memberStart < derivedStart)
+      derivedStart = memberStart;
+    if (!found || memberEnd > derivedEnd)
+      derivedEnd = memberEnd;
+    found = true;
+  }
+
+  if (!clip->hasStart && !found)
+    return false;
+  if (!clip->hasEnd && !found)
+    return false;
+
+  *outStart = clip->hasStart ? clip->start : derivedStart;
+  *outEnd   = clip->hasEnd   ? clip->end   : derivedEnd;
+  return isfinite(*outStart) && isfinite(*outEnd) && *outEnd >= *outStart;
 }
 
 AK_EXPORT

@@ -25,6 +25,7 @@
 #include "core/node.h"
 #include "core/scene.h"
 #include "core/anim.h"
+#include "core/anim_clip.h"
 
 #include "fx/effect.h"
 #include "fx/img.h"
@@ -315,6 +316,8 @@ dae_doc_data(AkDoc            ** __restrict dest,
               &doc->lib.animations.count,
               offsetof(AkAnimation, next),
               NULL);
+    } else if (DAE_XML_TAG_EQ(xml, lib_animation_clips)) {
+      dae_animationClips(dst, xml);
     } else if (DAE_XML_TAG_EQ8(xml, scene)) {
       dae_scene(dst, xml);
     }

@@ -444,6 +444,65 @@ dae_write_primitive(DAEExpState      * __restrict st,
   return result;
 }
 
+static
+bool
+dae_write_standalone_vertices(DAEExpState * __restrict st,
+                              AkVertices  * __restrict vertices,
+                              uint32_t                  geomIdx) {
+  DAEExpWriter *w;
+  AkInput      *input;
+  uint32_t      inputIdx;
+  bool          hasPosition;
+
+  if (!st || !vertices)
+    return false;
+
+  inputIdx    = 0;
+  hasPosition = false;
+  for (input = vertices->input; input; input = input->next) {
+    const char *semantic;
+
+    semantic = dae_semantic_name(input);
+    if (!input->accessor || !semantic || !*semantic)
+      continue;
+    if (!dae_write_source(st, input, geomIdx, 0u, inputIdx))
+      return false;
+    if (input->semantic == AK_INPUT_POSITION)
+      hasPosition = true;
+    inputIdx++;
+  }
+  if (!hasPosition)
+    return false;
+
+  w = &st->w;
+  dae_w_lit(w, "<vertices id=\"");
+  dae_w_geom_prim_id(w, geomIdx, 0u, DAE_EXP_NAME(vertices));
+  dae_w_lit(w, "\">");
+
+  inputIdx = 0;
+  for (input = vertices->input; input; input = input->next) {
+    const char *semantic;
+
+    semantic = dae_semantic_name(input);
+    if (!input->accessor || !semantic || !*semantic)
+      continue;
+
+    dae_w_lit(w, "<input semantic=\"");
+    dae_w_name(w, input->semantic == AK_INPUT_POSITION
+                    ? DAE_EXP_NAME(POSITION)
+                    : DAE_EXP_NAME_CSTR(semantic));
+    dae_w_lit(w, "\" source=\"#");
+    dae_w_geom_prim_id(w, geomIdx, 0u, DAE_EXP_NAME_CSTR(semantic));
+    dae_w_ch(w, '_');
+    dae_w_uint_fast(w, inputIdx++);
+    dae_w_lit(w, "\"/>");
+  }
+
+  dae_write_extra(w, vertices->extra);
+  dae_w_lit(w, "</vertices>");
+  return w->result == AK_OK;
+}
+
 
 AK_HIDE
 bool
@@ -492,6 +551,11 @@ dae_write_geometry(DAEExpState * __restrict st,
                              morphVertexGeometry))
       return false;
   }
+
+  if (primIdx == 0
+      && mesh->vertices
+      && !dae_write_standalone_vertices(st, mesh->vertices, geomIdx))
+    return false;
 
   dae_write_extra(w, mesh->extra);
   dae_w_lit(w, "</mesh>");

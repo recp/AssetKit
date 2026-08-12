@@ -196,6 +196,7 @@ dae_write_doc(DAEExpState * __restrict st) {
   }
 
   dae_write_library_animations(st);
+  dae_write_library_animation_clips(st);
 
   if (st->geometryCount > 0) {
     dae_w_lit(w, "<library_geometries>");

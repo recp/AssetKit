@@ -428,6 +428,7 @@ TEST_IMPL(gltf_export_material_texture_uri) {
   ASSERT(ak_test_file_contains(gltfPath, "\"samplers\":["));
   ASSERT(ak_test_file_contains(gltfPath, "\"wrapS\":33071"));
   ASSERT(ak_test_file_contains(gltfPath, "\"minFilter\":9728"));
+  ASSERT(ak_test_file_contains(gltfPath, "\"magFilter\":9728"));
   ASSERT(ak_test_file_contains(gltfPath, "\"images\":["));
   ASSERT(ak_test_file_contains(gltfPath, "\"uri\":\"textures/Wood%20File.PNG\""));
   ASSERT(!ak_test_file_contains(gltfPath, "Wood%2520File"));
@@ -439,6 +440,64 @@ TEST_IMPL(gltf_export_material_texture_uri) {
   roundTrip = NULL;
   ASSERT(ak_load(&roundTrip, gltfPath, AK_FILE_TYPE_GLTF) == AK_OK);
   ASSERT(roundTrip != NULL);
+  ak_free(roundTrip);
+
+  /* Concrete LINEAR is authored state, while UNSPECIFIED means preserve the
+     glTF schema's implementation-selected filtering by omitting the fields. */
+  sampler->minfilter = AK_MINFILTER_LINEAR;
+  sampler->magfilter = AK_MAGFILTER_LINEAR;
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"minFilter\":9729"));
+  ASSERT(ak_test_file_contains(gltfPath, "\"magFilter\":9729"));
+
+  /* DAE and other formats keep minification and mip filtering in separate
+     fields. glTF combines both choices into its six GL minFilter values. */
+  sampler->minfilter = AK_MINFILTER_NEAREST;
+  sampler->mipfilter = AK_MIPFILTER_NONE;
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"minFilter\":9728"));
+
+  sampler->minfilter = AK_MINFILTER_LINEAR;
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"minFilter\":9729"));
+
+  sampler->minfilter = AK_MINFILTER_NEAREST;
+  sampler->mipfilter = AK_MIPFILTER_NEAREST;
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"minFilter\":9984"));
+
+  sampler->minfilter = AK_MINFILTER_LINEAR;
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"minFilter\":9985"));
+
+  sampler->minfilter = AK_MINFILTER_NEAREST;
+  sampler->mipfilter = AK_MIPFILTER_LINEAR;
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"minFilter\":9986"));
+
+  sampler->minfilter = AK_MINFILTER_LINEAR;
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"minFilter\":9987"));
+
+  sampler->minfilter = AK_MINFILTER_NEAREST_MIPMAP_LINEAR;
+  sampler->mipfilter = AK_MIPFILTER_UNSPECIFIED;
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"minFilter\":9986"));
+
+  sampler->minfilter = AK_MINFILTER_UNSPECIFIED;
+  sampler->mipfilter = AK_MIPFILTER_UNSPECIFIED;
+  sampler->magfilter = AK_MAGFILTER_UNSPECIFIED;
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(!ak_test_file_contains(gltfPath, "\"minFilter\""));
+  ASSERT(!ak_test_file_contains(gltfPath, "\"magFilter\""));
+  roundTrip = NULL;
+  ASSERT(ak_load(&roundTrip, gltfPath, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(roundTrip != NULL);
+  ASSERT(roundTrip->lib.samplers.first != NULL);
+  ASSERT(roundTrip->lib.samplers.first->minfilter
+         == AK_MINFILTER_UNSPECIFIED);
+  ASSERT(roundTrip->lib.samplers.first->magfilter
+         == AK_MAGFILTER_UNSPECIFIED);
   ak_free(roundTrip);
 
   ASSERT(ak_export(doc, glbOutDir, AK_FILE_TYPE_GLB) == AK_OK);

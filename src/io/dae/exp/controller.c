@@ -85,6 +85,7 @@ dae_write_instance_controller(DAEExpState        * __restrict st,
   AkSkin         *skin;
   AkMorph        *morph;
   AkGeometry     *geom;
+  AkNode         *skeleton;
   uint32_t        controllerIdx;
   bool            isSkin;
 
@@ -94,6 +95,9 @@ dae_write_instance_controller(DAEExpState        * __restrict st,
   morph   = morpher ? morpher->morph : NULL;
   geom    = dae_instance_geometry_object(inst);
   isSkin  = skin != NULL;
+  skeleton = skinner && skinner->overrideSkeleton
+               ? skinner->overrideSkeleton
+               : (skin ? skin->skeleton : NULL);
   controllerIdx = isSkin
                   ? dae_map_index(st->skins, skin)
                   : dae_map_index(st->morphs, morph);
@@ -108,9 +112,9 @@ dae_write_instance_controller(DAEExpState        * __restrict st,
     dae_w_morph_id(w, controllerIdx);
   dae_w_lit(w, "\">");
 
-  if (isSkin && skin->skeleton) {
+  if (isSkin && skeleton) {
     dae_w_lit(w, "<skeleton>#");
-    if (!dae_w_node_id_ref(st, skin->skeleton)) {
+    if (!dae_w_node_id_ref(st, skeleton)) {
       if (w->result == AK_OK)
         w->result = AK_EINVAL;
       return;

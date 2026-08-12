@@ -747,7 +747,9 @@ gltf_skin_key(AkInstanceSkin * __restrict skinner) {
   if (!skinner || !skinner->skin)
     return NULL;
 
-  return skinner->overrideJoints ? (void *)skinner : (void *)skinner->skin;
+  return skinner->overrideJoints || skinner->overrideSkeleton
+           ? (void *)skinner
+           : (void *)skinner->skin;
 }
 
 AK_HIDE

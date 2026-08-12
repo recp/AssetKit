@@ -31,6 +31,20 @@ dae_morph_target_geometry(AkMorphTarget * __restrict target) {
   return geom && geom->gdata ? geom : NULL;
 }
 
+AK_HIDE
+bool
+dae_morph_target_vertices_only(AkMorphTarget * __restrict target) {
+  AkGeometry *geom;
+  AkMesh     *mesh;
+
+  geom = dae_morph_target_geometry(target);
+  if (!geom || !geom->gdata || geom->gdata->type != AK_GEOMETRY_MESH)
+    return false;
+
+  mesh = ak_objGet(geom->gdata);
+  return mesh && !mesh->primitive && mesh->vertices != NULL;
+}
+
 static
 AkMorphable*
 dae_morphable_at(AkMorphTarget * __restrict target, uint32_t primIdx) {
@@ -609,6 +623,62 @@ dae_write_morphable_target_geometry(DAEExpState  * __restrict st,
   return w->result == AK_OK;
 }
 
+static
+bool
+dae_write_inspected_target_geometry(
+  DAEExpState                 * __restrict st,
+  AkMorphInspectTargetView    * __restrict targetView,
+  AkGeometry                  * __restrict baseGeom,
+  uint32_t                                 morphIdx,
+  uint32_t                                 targetIdx) {
+  DAEExpWriter              *w;
+  AkMesh                    *mesh;
+  AkMeshPrimitive           *prim;
+  AkMorphInspectMorphable   *inspected;
+  uint32_t                   primIdx;
+
+  if (!targetView
+      || !baseGeom
+      || !baseGeom->gdata
+      || baseGeom->gdata->type != AK_GEOMETRY_MESH)
+    return false;
+
+  mesh = ak_objGet(baseGeom->gdata);
+  if (!mesh)
+    return false;
+
+  w = &st->w;
+  dae_w_lit(w, "<geometry id=\"");
+  dae_w_morph_target_geom_id(w, morphIdx, targetIdx);
+  dae_w_lit(w, "\"><mesh>");
+
+  inspected = targetView->morphable;
+  primIdx   = 0;
+  for (prim = mesh->primitive; prim; prim = prim->next, primIdx++) {
+    AkMorphable proxy;
+
+    if (!inspected)
+      return false;
+    memset(&proxy, 0, sizeof(proxy));
+    proxy.input = inspected->input ? inspected->input->input : NULL;
+    if (!dae_write_morphable_primitive(st,
+                                       prim,
+                                       &proxy,
+                                       morphIdx,
+                                       targetIdx,
+                                       primIdx))
+      return false;
+    inspected = inspected->next;
+  }
+
+  if (inspected)
+    return false;
+
+  dae_write_extra(w, mesh->extra);
+  dae_w_lit(w, "</mesh></geometry>");
+  return w->result == AK_OK;
+}
+
 AK_HIDE
 bool
 dae_write_morphable_target_geometries(DAEExpState * __restrict st,
@@ -616,21 +686,57 @@ dae_write_morphable_target_geometries(DAEExpState * __restrict st,
                                       AkGeometry  * __restrict baseGeom,
                                       uint32_t                 morphIdx) {
   AkMorphTarget *target;
+  AkMorphInspectTargetView *targetView;
+  AkMorphInspectView       *inspectView;
   uint32_t       targetIdx;
+  bool           needsInspect;
 
-  if (!morph)
+  if (!morph || !baseGeom)
     return false;
 
-  targetIdx = 0;
-  for (target = morph->target; target; target = target->next, targetIdx++) {
-    if (!target->target || target->target->type != AK_MORPHABLE_MORPHABLE)
-      continue;
-    if (!dae_write_morphable_target_geometry(st,
-                                             target,
-                                             baseGeom,
-                                             morphIdx,
-                                             targetIdx))
+  needsInspect = false;
+  for (target = morph->target; target; target = target->next) {
+    if (dae_morph_target_vertices_only(target)) {
+      needsInspect = true;
+      break;
+    }
+  }
+
+  inspectView = NULL;
+  if (needsInspect) {
+    if (ak_morphInspect(baseGeom,
+                        morph,
+                        NULL,
+                        0,
+                        false,
+                        true) != AK_OK
+        || !(inspectView = morph->inspectResult))
       return false;
+  }
+
+  targetIdx = 0;
+  targetView = inspectView ? inspectView->targets : NULL;
+  for (target = morph->target; target; target = target->next, targetIdx++) {
+    if (target->target
+        && target->target->type == AK_MORPHABLE_MORPHABLE) {
+      if (!dae_write_morphable_target_geometry(st,
+                                               target,
+                                               baseGeom,
+                                               morphIdx,
+                                               targetIdx))
+        return false;
+    } else if (dae_morph_target_vertices_only(target)) {
+      if (!targetView
+          || !dae_write_inspected_target_geometry(st,
+                                                  targetView,
+                                                  baseGeom,
+                                                  morphIdx,
+                                                  targetIdx))
+        return false;
+    }
+
+    if (targetView)
+      targetView = targetView->next;
   }
 
   return targetIdx == morph->targetCount;

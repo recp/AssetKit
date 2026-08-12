@@ -1546,6 +1546,7 @@ dae_write_animation(DAEExpState * __restrict st,
   }
 
   current = (*animIdx)++;
+  rb_insert(st->animations, anim, (void *)(uintptr_t)(current + 1u));
   dae_write_animation_one(st, anim, current, animIdx);
 }
 
@@ -1568,4 +1569,72 @@ dae_write_library_animations(DAEExpState * __restrict st) {
   for (anim = st->doc->lib.animations.first; anim; anim = anim->next)
     dae_write_animation(st, anim, &animIdx);
   dae_w_lit(w, "</library_animations>\n");
+}
+
+static bool
+dae_animation_clip_exportable(DAEExpState * __restrict st,
+                              AkAnimationClip * __restrict clip) {
+  AkAnimationClipMember *member;
+
+  if (!st || !clip || !clip->members || !clip->memberCount)
+    return false;
+  for (member = clip->members; member; member = member->next) {
+    if (!member->animation
+        || dae_map_index(st->animations, member->animation) == UINT32_MAX)
+      return false;
+  }
+  return true;
+}
+
+AK_HIDE
+void
+dae_write_library_animation_clips(DAEExpState * __restrict st) {
+  DAEExpWriter          *w;
+  AkAnimationClip       *clip;
+  AkAnimationClipMember *member;
+  uint32_t               clipIndex;
+  bool                   wroteLibrary;
+
+  if (!st || !st->doc || !st->doc->animationClips.first)
+    return;
+
+  w            = &st->w;
+  clipIndex    = 0;
+  wroteLibrary = false;
+  for (clip = st->doc->animationClips.first; clip; clip = clip->next) {
+    if (!dae_animation_clip_exportable(st, clip))
+      continue;
+
+    if (!wroteLibrary) {
+      dae_w_lit(w, "<library_animation_clips>");
+      wroteLibrary = true;
+    }
+
+    dae_w_lit(w, "<animation_clip id=\"animation_clip_");
+    dae_w_uint_fast(w, clipIndex++);
+    if (clip->name) {
+      dae_w_lit(w, "\" name=\"");
+      dae_w_xml(w, clip->name, true);
+    }
+    if (clip->hasStart) {
+      dae_w_lit(w, "\" start=\"");
+      dae_w_float_fast(w, clip->start);
+    }
+    if (clip->hasEnd) {
+      dae_w_lit(w, "\" end=\"");
+      dae_w_float_fast(w, clip->end);
+    }
+    dae_w_lit(w, "\">");
+
+    for (member = clip->members; member; member = member->next) {
+      dae_w_lit(w, "<instance_animation url=\"#");
+      dae_w_anim_id(w, dae_map_index(st->animations, member->animation));
+      dae_w_lit(w, "\"/>");
+    }
+    dae_write_extra(w, clip->extra);
+    dae_w_lit(w, "</animation_clip>");
+  }
+
+  if (wroteLibrary)
+    dae_w_lit(w, "</library_animation_clips>\n");
 }

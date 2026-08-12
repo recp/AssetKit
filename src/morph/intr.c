@@ -229,6 +229,162 @@ ak_morphInspect_findPosition(AkInput *first) {
   return NULL;
 }
 
+AK_INLINE
+AkUInt
+ak_morphInspect_indexValue(const AkIndexArray *array, size_t index) {
+  if (!array || index >= array->count)
+    return UINT32_MAX;
+
+  switch (array->componentType) {
+    case AKT_UBYTE:  return ((const uint8_t *)array->items)[index];
+    case AKT_USHORT: return ((const uint16_t *)array->items)[index];
+    case AKT_UINT:   return ((const uint32_t *)array->items)[index];
+    default:         return UINT32_MAX;
+  }
+}
+
+/**
+ * Expand one mesh-wide morph input through the base primitive's retained
+ * tuple-index duplicator.  DAE target geometries without primitives keep the
+ * original vertex-domain count, while the base primitive may have been
+ * triangulated and split for normals/UVs before morph inspection.
+ */
+static
+AkInput *
+ak_morphInspect_expandInput(AkHeap       *heap,
+                            void         *parent,
+                            AkInput      *input,
+                            AkDuplicator *duplicator,
+                            uint32_t      expectedCount) {
+  AkDuplicatorRange *range;
+  AkIndexArray      *dupc, *dupcsum;
+  AkAccessor        *sourceAcc, *derivedAcc;
+  AkBuffer          *sourceBuffer, *derivedBuffer;
+  AkInput           *derivedInput;
+  const uint8_t     *source;
+  uint8_t           *dest;
+  size_t             sourceStride, rowSize, originalCount, destLength;
+  size_t             i, j, written;
+
+  range        = duplicator ? duplicator->range : NULL;
+  dupc         = range ? range->dupc : NULL;
+  dupcsum      = range ? range->dupcsum : NULL;
+  sourceAcc    = input ? input->accessor : NULL;
+  sourceBuffer = sourceAcc ? sourceAcc->buffer : NULL;
+  if (!heap || !parent || !dupc || !dupcsum || !sourceAcc
+      || !sourceBuffer || !sourceBuffer->data || dupc->count % 3u != 0u
+      || expectedCount == 0u)
+    return NULL;
+
+  originalCount = dupc->count / 3u;
+  rowSize       = sourceAcc->fillByteSize;
+  sourceStride  = sourceAcc->byteStride ? sourceAcc->byteStride : rowSize;
+  if (originalCount == 0u
+      || sourceAcc->count != originalCount
+      || rowSize == 0u
+      || sourceStride < rowSize
+      || rowSize > sourceBuffer->length
+      || sourceAcc->byteOffset > sourceBuffer->length
+      || (originalCount - 1u)
+           > (SIZE_MAX - sourceAcc->byteOffset) / sourceStride
+      || sourceAcc->byteOffset
+           + (originalCount - 1u) * sourceStride
+           > sourceBuffer->length - rowSize
+      || expectedCount > SIZE_MAX / rowSize)
+    return NULL;
+
+  destLength = (size_t)expectedCount * rowSize;
+  derivedInput = ak_heap_calloc(heap, parent, sizeof(*derivedInput));
+  derivedAcc   = ak_heap_calloc(heap, derivedInput, sizeof(*derivedAcc));
+  derivedBuffer = ak_heap_calloc(heap, derivedAcc, sizeof(*derivedBuffer));
+  dest = ak_heap_calloc(heap, derivedBuffer, destLength);
+  if (!derivedInput || !derivedAcc || !derivedBuffer || !dest)
+    return NULL;
+
+  memcpy(derivedInput, input, sizeof(*derivedInput));
+  derivedInput->next     = NULL;
+  derivedInput->reserved = NULL;
+  derivedInput->accessor = derivedAcc;
+
+  memcpy(derivedAcc, sourceAcc, sizeof(*derivedAcc));
+  ak_setypeid(derivedAcc, AKT_ACCESSOR);
+  derivedAcc->next       = NULL;
+  derivedAcc->buffer     = derivedBuffer;
+  derivedAcc->min        = NULL;
+  derivedAcc->max        = NULL;
+  derivedAcc->byteOffset = 0u;
+  derivedAcc->byteStride = rowSize;
+  derivedAcc->byteLength = destLength;
+  derivedAcc->count      = expectedCount;
+
+  derivedBuffer->data   = dest;
+  derivedBuffer->length = destLength;
+  source = (const uint8_t *)sourceBuffer->data + sourceAcc->byteOffset;
+  written = 0u;
+
+  for (i = 0; i < originalCount; i++) {
+    AkUInt pno, duplicates, sourceOrdinal, prefix;
+
+    pno           = ak_morphInspect_indexValue(dupc, 3u * i);
+    duplicates    = ak_morphInspect_indexValue(dupc, 3u * i + 1u);
+    sourceOrdinal = ak_morphInspect_indexValue(dupc, 3u * i + 2u);
+    if (sourceOrdinal == 0u)
+      continue;
+    if (pno == UINT32_MAX || duplicates == UINT32_MAX
+        || sourceOrdinal == UINT32_MAX || sourceOrdinal > originalCount
+        || pno >= dupcsum->count)
+      return NULL;
+
+    prefix = ak_morphInspect_indexValue(dupcsum, pno);
+    if (prefix == UINT32_MAX)
+      return NULL;
+
+    for (j = 0; j <= duplicates; j++) {
+      size_t destIndex;
+
+      if ((size_t)pno > SIZE_MAX - j
+          || (size_t)pno + j > SIZE_MAX - prefix)
+        return NULL;
+      destIndex = (size_t)pno + j + prefix;
+      if (destIndex >= expectedCount)
+        return NULL;
+
+      memcpy(dest + destIndex * rowSize,
+             source + ((size_t)sourceOrdinal - 1u) * sourceStride,
+             rowSize);
+      written++;
+    }
+  }
+
+  return written == expectedCount ? derivedInput : NULL;
+}
+
+static
+AkInput *
+ak_morphInspect_expandInputs(AkHeap       *heap,
+                             void         *parent,
+                             AkInput      *inputs,
+                             AkDuplicator *duplicator,
+                             uint32_t      expectedCount) {
+  AkInput *head, *last, *input;
+
+  head = last = NULL;
+  for (input = inputs; input; input = input->next) {
+    AkInput *derived;
+
+    derived = ak_morphInspect_expandInput(heap,
+                                          parent,
+                                          input,
+                                          duplicator,
+                                          expectedCount);
+    if (!derived)
+      continue;
+    AK_APPEND_FLINK(head, last, derived);
+  }
+
+  return head;
+}
+
 /*============================================================================
  * ak_morphInspect
  *============================================================================*/
@@ -242,6 +398,7 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
                 bool                    includeBaseShape,
                 bool                    ignoreUncommonInputs) {
   AkHeap                     *heap;
+  AkDoc                      *doc;
   AkMorphInspectView         *view;
   AkMorphInspectTargetView   *tv,        *lastTV;
   AkMorphInspectMorphable    *m,         *lastM;
@@ -250,7 +407,7 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
   AkMorphTarget              *target;
   AkObject                   *gdataObj,  *targetObj;
   AkMesh                     *mesh,      *targetMesh;
-  AkMeshPrimitive            *prim,      *targetPrim;
+  AkMeshPrimitive            *prim,      *basePrim, *targetPrim;
   AkInput                    *inp,       *posInp;
   AkAccessor                 *acc;
   AkMorphable                *morphable;
@@ -269,6 +426,7 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
   if (!baseMesh || !morph) return AK_ERR;
 
   heap = ak_heap_getheap(morph);
+  doc  = ak_heap_data(heap);
   view = ak_heap_calloc(heap, morph, sizeof(*view));
 
   view->layout                = AK_MORPH_UNKNOWN;
@@ -306,12 +464,12 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
   primIdx = 0;
   for (prim = mesh->primitive; prim && primIdx < primCount;
        prim = prim->next, primIdx++) {
+    m = ak_morphInspect_appendMorphable(heap, tv, &lastM, 0.0f);
     if (!prim->pos || !(acc = prim->pos->accessor)) continue;
 
     primVertCount = (uint32_t)acc->count;
     if (primVertCount == 0) continue;
 
-    m              = ak_morphInspect_appendMorphable(heap, tv, &lastM, 0.0f);
     m->vertexCount = primVertCount;
     lastInput      = NULL;
 
@@ -348,15 +506,18 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
 
   for (target = morph->target; target;
        target = target->next, targetIdx++) {
-    if (!(targetObj = target->target)
-        || !(targetPtr = ak_objGet(targetObj)))
-      continue;
-
     tv    = ak_morphInspect_appendTargetView(heap, view, &lastTV);
     lastM = NULL;
 
     targetBufOff = 0;
     baseM        = view->base ? view->base->morphable : NULL;
+
+    /* Preserve the authored target slot even when its URI/object could not
+       be resolved.  Runtime weights and animation indices address slots, not
+       merely the subset of targets with usable POSITION data. */
+    if (!(targetObj = target->target)
+        || !(targetPtr = ak_objGet(targetObj)))
+      continue;
 
     /* polymorphic dispatch on AkMorphableType (kept as enum slot in
        AkObject.type — see controller.h) */
@@ -368,21 +529,23 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
            its corresponding base primitive's vertex count rather
            than a single global anchor. */
         morphable = targetPtr;
-        primIdx   = 0;
 
-        for (; morphable && primIdx < primCount;
-             morphable = morphable->next, primIdx++) {
+        for (primIdx = 0; primIdx < primCount; primIdx++) {
           expectedCount = baseM ? baseM->vertexCount : 0;
 
-          if (!(posInp = ak_morphInspect_findPosition(morphable->input))
+          m = ak_morphInspect_appendMorphable(
+              heap, tv, &lastM,
+              ak_morphInspect_initialWeight(morph, mesh, targetIdx));
+          m->vertexCount = expectedCount;
+          m->bufferOffset = targetBufOff;
+
+          if (!morphable
+              || !(posInp = ak_morphInspect_findPosition(morphable->input))
               || !(acc = posInp->accessor)
               || (expectedCount > 0 && (uint32_t)acc->count != expectedCount))
             goto stepBaseM_a;
           targetVertCount = (uint32_t)acc->count;
 
-          m = ak_morphInspect_appendMorphable(
-              heap, tv, &lastM,
-              ak_morphInspect_initialWeight(morph, mesh, targetIdx));
           m->vertexCount = targetVertCount;
           lastInput      = NULL;
 
@@ -409,6 +572,7 @@ ak_morphInspect(AkGeometry * __restrict baseMesh,
           m->lastInput       = lastInput;
 
 stepBaseM_a:
+          if (morphable) morphable = morphable->next;
           if (baseM) baseM = baseM->next;
         }
         break;
@@ -418,32 +582,68 @@ stepBaseM_a:
         /* DAE-style: pointer-storage payload — wrap holds an AkGeometry*
            in its inline slot. ak_objGetTarget hides the deref. */
         targetGeom = ak_objGetTarget(targetObj);
-        if (!targetGeom
-            || !(gdataObj   = targetGeom->gdata)
-            || gdataObj->type != AK_GEOMETRY_MESH
-            || !(targetMesh = ak_objGet(gdataObj)))
-          continue;
+        targetMesh = NULL;
+        if (targetGeom
+            && (gdataObj = targetGeom->gdata)
+            && gdataObj->type == AK_GEOMETRY_MESH)
+          targetMesh = ak_objGet(gdataObj);
 
-        primIdx = 0;
-        for (targetPrim = targetMesh->primitive;
-             targetPrim && primIdx < primCount;
-             targetPrim = targetPrim->next, primIdx++) {
+        basePrim   = mesh->primitive;
+        targetPrim = targetMesh ? targetMesh->primitive : NULL;
+        for (primIdx = 0; primIdx < primCount; primIdx++) {
+          AkInput *targetInputs;
+
           expectedCount = baseM ? baseM->vertexCount : 0;
-
-          if (!targetPrim->pos
-              || !(acc = targetPrim->pos->accessor)
-              || (expectedCount > 0 && (uint32_t)acc->count != expectedCount))
-            goto stepBaseM_b;
-          targetVertCount = (uint32_t)acc->count;
 
           m = ak_morphInspect_appendMorphable(
               heap, tv, &lastM,
               ak_morphInspect_initialWeight(morph, mesh, targetIdx));
+          m->vertexCount = expectedCount;
+          m->bufferOffset = targetBufOff;
+
+          /* A COLLADA morph target geometry may legally contain only a
+             mesh-wide <vertices> group and no render primitive.  Apply that
+             vertex domain to each base primitive.  If primitives do exist,
+             keep strict ordinal pairing so a missing POSITION leaves an
+             empty placeholder instead of shifting later primitive slots. */
+          targetInputs = targetPrim
+                           ? targetPrim->input
+                           : (targetMesh && !targetMesh->primitive
+                              && targetMesh->vertices
+                                ? targetMesh->vertices->input
+                                : NULL);
+
+          posInp = ak_morphInspect_findPosition(targetInputs);
+          if (!targetPrim
+              && targetMesh
+              && !targetMesh->primitive
+              && posInp
+              && posInp->accessor
+              && expectedCount > 0
+              && posInp->accessor->count != expectedCount) {
+            AkDuplicator *duplicator;
+
+            duplicator = doc && basePrim
+                           ? ak__docDuplicatorFind(doc, basePrim)
+                           : NULL;
+            targetInputs = ak_morphInspect_expandInputs(heap,
+                                                        m,
+                                                        targetInputs,
+                                                        duplicator,
+                                                        expectedCount);
+            posInp = ak_morphInspect_findPosition(targetInputs);
+          }
+
+          if (!posInp || !(acc = posInp->accessor)
+              || (expectedCount > 0 && (uint32_t)acc->count != expectedCount))
+            goto stepBaseM_b;
+          targetVertCount = (uint32_t)acc->count;
+
           m->vertexCount = targetVertCount;
           lastInput      = NULL;
 
           targetStride = 0;
-          for (inp = targetPrim->input; inp; inp = inp->next) {
+          for (inp = targetInputs; inp; inp = inp->next) {
             if (!ak_morphInspect_isDesired(inp->semantic, desiredInputs,
                                            desiredInputsCount))
               continue;
@@ -465,6 +665,8 @@ stepBaseM_a:
           m->lastInput       = lastInput;
 
 stepBaseM_b:
+          if (basePrim) basePrim = basePrim->next;
+          if (targetPrim) targetPrim = targetPrim->next;
           if (baseM) baseM = baseM->next;
         }
         break;
@@ -694,8 +896,12 @@ ak_morphInterleaveInternal(AkGeometry         * __restrict baseMesh,
        count. */
     targetDst = dst;
     for (inspMorphable = targetView->morphable;
-         inspMorphable && (tinp = inspMorphable->input);
+         inspMorphable;
          inspMorphable = inspMorphable->next) {
+      tinp = inspMorphable->input;
+      if (!tinp)
+        continue;
+
       morphDst = targetDst + inspMorphable->bufferOffset;
       mStride  = inspMorphable->stridePerVertex;
       mCount   = inspMorphable->vertexCount;

@@ -15,6 +15,7 @@
  */
 
 #include "postscript.h"
+#include "core/anim_clip.h"
 #include "strpool.h"
 #include "../../xml.h"
 
@@ -236,6 +237,7 @@ dae_postscript(DAEState * __restrict dst) {
     dae14_loadjobs_finish(dst);
 
   dae_retain_refs(dst);
+  dae_fixupAnimationClips(dst);
   dae_apply_bind_materials(dst);
   dae_bind_active_scene(dst);
   rb_walk(dst->inputmap, dae_input_walk);
@@ -644,6 +646,7 @@ dae_attach_orphan_morphs_node(DAEState * __restrict dst, AkNode *node) {
 
       instMorph                  = ak_heap_calloc(dst->heap, node,
                                                   sizeof(*instMorph));
+      ak_setypeid(instMorph, AKT_MORPH_INST);
       instMorph->morph           = morph;
       instMorph->overrideWeights = NULL;
       instGeom->morpher          = instMorph;

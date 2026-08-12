@@ -67,9 +67,10 @@ dae_mesh(DAEState   * __restrict dst,
     } else if (DAE_XML_TAG_EQ8(xml, vertices)) {
       AkVertices *vertices;
 
-      vertices = dae_vert(dst, xml, dst->tempmem);
+      vertices = dae_vert(dst, xml, obj);
       verticesCount++;
       fallbackVertices = verticesCount == 1 ? vertices : NULL;
+      mesh->vertices    = fallbackVertices;
     } else if ((DAE_XML_TAG_EQ(xml, triangles) & (m = AK_TRIANGLES))
             || (DAE_XML_TAG_EQ(xml, trifans)   & (m = AK_TRIANGLE_FAN))
             || (DAE_XML_TAG_EQ(xml, tristrips) & (m = AK_TRIANGLE_STRIP))) {

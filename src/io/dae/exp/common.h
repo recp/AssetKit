@@ -70,6 +70,7 @@ typedef struct DAEExpState {
   RBTree       *morphGeometries;
   RBTree       *morphVertexGeometries;
   RBTree       *morphInstances;
+  RBTree       *animations;
   DAEExpGeometryRef *extraGeometries;
   DAEExpGeometryRef *lastExtraGeometry;
   DAEExpObjectRef *extraMaterials;

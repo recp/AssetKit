@@ -34,6 +34,14 @@ dae_sampler(DAEState * __restrict dst,
   samp = ak_heap_calloc(heap, memp, sizeof(*samp));
   ak_setypeid(samp, AKT_SAMPLER);
 
+  /* Materialize COLLADA sampler schema defaults. */
+  samp->wrapS     = AK_WRAP_MODE_WRAP;
+  samp->wrapT     = AK_WRAP_MODE_WRAP;
+  samp->wrapP     = AK_WRAP_MODE_WRAP;
+  samp->minfilter = AK_MINFILTER_NONE;
+  samp->magfilter = AK_MAGFILTER_NONE;
+  samp->mipfilter = AK_MIPFILTER_NONE;
+
   xml = xml->val;
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, source)) {

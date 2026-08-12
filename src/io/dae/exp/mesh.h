@@ -53,6 +53,10 @@ dae_morph_target_geometry(AkMorphTarget * __restrict target);
 
 AK_HIDE
 bool
+dae_morph_target_vertices_only(AkMorphTarget * __restrict target);
+
+AK_HIDE
+bool
 dae_instance_morph_supported(AkInstanceGeometry * __restrict inst);
 
 AK_HIDE

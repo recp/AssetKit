@@ -191,6 +191,12 @@ typedef struct AkMesh {
   AkFloatArray      *weights;
   uint32_t           primitiveCount;
   AkFloat3           center;
+
+  /* Optional mesh-wide vertex-domain inputs.  A valid source-only geometry
+     may have no indexed primitive, especially when used as a morph target.
+     Keeping this group independent of primitive expansion preserves that
+     data for morph inspection, coordinate conversion, and round-trip export. */
+  AkVertices        *vertices;
 } AkMesh;
 
 typedef struct AkSpline {

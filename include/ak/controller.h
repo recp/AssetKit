@@ -221,6 +221,7 @@ typedef struct AkInstanceMorph {
 typedef struct AkInstanceSkin {
   AkSkin         *skin;
   struct AkNode **overrideJoints; /* override default joints or NULL  */
+  struct AkNode  *overrideSkeleton; /* per-instance skeleton root or NULL */
 } AkInstanceSkin;
 
 /*!

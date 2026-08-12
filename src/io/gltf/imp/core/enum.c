@@ -189,26 +189,26 @@ gltf_type(const json_t * __restrict json) {
 AK_HIDE AkEnum
 gltf_minFilter(int type) {
   switch (type) {
-    case 9728:  return AK_MAGFILTER_NEAREST;       break;
-    case 9729:  return AK_MAGFILTER_LINEAR;        break;
+    case 9728:  return AK_MINFILTER_NEAREST;       break;
+    case 9729:  return AK_MINFILTER_LINEAR;        break;
 
-    case 9984:  return AK_NEAREST_MIPMAP_NEAREST;  break;
-    case 9985:  return AK_LINEAR_MIPMAP_NEAREST;   break;
-    case 9986:  return AK_NEAREST_MIPMAP_LINEAR;   break;
-    case 9987:  return AK_LINEAR_MIPMAP_LINEAR;    break;
+    case 9984:  return AK_MINFILTER_NEAREST_MIPMAP_NEAREST;  break;
+    case 9985:  return AK_MINFILTER_LINEAR_MIPMAP_NEAREST;   break;
+    case 9986:  return AK_MINFILTER_NEAREST_MIPMAP_LINEAR;   break;
+    case 9987:  return AK_MINFILTER_LINEAR_MIPMAP_LINEAR;    break;
     default: break;
   }
-  return 0;
+  return AK_MINFILTER_UNSPECIFIED;
 }
 
 AK_HIDE AkEnum
 gltf_magFilter(int type) {
   switch (type) {
-    case 9728:  return AK_MINFILTER_NEAREST;   break;
-    case 9729:  return AK_MINFILTER_LINEAR;    break;
+    case 9728:  return AK_MAGFILTER_NEAREST;   break;
+    case 9729:  return AK_MAGFILTER_LINEAR;    break;
     default: break;
   }
-  return 0;
+  return AK_MAGFILTER_UNSPECIFIED;
 }
 
 AK_HIDE AkEnum

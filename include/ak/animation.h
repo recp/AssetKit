@@ -108,6 +108,32 @@ typedef struct AkAnimation {
   AkTree             *extra;
 } AkAnimation;
 
+/* One ordered <instance_animation> entry from a COLLADA animation clip.
+ * `animation` is populated after all libraries have been parsed.  Keeping the
+ * original URL as well as the resolved pointer preserves round-trip and
+ * external-reference information for consumers that need it. */
+typedef struct AkAnimationClipMember {
+  struct AkAnimationClipMember *next;
+  AkURL                         source;
+  AkAnimation                  *animation;
+} AkAnimationClipMember;
+
+/* A named animation grouping.  COLLADA supplies these through
+ * <library_animation_clips>; other importers may construct the same model
+ * directly.  Member order is authoring order. */
+typedef struct AkAnimationClip {
+  struct AkAnimationClip *next;
+  AkAnimationClipMember  *members;
+  AkAnimationClipMember  *lastMember;
+  const char             *name;
+  AkTree                 *extra;
+  float                   start;
+  float                   end;
+  uint32_t                memberCount;
+  bool                    hasStart;
+  bool                    hasEnd;
+} AkAnimationClip;
+
 /*!
  * Per-frame transform sequence produced by ak_nodeBakeAnimation().
  * `matrices` is `count × 16` floats, column-major (cglm convention),
@@ -195,6 +221,30 @@ ak_channelTarget(AkContext * __restrict ctx,
   return resolved;
 }
 
+/*!
+ * @brief Enumerate every runtime target represented by one channel.
+ *
+ * Most formats and channel types resolve to exactly one target, matching
+ * ak_channelTarget(). COLLADA morph-weight animation is controller-scoped,
+ * however, so one authored channel must drive every AkInstanceMorph that
+ * instantiates the same AkMorph controller. This helper exposes that fan-out
+ * without changing AkChannel or AkResolvedTarget layout.
+ *
+ * @param ctx       resolution context whose document owns the instances
+ * @param ch        channel to resolve
+ * @param targets   optional caller-owned output array
+ * @param capacity  number of AkResolvedTarget entries available in targets
+ * @return total number of resolved targets; at most capacity entries are
+ *         written. Returns zero for an unresolved channel and SIZE_MAX if
+ *         target enumeration cannot complete.
+ */
+AK_EXPORT
+size_t
+ak_channelResolvedTargets(AkContext       * __restrict ctx,
+                          AkChannel       * __restrict ch,
+                          AkResolvedTarget * __restrict targets,
+                          size_t                        capacity);
+
 #define ak_inputBegin(INP, T) (*(T*)INP->data)
 #define ak_inputEnd(INP, T)   (*(T*)((char*)INP->data + INP->len - sizeof(T)))
 
@@ -262,15 +312,52 @@ ak_animationsCount(struct AkDoc * __restrict doc);
  * @brief Compute the authored time range covered by an animation and its
  *        child animation tree.
  *
- *        The function scans INPUT sampler accessors only; it does not allocate
- *        and it does not resolve channel targets. Returns false when no valid
- *        key time accessor is reachable.
+ *        The function scans validated INPUT sampler accessors and does not
+ *        resolve channel targets. Traversing an arbitrary child-animation
+ *        graph may allocate temporary cycle-detection storage. Returns false
+ *        when no valid finite key-time accessor is reachable.
  */
 AK_EXPORT
 bool
 ak_animationTimeRange(AkAnimation * __restrict anim,
                       float       * __restrict outStart,
                       float       * __restrict outEnd);
+
+/* Sample one animation sampler at an arbitrary finite time. The return value
+ * is its logical per-key OUTPUT component count, including flattened
+ * morph-weight accessors with several scalar rows per input key. Pass
+ * values=NULL/capacity=0 to query it; values are written only when capacity is
+ * sufficient. The evaluator
+ * validates accessor strides/ranges, supports per-key STEP, LINEAR, BEZIER,
+ * and HERMITE (including COLLADA tangent layouts and glTF packed cubic data),
+ * and applies sampler pre/post behaviors. Returns zero for malformed,
+ * unsupported, non-finite, or allocation-failing input. */
+AK_EXPORT
+size_t
+ak_animationSamplerSample(AkAnimSampler * __restrict sampler,
+                          float                       time,
+                          float         * __restrict values,
+                          size_t                      capacity);
+
+/* Return the effective clip interval.  Authored start/end bounds win; a
+ * missing bound is derived from the ordered member animation subtrees. */
+AK_EXPORT
+bool
+ak_animationClipTimeRange(AkAnimationClip * __restrict clip,
+                          float           * __restrict outStart,
+                          float           * __restrict outEnd);
+
+/* Exact clip ownership helpers.  `ak_animationIsClipped` also returns true
+ * for descendants of a referenced animation subtree. */
+AK_EXPORT
+bool
+ak_animationClipContainsAnimation(AkAnimationClip * __restrict clip,
+                                  AkAnimation     * __restrict animation);
+
+AK_EXPORT
+bool
+ak_animationIsClipped(struct AkDoc * __restrict doc,
+                      AkAnimation * __restrict animation);
 
 /*!
  * @brief Convenience over `ak_animationsCompatibleSet` that walks the
@@ -319,12 +406,11 @@ ak_nodeNeedsBaking(struct AkNode * __restrict node);
  *        skew / quat) on a shared time grid and emit a stream of 4×4
  *        local matrices.
  *
- *        Time grid is the union of the involved channels' keyframe
- *        times (no resampling — every original keyframe is preserved
- *        exactly; channels that lack a value at some t are linearly
- *        interpolated). STEP interpolation is honored; BEZIER /
- *        HERMITE fall back to LINEAR (the bake is keyframe-aligned,
- *        so engine-side interpolation can refine the curve).
+ *        The time grid preserves the union of authored key times and inserts
+ *        bounded subdivisions so downstream linear matrix interpolation can
+ *        approximate rotations. Channels are sampled with validated accessor
+ *        strides/ranges and their per-key STEP, LINEAR, BEZIER, or HERMITE
+ *        interpolation, COLLADA/glTF tangent layouts, and pre/post behavior.
  *
  *        Static AkObjects in the chain (those with no targeting
  *        channel) keep their authored values — bind pose is preserved
@@ -333,8 +419,9 @@ ak_nodeNeedsBaking(struct AkNode * __restrict node);
  *        node->transform for bind-pose composition afterwards.
  *
  *        Output AkBakedAnimation is heap-allocated; caller frees with
- *        ak_free(out). Returns NULL when the node has no transform or
- *        no channel targets any element of its chain.
+ *        ak_free(out). Returns NULL when the node has no transform, no channel
+ *        targets its chain, a sampler/accessor is malformed or unsupported,
+ *        fixed safety limits are exceeded, or allocation fails.
  */
 AK_EXPORT
 AkBakedAnimation*
@@ -359,6 +446,21 @@ AkBakedAnimation*
 ak_nodeBakeAnimationForAnimation(struct AkDoc       * __restrict doc,
                                  struct AkNode      * __restrict node,
                                  struct AkAnimation * __restrict animation);
+
+/*! Bake the ordered member animation subtrees of one explicit clip.  Authored
+ *  clip start/end bounds are applied to the returned sample grid. */
+AK_EXPORT
+AkBakedAnimation*
+ak_nodeBakeAnimationForClip(struct AkDoc          * __restrict doc,
+                            struct AkNode         * __restrict node,
+                            AkAnimationClip       * __restrict clip);
+
+/*! Bake the implicit COLLADA clip: every top-level animation/channel not
+ *  owned by an explicit animation clip.  Returns NULL when nothing remains. */
+AK_EXPORT
+AkBakedAnimation*
+ak_nodeBakeUnclippedAnimation(struct AkDoc  * __restrict doc,
+                              struct AkNode * __restrict node);
 
 #ifdef __cplusplus
 }

@@ -45,15 +45,32 @@ gltf_wrap_mode(AkWrapMode wrap) {
 
 static
 int
-gltf_min_filter(AkMinFilter filter) {
+gltf_min_filter(AkMinFilter filter, AkMipFilter mipFilter) {
   switch (filter) {
-    case AK_MINFILTER_NEAREST:      return 9728;
-    case AK_LINEAR_MIPMAP_NEAREST:  return 9985;
-    case AK_LINEAR_MIPMAP_LINEAR:   return 9987;
-    case AK_NEAREST_MIPMAP_NEAREST: return 9984;
-    case AK_NEAREST_MIPMAP_LINEAR:  return 9986;
+    case AK_MINFILTER_LINEAR_MIPMAP_NEAREST:  return 9985;
+    case AK_MINFILTER_LINEAR_MIPMAP_LINEAR:   return 9987;
+    case AK_MINFILTER_NEAREST_MIPMAP_NEAREST: return 9984;
+    case AK_MINFILTER_NEAREST_MIPMAP_LINEAR:  return 9986;
+    case AK_MINFILTER_NONE:
+    case AK_MINFILTER_NEAREST:
+      switch (mipFilter) {
+        case AK_MIPFILTER_NEAREST: return 9984;
+        case AK_MIPFILTER_LINEAR:  return 9986;
+        case AK_MIPFILTER_NONE:
+        case AK_MIPFILTER_UNSPECIFIED:
+        default:                   return 9728;
+      }
     case AK_MINFILTER_LINEAR:
-    default:                        return 9729;
+      switch (mipFilter) {
+        case AK_MIPFILTER_NEAREST: return 9985;
+        case AK_MIPFILTER_LINEAR:  return 9987;
+        case AK_MIPFILTER_NONE:
+        case AK_MIPFILTER_UNSPECIFIED:
+        default:                   return 9729;
+      }
+    case AK_MINFILTER_UNSPECIFIED:
+    case AK_MINFILTER_ANISOTROPIC:
+    default:                        return 0;
   }
 }
 
@@ -61,9 +78,11 @@ static
 int
 gltf_mag_filter(AkMagFilter filter) {
   switch (filter) {
+    case AK_MAGFILTER_NONE:
     case AK_MAGFILTER_NEAREST: return 9728;
-    case AK_MAGFILTER_LINEAR:
-    default:                   return 9729;
+    case AK_MAGFILTER_LINEAR:  return 9729;
+    case AK_MAGFILTER_UNSPECIFIED:
+    default:                   return 0;
   }
 }
 
@@ -1198,8 +1217,8 @@ gltf_write_samplers(GLTFExpWriter * __restrict w,
       comma = true;
     }
 
-    minFilter = gltf_min_filter(sampler->minfilter);
-    if (minFilter != 9729) {
+    minFilter = gltf_min_filter(sampler->minfilter, sampler->mipfilter);
+    if (minFilter != 0) {
       if (comma)
         gltf_w_ch(w, ',');
       gltf_w_key_uint(w,
@@ -1210,7 +1229,7 @@ gltf_write_samplers(GLTFExpWriter * __restrict w,
     }
 
     magFilter = gltf_mag_filter(sampler->magfilter);
-    if (magFilter != 9729) {
+    if (magFilter != 0) {
       if (comma)
         gltf_w_ch(w, ',');
       gltf_w_key_uint(w,

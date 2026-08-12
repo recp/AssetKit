@@ -442,6 +442,66 @@ TEST_IMPL(dae_skin_idref_joints_populate_default_joints) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(dae_skin_instance_skeleton_roots_roundtrip) {
+  AkDoc              *doc, *roundTrip;
+  AkNode             *meshA, *meshB, *rigA, *rigB;
+  AkInstanceGeometry *instA, *instB;
+  char                dirTemplate[PATH_MAX];
+  char               *tmpdir;
+  char                daePath[PATH_MAX];
+  char                outDir[PATH_MAX];
+  char                outDae[PATH_MAX];
+  const char         *tmpBase;
+
+  doc = roundTrip = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+  ASSERT(ak_test_path_join(dirTemplate, sizeof(dirTemplate), tmpBase,
+                           "assetkit-dae-skin-roots-XXXXXX"));
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "roots.dae"));
+  ASSERT(ak_test_path_join(outDir, sizeof(outDir), tmpdir, "out"));
+  ASSERT(ak_test_path_join(outDae, sizeof(outDae), outDir, "roots.dae"));
+  ASSERT(ak_test_write_dae_skin_instance_skeletons(daePath));
+
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_DAE) == AK_OK && doc);
+  meshA = ak_getObjectById(doc, "meshA");
+  meshB = ak_getObjectById(doc, "meshB");
+  rigA  = ak_getObjectById(doc, "rigA");
+  rigB  = ak_getObjectById(doc, "rigB");
+  ASSERT(meshA && meshB && rigA && rigB);
+  instA = meshA->geometry;
+  instB = meshB->geometry;
+  ASSERT(instA && instB && instA->skinner && instB->skinner);
+  ASSERT(instA->skinner->skin == instB->skinner->skin);
+  ASSERT(instA->skinner->overrideSkeleton == rigA);
+  ASSERT(instB->skinner->overrideSkeleton == rigB);
+  ASSERT(instA->skinner->overrideJoints[0]
+         && strcmp(ak_getId(instA->skinner->overrideJoints[0]), "jointA") == 0);
+  ASSERT(instB->skinner->overrideJoints[0]
+         && strcmp(ak_getId(instB->skinner->overrideJoints[0]), "jointB") == 0);
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(ak_test_file_contains(outDae, "<skeleton>#rigA</skeleton>"));
+  ASSERT(ak_test_file_contains(outDae, "<skeleton>#rigB</skeleton>"));
+  ASSERT(ak_load(&roundTrip, outDae, AK_FILE_TYPE_DAE) == AK_OK && roundTrip);
+  meshA = ak_getObjectById(roundTrip, "meshA");
+  meshB = ak_getObjectById(roundTrip, "meshB");
+  ASSERT(meshA && meshB && meshA->geometry && meshB->geometry);
+  ASSERT(meshA->geometry->skinner->overrideSkeleton
+         != meshB->geometry->skinner->overrideSkeleton);
+
+  ak_free(roundTrip);
+  ak_free(doc);
+  unlink(outDae);
+  rmdir(outDir);
+  unlink(daePath);
+  rmdir(tmpdir);
+  TEST_SUCCESS
+}
+
 TEST_IMPL(dae_skin_multi_source_primitives_keep_weight_offsets) {
   AkDoc         *doc;
   AkSkin        *skin;

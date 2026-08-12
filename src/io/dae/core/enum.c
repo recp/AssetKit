@@ -236,7 +236,7 @@ dae_wrap(const xml_t * __restrict xml) {
   AkEnum val;
   long   glenums_len, i;
 
-  if (!xml)
+  if (!xml || !(xml = xmls(xml)))
     return 0;
   
   static const dae_enum glenums[] = {
@@ -265,12 +265,21 @@ dae_minfilter(const xml_t * __restrict xml) {
   AkEnum val;
   long   glenums_len, i;
 
-  if (!xml)
+  if (!xml || !(xml = xmls(xml)))
     return 0;
   
   static const dae_enum glenums[] = {
+    {_s_dae_NONE,        AK_MINFILTER_NONE},
     {_s_dae_NEAREST,     AK_MINFILTER_NEAREST},
     {_s_dae_LINEAR,      AK_MINFILTER_LINEAR},
+    {_s_dae_NEAREST_MIPMAP_NEAREST,
+     AK_MINFILTER_NEAREST_MIPMAP_NEAREST},
+    {_s_dae_LINEAR_MIPMAP_NEAREST,
+     AK_MINFILTER_LINEAR_MIPMAP_NEAREST},
+    {_s_dae_NEAREST_MIPMAP_LINEAR,
+     AK_MINFILTER_NEAREST_MIPMAP_LINEAR},
+    {_s_dae_LINEAR_MIPMAP_LINEAR,
+     AK_MINFILTER_LINEAR_MIPMAP_LINEAR},
     {_s_dae_ANISOTROPIC, AK_MINFILTER_ANISOTROPIC}
   };
 
@@ -292,7 +301,7 @@ dae_mipfilter(const xml_t * __restrict xml) {
   AkEnum val;
   long   glenums_len, i;
 
-  if (!xml)
+  if (!xml || !(xml = xmls(xml)))
     return 0;
   
   static const dae_enum glenums[] = {
@@ -319,10 +328,11 @@ dae_magfilter(const xml_t * __restrict xml) {
   AkEnum val;
   long   glenums_len, i;
 
-  if (!xml)
+  if (!xml || !(xml = xmls(xml)))
     return 0;
   
   static const dae_enum glenums[] = {
+    {_s_dae_NONE,    AK_MAGFILTER_NONE},
     {_s_dae_NEAREST, AK_MAGFILTER_NEAREST},
     {_s_dae_LINEAR,  AK_MAGFILTER_LINEAR}
   };

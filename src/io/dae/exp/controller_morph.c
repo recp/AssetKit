@@ -62,7 +62,9 @@ dae_write_morph_target_source(DAEExpState * __restrict st,
     if (targetIdx > 0)
       dae_w_ch(w, ' ');
 
-    if (target->target && target->target->type == AK_MORPHABLE_MORPHABLE) {
+    if (target->target
+        && (target->target->type == AK_MORPHABLE_MORPHABLE
+            || dae_morph_target_vertices_only(target))) {
       dae_w_morph_target_geom_id(w, morphIdx, targetIdx);
     } else {
       targetGeom = dae_morph_target_geometry(target);

@@ -317,6 +317,7 @@ dae_instance_skin_from_controller(DAEState             * __restrict dst,
   size_t          matrixStride;
   size_t          count;
   size_t          i;
+  AkNode          *skeleton;
 
   if (!dst || !instCtlr || !ctlr || ctlr->type != AK_CONTROLLER_SKIN)
     return NULL;
@@ -376,23 +377,25 @@ dae_instance_skin_from_controller(DAEState             * __restrict dst,
   if (!skin->joints)
     skin->joints = joints;
 
-  /* DAE persists skeleton root as <skeleton> URL on each
-     <instance_controller>; the same skin can be re-used with different
-     skeletons per instance, but for a single-instance setup the first URL
-     is a faithful AkSkin.skeleton hint. Fall back silently when missing —
-     callers default to joints[0]. */
-  if (!skin->skeleton && instCtlr->reserved) {
+  /* COLLADA owns <skeleton> on instance_controller. Keep that binding on
+     AkInstanceSkin so one shared controller can be instantiated against
+     multiple rigs. AkSkin.skeleton remains the compatibility/default hint. */
+  skeleton = NULL;
+  if (instCtlr->reserved) {
     const char *skelUrl = instCtlr->reserved->data;
     void       *resolved;
     if ((resolved = dae_skeleton_scope(dst->doc, skelUrl))
         && ak_typeid(resolved) == AKT_NODE) {
-      skin->skeleton = resolved;
+      skeleton = resolved;
+      if (!skin->skeleton)
+        skin->skeleton = resolved;
     }
   }
 
   instSkin                 = ak_heap_calloc(dst->heap, node, sizeof(*instSkin));
   instSkin->skin           = skin;
   instSkin->overrideJoints = joints;
+  instSkin->overrideSkeleton = skeleton;
 
   return instSkin;
 }
@@ -701,7 +704,17 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
            reads meshTargets to attach AkInstanceMorph when it sees an
            <instance_controller> referring to a morph controller). */
         AK_LIB_PREPEND(doc->lib.morphs, morph, next);
-        rb_insert(dst->meshTargets, baseGeom, morph);
+        /* The orphan-instance tolerance is only valid for a morph whose
+         * authored source is the base geometry itself. Registering a chained
+         * morph here would later flatten morph-on-morph onto an unrelated
+         * <instance_geometry> use of the ultimate base. */
+        {
+          void *directSource;
+
+          directSource = ak_getObjectByUrl(&morphdae->baseGeom);
+          if (directSource && ak_typeid(directSource) == AKT_GEOMETRY)
+            rb_insert(dst->meshTargets, baseGeom, morph);
+        }
 
         break;
       }
@@ -712,6 +725,51 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
   nxt_ctlr:
     ctlr = ctlr->next;
   }
+}
+
+static void
+dae_mark_unsupported_controller_chain(DAEState    * __restrict dst,
+                                      AkNode      * __restrict node,
+                                      AkController * __restrict controller) {
+  AkTreeNode *marker, *tail;
+  const char *id;
+
+  if (!dst || !node)
+    return;
+
+  if (!node->extra)
+    node->extra = ak_heap_calloc(dst->heap, node, sizeof(*node->extra));
+  if (!node->extra)
+    return;
+
+  for (marker = node->extra->chld; marker; marker = marker->next) {
+    if (marker->name
+        && strcmp(marker->name, "assetkit_unsupported_controller_chain") == 0)
+      return;
+  }
+
+  marker = ak_heap_calloc(dst->heap, node->extra, sizeof(*marker));
+  if (!marker)
+    return;
+  marker->name = ak_heap_strdup(dst->heap,
+                                marker,
+                                "assetkit_unsupported_controller_chain");
+  id = controller ? ak_getId(controller) : NULL;
+  marker->val = ak_heap_strdup(dst->heap,
+                               marker,
+                               id ? id : "unknown-controller");
+  marker->parent = node->extra;
+
+  tail = node->extra->chld;
+  if (!tail) {
+    node->extra->chld = marker;
+  } else {
+    while (tail->next)
+      tail = tail->next;
+    tail->next   = marker;
+    marker->prev = tail;
+  }
+  node->extra->chldc++;
 }
 
 AK_HIDE
@@ -730,6 +788,55 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
     instCtlr = item->data;
     ctlr     = ak_instanceObject(&instCtlr->base);
     node     = instCtlr->base.node;
+
+    /* AkInstanceGeometry has one skin and one morph slot. Alternating
+     * skin<->morph chains of depth two are representable; repeated kinds or
+     * deeper controller recursion are not. Do not silently flatten those
+     * chains onto the ultimate geometry because doing so changes morph math
+     * (notably morph-on-morph default and animated weights). */
+    {
+      AkController *outer, *inner;
+      AkURL        *source;
+      void         *resolved;
+
+      outer  = ctlr;
+      source = NULL;
+      if (outer->type == AK_CONTROLLER_SKIN) {
+        AkSkinDAE *skindae;
+        skindae = outer->data ? ak_userData(outer->data) : NULL;
+        source  = skindae ? &skindae->baseGeom : NULL;
+      } else if (outer->type == AK_CONTROLLER_MORPH) {
+        AkMorphDAE *outerMorphDAE;
+        outerMorphDAE = outer->data ? ak_userData(outer->data) : NULL;
+        source        = outerMorphDAE ? &outerMorphDAE->baseGeom : NULL;
+      }
+
+      resolved = source ? ak_getObjectByUrl(source) : NULL;
+      if (resolved && ak_typeid(resolved) == AKT_CONTROLLER) {
+        AkURL *innerSource;
+
+        inner       = resolved;
+        innerSource = NULL;
+        if (inner->type == AK_CONTROLLER_SKIN) {
+          AkSkinDAE *innerSkinDAE;
+          innerSkinDAE = inner->data ? ak_userData(inner->data) : NULL;
+          innerSource  = innerSkinDAE ? &innerSkinDAE->baseGeom : NULL;
+        } else if (inner->type == AK_CONTROLLER_MORPH) {
+          AkMorphDAE *innerMorphDAE;
+          innerMorphDAE = inner->data ? ak_userData(inner->data) : NULL;
+          innerSource   = innerMorphDAE ? &innerMorphDAE->baseGeom : NULL;
+        }
+
+        resolved = innerSource ? ak_getObjectByUrl(innerSource) : NULL;
+        if (inner->type == outer->type
+            || (resolved && ak_typeid(resolved) == AKT_CONTROLLER)) {
+          dae_mark_unsupported_controller_chain(dst, node, outer);
+          item = item->next;
+          continue;
+        }
+      }
+    }
+
     instGeom = ak_heap_calloc(dst->heap, node, sizeof(*instGeom));
     instGeom->base.type = AK_INSTANCE_GEOMETRY;
 
@@ -775,6 +882,7 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
                 if (morph2 && morph2->targetCount > 0) {
                   instMorph = ak_heap_calloc(dst->heap, node,
                                              sizeof(*instMorph));
+                  ak_setypeid(instMorph, AKT_MORPH_INST);
                   instMorph->morph           = morph2;
                   instMorph->overrideWeights = NULL;
                   instGeom->morpher          = instMorph;
@@ -806,6 +914,7 @@ dae_fixup_instctlr(DAEState * __restrict dst) {
 
         if (morph && morph->targetCount > 0) {
           instMorph = ak_heap_calloc(dst->heap, node, sizeof(*instMorph));
+          ak_setypeid(instMorph, AKT_MORPH_INST);
           instMorph->morph           = morph;
           instMorph->overrideWeights = NULL; /* DAE has no per-instance weights;
                                                 animation drives morph.targets   */

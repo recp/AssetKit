@@ -12,6 +12,8 @@ add_executable(assetkit_tests
   src/io/dae/exp/animation.c
   src/io/dae/exp/geometry.c
   src/io/dae/imp/scene.c
+  src/io/dae/imp/animation_clip.c
+  src/io/dae/imp/morph.c
   src/io/dae/imp/skin.c
   src/io/dae/imp/folder.c
   src/io/dae/imp/archive.c

@@ -55,7 +55,9 @@ gltf_skin_skeleton_valid(GLTFExpSkinOut * __restrict out) {
   size_t   count;
   size_t   i;
 
-  skeleton = out && out->skin ? out->skin->skeleton : NULL;
+  skeleton = out && out->instance && out->instance->overrideSkeleton
+               ? out->instance->overrideSkeleton
+               : (out && out->skin ? out->skin->skeleton : NULL);
   if (!skeleton)
     return false;
 
@@ -125,7 +127,12 @@ gltf_write_skin(GLTFExpWriter  * __restrict w,
   if (gltf_skin_skeleton_valid(out)) {
     GLTFExpIndex skeletonIndex;
 
-    skeletonIndex = gltf_node_index(st, out->skin->skeleton);
+    AkNode *skeleton;
+
+    skeleton = out->instance && out->instance->overrideSkeleton
+                 ? out->instance->overrideSkeleton
+                 : out->skin->skeleton;
+    skeletonIndex = gltf_node_index(st, skeleton);
     if (skeletonIndex == GLTF_EXP_INDEX_NONE) {
       w->result = AK_ERR;
       return;

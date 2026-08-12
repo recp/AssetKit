@@ -732,6 +732,9 @@ ak_coord_doc_cvt_geom(AkCoordDocCvt * __restrict st,
           if (mesh->bbox)
             mesh->bbox->isvalid = false;
 
+          if (mesh->vertices)
+            ak_coord_doc_cvt_input(st, mesh->vertices->input);
+
           for (prim = mesh->primitive; prim; prim = prim->next) {
             ak_coordCvtVector(st->oldCoordSys,
                               prim->center,

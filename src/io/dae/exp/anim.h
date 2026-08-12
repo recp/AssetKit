@@ -23,4 +23,8 @@ AK_HIDE
 void
 dae_write_library_animations(DAEExpState * __restrict st);
 
+AK_HIDE
+void
+dae_write_library_animation_clips(DAEExpState * __restrict st);
+
 #endif /* assetkit_dae_exp_anim_h */
