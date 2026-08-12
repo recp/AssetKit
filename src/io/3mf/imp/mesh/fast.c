@@ -1829,24 +1829,34 @@ ak_3mf_fast_parse_vertex_tag(const char *p,
   }
 
   while (ak_3mf_fast_next_attr_id(&p, tagEnd, &attrId, &attrValue)) {
+    const char *after;
+    bool        parsed;
+
+    parsed = false;
     switch (attrId) {
       case AK_3MF_FAST_ATTR_X:
-        (void)ak_str_parse_float_end_fast((char *)attrValue.begin,
-                                          (char *)attrValue.end,
-                                          &out[0]);
-        hasX = true;
+        parsed = ak_str_parse_float_token_fast(attrValue.begin,
+                                               attrValue.end,
+                                               &out[0],
+                                               &after)
+                 && after == attrValue.end;
+        hasX = parsed;
         break;
       case AK_3MF_FAST_ATTR_Y:
-        (void)ak_str_parse_float_end_fast((char *)attrValue.begin,
-                                          (char *)attrValue.end,
-                                          &out[1]);
-        hasY = true;
+        parsed = ak_str_parse_float_token_fast(attrValue.begin,
+                                               attrValue.end,
+                                               &out[1],
+                                               &after)
+                 && after == attrValue.end;
+        hasY = parsed;
         break;
       case AK_3MF_FAST_ATTR_Z:
-        (void)ak_str_parse_float_end_fast((char *)attrValue.begin,
-                                          (char *)attrValue.end,
-                                          &out[2]);
-        hasZ = true;
+        parsed = ak_str_parse_float_token_fast(attrValue.begin,
+                                               attrValue.end,
+                                               &out[2],
+                                               &after)
+                 && after == attrValue.end;
+        hasZ = parsed;
         break;
       default:
         break;

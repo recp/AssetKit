@@ -300,11 +300,15 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
   xml_attr_t          *att;
   AkTransparent       *transp;
   AkOpaque             opaque;
+  bool                 opaqueSpecified;
+  bool                 transparencySpecified;
 
   heap        = dst->heap;
   techn       = ak_heap_calloc(heap, memp, sizeof(*techn));
   techn->type = mattype;
   xml         = xml->val;
+  opaqueSpecified      = false;
+  transparencySpecified = false;
 
   while (xml) {
     if (DAE_XML_TAG_EQ8(xml, emission)) {
@@ -360,10 +364,12 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
         techn->transparent = transp;
       }
       
-      if ((att = DAE_XMLA8(xml, opaque)))
+      if ((att = DAE_XMLA8(xml, opaque))) {
         opaque = dae_opaque(att);
-      else
+        opaqueSpecified = true;
+      } else {
         opaque = AK_OPAQUE_A_ONE;
+      }
       
       techn->transparent->color  = dae_colorOrTex(dst, xml, techn);
       techn->transparent->opaque = opaque;
@@ -393,10 +399,7 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
       }
       techn->transparent->amount = dae_float(dst, xml, techn->transparent,
                                              offsetof(AkTransparent, amount), 1.0f);
-
-      /* some old version of tools e.g. SketchUp exports incorrect */
-      if (ak_opt_get(AK_OPT_BUGFIXES))
-        dae_bugfix_transp(techn->transparent);
+      transparencySpecified = true;
     } else if (DAE_XML_TAG_EQ(xml, index_of_refraction)) {
       /* TODO: assumed 0.0 for COLLADA */
       techn->ior = dae_float(dst, xml, techn,
@@ -406,6 +409,14 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
     }
     xml = xml->next;
   }
+
+  /* Some old tools export incorrect transparency.  Run the compatibility
+     hook after the complete technique is parsed so element order does not
+     hide the transparent color or the authored opaque attribute. */
+  if (transparencySpecified
+      && techn->transparent
+      && ak_opt_get(AK_OPT_BUGFIXES))
+    dae_bugfix_transp(techn->transparent, opaqueSpecified);
 
   return techn;
 }

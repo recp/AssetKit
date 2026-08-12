@@ -210,6 +210,48 @@ test_write_obj_material_files(const char *objPath,
 
 static
 bool
+test_write_transparency_bugfix_dae(const char *path,
+                                   const char *authoringTool,
+                                   const char *opaqueAttr,
+                                   float       amount) {
+  FILE *file;
+  int   written;
+  bool  ok;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  written = fprintf(
+    file,
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+    "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
+    "<asset><contributor><authoring_tool>%s</authoring_tool></contributor>"
+    "<up_axis>Y_UP</up_axis></asset>\n"
+    "<library_effects><effect id=\"effect\"><profile_COMMON>"
+    "<technique sid=\"common\"><lambert>"
+    "<diffuse><color>1 1 1 1</color></diffuse>"
+    "<transparent%s><color>0 0 0 1</color></transparent>"
+    "<transparency><float>%.9g</float></transparency>"
+    "</lambert></technique></profile_COMMON></effect></library_effects>\n"
+    "<library_materials><material id=\"material\" name=\"material\">"
+    "<instance_effect url=\"#effect\"/></material></library_materials>\n"
+    "<library_visual_scenes><visual_scene id=\"Scene\"/></library_visual_scenes>"
+    "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
+    "</COLLADA>\n",
+    authoringTool,
+    opaqueAttr ? opaqueAttr : "",
+    amount);
+
+  ok = written >= 0;
+  if (fclose(file) != 0)
+    ok = false;
+
+  return ok;
+}
+
+static
+bool
 test_write_obj_vertex_alpha(const char *objPath) {
   FILE *file;
 
@@ -340,6 +382,35 @@ test_material_opacity(AkMaterial         *mat,
          && opacity->value[0] < maxValue
          && (opacity->texture != NULL) == textured
          && ak_materialInputFlag(opacity, AK_MATERIAL_INPUT_FLAG_INVERTED) == inverted;
+}
+
+static
+bool
+test_load_material_opacity(const char *path,
+                           bool        bugfixes,
+                           float      *opacityOut,
+                           uint32_t   *flagsOut) {
+  AkDoc      *doc;
+  AkMaterial *mat;
+  uintptr_t   previousBugfixes;
+  AkResult    result;
+  bool        ok;
+
+  doc              = NULL;
+  previousBugfixes = ak_opt_get(AK_OPT_BUGFIXES);
+  ak_opt_set(AK_OPT_BUGFIXES, bugfixes);
+  result = ak_load(&doc, path, AK_FILE_TYPE_AUTO);
+  ak_opt_set(AK_OPT_BUGFIXES, previousBugfixes);
+
+  mat = result == AK_OK ? test_material_by_name(doc, "material") : NULL;
+  ok  = mat && mat->surface && mat->surface->opacity;
+  if (ok && opacityOut)
+    *opacityOut = ak_materialOpacityFactor(mat->surface);
+  if (ok && flagsOut)
+    *flagsOut = mat->surface->flags;
+
+  ak_free(doc);
+  return ok;
 }
 
 TEST_IMPL(material_api) {
@@ -746,6 +817,115 @@ TEST_IMPL(material_dae_adapter) {
     ASSERT(ak_userData(mat) == NULL);
 
   ak_free(doc);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(material_dae_transparency_bugfixes) {
+  char        dirTemplate[PATH_MAX];
+  char        daePath[PATH_MAX];
+  char       *tmpdir;
+  const char *tmpBase;
+  float       opacity;
+  uint32_t    flags;
+
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-material-dae-transparency-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+  snprintf(daePath, sizeof(daePath), "%s/transparency.dae", tmpdir);
+
+  ASSERT(test_write_transparency_bugfix_dae(
+    daePath,
+    "Maya 7.0 | ColladaMaya v2.03b Jul 27 2006 at 18:43:34 | FCollada v1.13",
+    NULL,
+    0.0f));
+  ASSERT(test_load_material_opacity(daePath, false, &opacity, &flags));
+  ASSERT(opacity == 0.0f);
+  ASSERT(flags & AK_MATERIAL_FLAG_ALPHA_BLEND);
+  ASSERT(!(flags & AK_MATERIAL_FLAG_ALPHA_MASK));
+  ASSERT(test_load_material_opacity(daePath, true, &opacity, &flags));
+  ASSERT(opacity == 1.0f);
+  ASSERT(!(flags & (AK_MATERIAL_FLAG_ALPHA_BLEND
+                    | AK_MATERIAL_FLAG_ALPHA_MASK)));
+
+  /* An explicit A_ONE is authored intent, not the exporter sentinel. */
+  ASSERT(test_write_transparency_bugfix_dae(
+    daePath,
+    "Maya 7.0 | ColladaMaya v2.03b Jul 27 2006 at 18:43:34 | FCollada v1.13",
+    " opaque=\"A_ONE\"",
+    0.0f));
+  ASSERT(test_load_material_opacity(daePath, true, &opacity, &flags));
+  ASSERT(opacity == 0.0f);
+  ASSERT(flags & AK_MATERIAL_FLAG_ALPHA_BLEND);
+
+  /* Version prefixes are not the affected producer releases. */
+  ASSERT(test_write_transparency_bugfix_dae(
+    daePath,
+    "Maya 7.0 | ColladaMaya v2.03beta | FCollada v1.13",
+    NULL,
+    0.0f));
+  ASSERT(test_load_material_opacity(daePath, true, &opacity, &flags));
+  ASSERT(opacity == 0.0f);
+  ASSERT(flags & AK_MATERIAL_FLAG_ALPHA_BLEND);
+
+  ASSERT(test_write_transparency_bugfix_dae(
+    daePath,
+    "Maya 7.0 | ColladaMaya v2.03b | FCollada v1.130",
+    NULL,
+    0.0f));
+  ASSERT(test_load_material_opacity(daePath, true, &opacity, &flags));
+  ASSERT(opacity == 0.0f);
+  ASSERT(flags & AK_MATERIAL_FLAG_ALPHA_BLEND);
+
+  /* Omitted A_ONE remains spec-defined for unrelated exporters. */
+  ASSERT(test_write_transparency_bugfix_dae(daePath,
+                                            "Generic DAE Exporter 1.0",
+                                            NULL,
+                                            0.0f));
+  ASSERT(test_load_material_opacity(daePath, true, &opacity, &flags));
+  ASSERT(opacity == 0.0f);
+  ASSERT(flags & AK_MATERIAL_FLAG_ALPHA_BLEND);
+
+  /* ColladaMaya v2.01 / FCollada v1.11 did not emit Seymour's sentinel. */
+  ASSERT(test_write_transparency_bugfix_dae(
+    daePath,
+    "Maya 7.0 | ColladaMaya v2.01 Jun 9 2006 at 16:08:19 | FCollada v1.11",
+    NULL,
+    0.0f));
+  ASSERT(test_load_material_opacity(daePath, true, &opacity, &flags));
+  ASSERT(opacity == 0.0f);
+  ASSERT(flags & AK_MATERIAL_FLAG_ALPHA_BLEND);
+
+  ASSERT(test_write_transparency_bugfix_dae(daePath,
+                                            "Google SketchUp 6.4.112",
+                                            NULL,
+                                            0.25f));
+  ASSERT(test_load_material_opacity(daePath, true, &opacity, &flags));
+  ASSERT(fabsf(opacity - 0.75f) < 0.0001f);
+
+  ASSERT(test_write_transparency_bugfix_dae(daePath,
+                                            "Google SketchUp 7.1.0",
+                                            NULL,
+                                            0.25f));
+  ASSERT(test_load_material_opacity(daePath, true, &opacity, &flags));
+  ASSERT(fabsf(opacity - 0.75f) < 0.0001f);
+
+  ASSERT(test_write_transparency_bugfix_dae(daePath,
+                                            "Google SketchUp 7.1.1",
+                                            NULL,
+                                            0.25f));
+  ASSERT(test_load_material_opacity(daePath, true, &opacity, &flags));
+  ASSERT(fabsf(opacity - 0.25f) < 0.0001f);
+
   unlink(daePath);
   rmdir(tmpdir);
 

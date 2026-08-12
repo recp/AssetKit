@@ -54,28 +54,29 @@ ak_coordCvtAccessorVec3(AkAccessor * __restrict acc,
       || acc->byteOffset > acc->buffer->length)
     return false;
 
-  if (acc->count > 0) {
-    if ((size_t)(acc->count - 1u) > ((size_t)-1 - acc->byteOffset) / stride)
-      return false;
-    last = acc->byteOffset + (size_t)(acc->count - 1u) * stride
-           + sizeof(float) * 3u;
-    if (last > acc->buffer->length)
-      return false;
-  }
+  if ((size_t)(acc->count - 1u) > ((size_t)-1 - acc->byteOffset) / stride)
+    return false;
+  last = acc->byteOffset + (size_t)(acc->count - 1u) * stride;
+  if (last > acc->buffer->length
+      || sizeof(float) * 3u > acc->buffer->length - last)
+    return false;
 
   data = (unsigned char *)acc->buffer->data + acc->byteOffset;
   ak_coordAxisAccessors(oldCoordSys, newCoordSys, &a0, &a1);
 
   for (i = 0; i < acc->count; i++) {
-    float *row;
+    unsigned char *row;
+    float          values[3];
     float  tmp[3];
 
-    row = (float *)(void *)(data + (size_t)i * stride);
+    row = data + (size_t)i * stride;
+    memcpy(values, row, sizeof(values));
     if (noSign) {
-      AK_CVT_VEC_NOSIGN(row);
+      AK_CVT_VEC_NOSIGN(values);
     } else {
-      AK_CVT_VEC(row);
+      AK_CVT_VEC(values);
     }
+    memcpy(row, values, sizeof(values));
   }
 
   return true;

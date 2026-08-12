@@ -657,11 +657,11 @@ ak_str_parse_float_fast(char    * __restrict p,
   }
 
   if ((!end || p < end) && (*p == 'e' || *p == 'E')) {
-    char *expBegin;
+    char *expMark;
     bool  expNeg, expFound;
 
+    expMark = p;
     p++;
-    expBegin = p;
     expNeg   = false;
     if ((!end || p < end) && (*p == '-' || *p == '+'))
       expNeg = *p++ == '-';
@@ -678,7 +678,7 @@ ak_str_parse_float_fast(char    * __restrict p,
     if (expFound)
       value *= ak_str_pow10if_fast(expNeg ? -exp : exp);
     else
-      p = expBegin;
+      p = expMark;
   }
 
   *dest = neg ? -value : value;
@@ -736,11 +736,11 @@ ak_str_parse_float_end_fast(char    * __restrict p,
   }
 
   if (p < end && (*p == 'e' || *p == 'E')) {
-    char *expBegin;
+    char *expMark;
     bool  expNeg, expFound;
 
+    expMark = p;
     p++;
-    expBegin = p;
     expNeg   = false;
     if (p < end && (*p == '-' || *p == '+'))
       expNeg = *p++ == '-';
@@ -757,7 +757,7 @@ ak_str_parse_float_end_fast(char    * __restrict p,
     if (expFound)
       value *= ak_str_pow10if_fast(expNeg ? -exp : exp);
     else
-      p = expBegin;
+      p = expMark;
   }
 
   *dest = neg ? -value : value;
@@ -794,7 +794,9 @@ ak_str_parse_float_token_fast(const char  * __restrict p,
     return false;
 
   parsed = ak_str_parse_float_end_fast((char *)p, (char *)end, dest);
-  if ((const char *)parsed <= p)
+  if ((const char *)parsed <= p
+      || ((const char *)parsed < end
+          && !ak_str_sep_fast(*parsed)))
     return false;
 
   *afterToken = parsed;
@@ -1203,7 +1205,20 @@ ak_str_parse_float_array_fast(char     * __restrict src,
       tok = ak_str_skip_sep_fast(tok, end, lineOnly);
       if (tok >= end || (lineOnly && (*tok == '\n' || *tok == '\r')))
         break;
-      tok = ak_str_parse_float_end_fast(tok, end, out++);
+      {
+        char    *begin;
+        AkFloat *value;
+
+        begin = tok;
+        value = out++;
+        tok = ak_str_parse_float_end_fast(tok, end, value);
+        if (tok < end && !ak_str_sep_fast(*tok)) {
+          *value = 0.0f;
+          tok = begin;
+          while (tok < end && !ak_str_sep_fast(*tok))
+            tok++;
+        }
+      }
       rem--;
     } while (rem > 0ul && tok < end);
   } else {
@@ -1211,7 +1226,20 @@ ak_str_parse_float_array_fast(char     * __restrict src,
       tok = ak_str_skip_sep_fast(tok, NULL, lineOnly);
       if (*tok == '\0' || (lineOnly && (*tok == '\n' || *tok == '\r')))
         break;
-      tok = ak_str_parse_float_fast(tok, NULL, out++);
+      {
+        char    *begin;
+        AkFloat *value;
+
+        begin = tok;
+        value = out++;
+        tok = ak_str_parse_float_fast(tok, NULL, value);
+        if (*tok && !ak_str_sep_fast(*tok)) {
+          *value = 0.0f;
+          tok = begin;
+          while (*tok && !ak_str_sep_fast(*tok))
+            tok++;
+        }
+      }
       rem--;
     } while (rem > 0ul
              && *tok != '\0'

@@ -60,8 +60,16 @@ ak_accessor_dup(AkAccessor *oldacc) {
   AkHeap      *heap;
   AkAccessor  *acc;
 
+  if (!oldacc)
+    return NULL;
+
   heap = ak_heap_getheap(oldacc);
+  if (!heap)
+    return NULL;
+
   acc  = ak_heap_alloc(heap, ak_mem_parent(oldacc), sizeof(*acc));
+  if (!acc)
+    return NULL;
 
   memcpy(acc, oldacc, sizeof(*oldacc));
   ak_setypeid(acc, AKT_ACCESSOR);
@@ -153,6 +161,9 @@ ak_accessorAsFloat(AkAccessor * __restrict acc,
     return 0;
 
   comps  = acc->componentCount;
+  if (comps == 0u
+      || (size_t)acc->count > (size_t)-1 / comps)
+    return 0;
   needed = (size_t)comps * acc->count;
   if (outCapacity < needed) return 0;
 
@@ -164,20 +175,34 @@ ak_accessorAsFloat(AkAccessor * __restrict acc,
   srcType           = acc->componentType;
   srcNorm           = acc->normalized;
   perComponentBytes = acc->bytesPerComponent;
+  if (perComponentBytes == 0u
+      || (size_t)comps > (size_t)-1 / perComponentBytes)
+    return 0;
   perItemBytes      = acc->byteStride
                        ? acc->byteStride
                        : (size_t)comps * perComponentBytes;
+  if (perItemBytes < (size_t)comps * perComponentBytes
+      || acc->byteOffset > acc->buffer->length
+      || (size_t)(acc->count - 1u)
+           > ((size_t)-1 - acc->byteOffset) / perItemBytes) {
+    return 0;
+  }
+  {
+    size_t last;
+    size_t rowBytes;
+
+    last = acc->byteOffset + (size_t)(acc->count - 1u) * perItemBytes;
+    rowBytes = (size_t)comps * perComponentBytes;
+    if (last > acc->buffer->length
+        || rowBytes > acc->buffer->length - last)
+      return 0;
+  }
   src               = (char *)acc->buffer->data + acc->byteOffset;
 
   if (srcType == AKT_FLOAT
       && !srcNorm
       && perComponentBytes == sizeof(float)) {
     size_t rowBytes = (size_t)comps * sizeof(float);
-    if (perItemBytes < rowBytes
-        || acc->byteOffset + (size_t)(acc->count - 1) * perItemBytes + rowBytes
-           > acc->buffer->length)
-      goto generic_convert;
-
     if (perItemBytes == rowBytes) {
       memcpy(out, src, rowBytes * acc->count);
       return needed;
@@ -189,7 +214,6 @@ ak_accessorAsFloat(AkAccessor * __restrict acc,
     return needed;
   }
 
-generic_convert:
   for (v = 0; v < acc->count; v++) {
     char *vsrc = src + (size_t)v * perItemBytes;
     for (c = 0; c < comps; c++) {

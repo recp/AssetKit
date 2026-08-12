@@ -15,6 +15,7 @@
  */
 
 #include "../common.h"
+#include <float.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -274,18 +275,18 @@ ak_skinReadWeight(const char *src, AkTypeId componentType, uint32_t k) {
 AK_INLINE
 void
 ak_skinNormalizeWeights(float * __restrict weights, uint32_t maxJoint) {
-  float    sum;
-  float    inv;
+  double   sum;
+  double   inv;
   uint32_t k;
 
-  sum = 0.0f;
+  sum = 0.0;
   for (k = 0; k < maxJoint; k++)
-    sum += weights[k];
+    sum += (double)weights[k];
 
-  if (sum > 0.0f && isfinite(sum)) {
-    inv = 1.0f / sum;
+  if (sum > 0.0 && isfinite(sum)) {
+    inv = 1.0 / sum;
     for (k = 0; k < maxJoint; k++)
-      weights[k] *= inv;
+      weights[k] = (float)((double)weights[k] * inv);
   }
 }
 
@@ -316,7 +317,10 @@ ak_skinKeepInfluence(uint16_t * __restrict joints,
 
   for (k = 0; k < maxJoint; k++) {
     if (weights[k] > 0.0f && joints[k] == joint) {
-      weights[k] += weight;
+      double combined;
+
+      combined = (double)weights[k] + (double)weight;
+      weights[k] = combined > (double)FLT_MAX ? FLT_MAX : (float)combined;
       return;
     }
   }

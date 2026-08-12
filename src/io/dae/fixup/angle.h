@@ -25,6 +25,10 @@ dae_fixAngles(DAEState * __restrict dst);
 
 AK_HIDE
 void
+dae_fixPartialRotateAngles(DAEState * __restrict dst);
+
+AK_HIDE
+void
 dae_cvtAngles(AkAccessor * __restrict acc,
               AkBuffer   * __restrict buff,
               const char * __restrict paramName);

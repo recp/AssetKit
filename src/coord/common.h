@@ -141,4 +141,16 @@ ak_coordCvtNodeTransformsTo(AkDoc      * __restrict doc,
                             AkCoordSys * __restrict oldCoordSys,
                             AkCoordSys * __restrict newCoordSys);
 
+AK_HIDE
+void
+ak_coordCvtAnimationsTo(AkDoc      * __restrict doc,
+                        AkCoordSys * __restrict oldCoordSys,
+                        AkCoordSys * __restrict newCoordSys);
+
+AK_HIDE
+void
+ak_coordCvtSkinsTo(AkDoc      * __restrict doc,
+                   AkCoordSys * __restrict oldCoordSys,
+                   AkCoordSys * __restrict newCoordSys);
+
 #endif /* ak_coord_common_h */

@@ -111,6 +111,20 @@ dae_skin(DAEState * __restrict dst,
           } else {
             AkURL *url;
             inp->indexOffset = xmla_u32(DAE_XMLA8(xwei, offset), 0);
+
+            /*
+             * <v> is interleaved by input offsets, which may be sparse and
+             * may include inputs this importer does not otherwise consume.
+             * Keep the representable stride saturated for a malformed
+             * UINT32_MAX offset instead of wrapping offset + 1 to zero.
+             */
+            if (inp->indexOffset == UINT32_MAX) {
+              skindae->inputCount = UINT32_MAX;
+            } else if (skindae->inputCount != UINT32_MAX
+                       && inp->indexOffset + 1u > skindae->inputCount) {
+              skindae->inputCount = inp->indexOffset + 1u;
+            }
+
             url              = DAE_URL_FROM(dst, xwei, source, memp);
 
             if (inp->semantic == AK_INPUT_JOINT) {
@@ -125,13 +139,14 @@ dae_skin(DAEState * __restrict dst,
               ak_free(inp);
             }
             
-            skindae->inputCount++;
           }
         } else if (DAE_XML_TAG_EQ8(xwei, vcount) && (sval = xmls(xwei))) {
           size_t    count, sz, i;
           uint32_t *pSum, *pCount, next;
           
-          if ((count = xml_strtok_count_fast(sval, NULL)) > 0) {
+          if ((count = xml_strtok_count_fast(sval, NULL)) > 0
+              && count <= ULONG_MAX
+              && count <= SIZE_MAX / sizeof(uint32_t) / 2u) {
             sz = count * sizeof(uint32_t);
             
             /*
@@ -143,18 +158,24 @@ dae_skin(DAEState * __restrict dst,
              
              */
             
-            wei->counts  = pCount = ak_heap_alloc(heap, wei, 2 * sz);
-            
-            /* must equal to position count, we may fix this in postscript */
-            wei->nVertex = count;
-            
-            xml_strtoui_fast(sval, pCount, (unsigned long)count);
-            
-            /* calculate sum */
-            pSum = wei->counts + count;
-            for (i = next = 0; i < count; i++) {
-              pSum[i] = next;
-              next    = pCount[i] + next;
+            pCount = ak_heap_alloc(heap, wei, 2u * sz);
+            if (pCount) {
+              wei->counts = pCount;
+
+              /* must equal to position count, we may fix this in postscript */
+              wei->nVertex = count;
+
+              xml_strtoui_fast(sval, pCount, (unsigned long)count);
+
+              /* calculate sum */
+              pSum = wei->counts + count;
+              for (i = next = 0; i < count; i++) {
+                pSum[i] = next;
+                if (pCount[i] > UINT32_MAX - next)
+                  next = UINT32_MAX;
+                else
+                  next += pCount[i];
+              }
             }
           }
         } else if (DAE_XML_TAG_EQ8(xwei, v) && (sval = xmls(xwei))) {

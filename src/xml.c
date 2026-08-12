@@ -572,8 +572,17 @@ xml_strtok_count_fast(const xml_t  * __restrict xobj,
   p         = v;
 
   do {
-    count     += ak_strtok_count_fast(p->val, p->valsize, &l);
-    len_total += l;
+    size_t nodeCount;
+
+    nodeCount = ak_strtok_count_fast(p->val, p->valsize, &l);
+    if (nodeCount > SIZE_MAX - count)
+      count = SIZE_MAX;
+    else
+      count += nodeCount;
+    if (l > SIZE_MAX - len_total)
+      len_total = SIZE_MAX;
+    else
+      len_total += l;
   } while ((p = xmls_next(p)));
 
   if (len)
@@ -591,10 +600,17 @@ xml_strtof_arrayL(AkHeap         * __restrict heap,
   AkFloatArrayL *arr;
   unsigned long  count;
 
-  if ((count = (unsigned long)xml_strtok_count_fast(xobj, NULL)) == 0)
+  if (array)
+    *array = NULL;
+
+  if (!array
+      || (count = (unsigned long)xml_strtok_count_fast(xobj, NULL)) == 0
+      || (size_t)count > (SIZE_MAX - sizeof(*arr)) / sizeof(AkFloat))
     return AK_ERR;
 
   arr = ak_heap_alloc(heap, memp, sizeof(*arr) + sizeof(AkFloat) * count);
+  if (!arr)
+    return AK_ERR;
   xml_strtof_fast(xobj, arr->items, count);
 
   arr->count = count;
@@ -627,10 +643,17 @@ xml_strtoui_array_max(AkHeap       * __restrict heap,
   if (maxValue)
     *maxValue = 0;
 
-  if ((count = (unsigned long)xml_strtok_count_fast(xobj, NULL)) == 0)
+  if (array)
+    *array = NULL;
+
+  if (!array
+      || (count = (unsigned long)xml_strtok_count_fast(xobj, NULL)) == 0
+      || (size_t)count > (SIZE_MAX - sizeof(*arr)) / sizeof(AkUInt))
     return AK_ERR;
 
   arr = ak_heap_alloc(heap, memp, sizeof(*arr) + sizeof(AkUInt) * count);
+  if (!arr)
+    return AK_ERR;
   xml_strtoui_fast_max(xobj, arr->items, count, maxValue);
 
   arr->count = count;
@@ -664,10 +687,17 @@ xml_strtoui_arrayN_max(AkHeap       * __restrict heap,
   if (maxValue)
     *maxValue = 0;
 
-  if (count == 0)
+  if (array)
+    *array = NULL;
+
+  if (!array
+      || count == 0
+      || (size_t)count > (SIZE_MAX - sizeof(*arr)) / sizeof(AkUInt))
     return AK_ERR;
 
   arr = ak_heap_alloc(heap, memp, sizeof(*arr) + sizeof(AkUInt) * count);
+  if (!arr)
+    return AK_ERR;
   rem = xml_strtoui_fast_max(xobj, arr->items, count, maxValue);
   if (rem != 0) {
     ak_free(arr);

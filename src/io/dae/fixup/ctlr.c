@@ -83,16 +83,34 @@ ak_daeReadSkinWeight(AkAccessor * __restrict acc,
                      uint32_t                idx) {
   AkBuffer *buff;
   char     *base;
-  size_t    stride;
+  size_t    rowBytes, stride, offset;
   float     val;
 
-  if (!acc || idx >= acc->count || !(buff = acc->buffer) || !buff->data)
+  if (!acc
+      || idx >= acc->count
+      || acc->componentType != AKT_FLOAT
+      || acc->normalized
+      || acc->bytesPerComponent != sizeof(float)
+      || acc->componentCount == 0u
+      || !(buff = acc->buffer)
+      || !buff->data)
     return 0.0f;
 
-  stride = acc->byteStride ? acc->byteStride : sizeof(float);
-  base   = (char *)buff->data + acc->byteOffset;
+  if ((size_t)acc->componentCount > (size_t)-1 / sizeof(float))
+    return 0.0f;
+  rowBytes = (size_t)acc->componentCount * sizeof(float);
+  stride   = acc->byteStride ? acc->byteStride : rowBytes;
+  if (stride < rowBytes
+      || acc->byteOffset > buff->length
+      || (size_t)idx > ((size_t)-1 - acc->byteOffset) / stride)
+    return 0.0f;
 
-  memcpy(&val, base + (size_t)idx * stride, sizeof(val));
+  offset = acc->byteOffset + (size_t)idx * stride;
+  if (offset > buff->length || sizeof(float) > buff->length - offset)
+    return 0.0f;
+
+  base = buff->data;
+  memcpy(&val, base + offset, sizeof(val));
 
   return val;
 }
@@ -305,7 +323,7 @@ dae_instance_skin_from_controller(DAEState             * __restrict dst,
 
   skin    = ctlr->data;
   skindae = skin ? ak_userData(skin) : NULL;
-  if (!skin || !skindae)
+  if (!skin || !skindae || !skin->weights || skin->nPrims == 0u)
     return NULL;
 
   jointsInp = skindae->joints.joints;
@@ -395,7 +413,9 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
         AkGeometry *geom;
 
         skin    = ctlr->data;
-        skindae = ak_userData(skin);
+        skindae = skin ? ak_userData(skin) : NULL;
+        if (!skindae)
+          goto nxt_ctlr;
         if (!(geom = ak_baseGeometry(&skindae->baseGeom)))
           goto nxt_ctlr;
 
@@ -404,6 +424,7 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
             AkMesh          *mesh;
             AkMeshPrimitive *prim;
             AkBoneWeights   *intrWeights; /* interleaved */
+            AkBoneWeights  **fixedWeights;
             AkInput         *jointswInp,  *weightsInp;
             AkAccessor      *weightsAcc;
             uint32_t         primIndex;
@@ -411,22 +432,28 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
             mesh          = ak_objGet(geom->gdata);
             prim          = mesh->primitive;
             intrWeights   = (void *)skin->weights;
+            fixedWeights  = NULL;
             if (!intrWeights || !intrWeights->counts)
-              goto nxt_ctlr;
+              goto invalid_skin_weights;
 
             primIndex     = 0;
 
             jointswInp  = skindae->weights.joints;
             weightsInp  = skindae->weights.weights;
             if (!jointswInp || !weightsInp || !(weightsAcc = weightsInp->accessor))
-              goto nxt_ctlr;
+              goto invalid_skin_weights;
 
-            skin->weights = ak_heap_calloc(dst->heap,
-                                           ctlr->data,
-                                           sizeof(void *)
-                                           * mesh->primitiveCount);
+            if (mesh->primitiveCount == 0u
+                || (size_t)mesh->primitiveCount
+                     > SIZE_MAX / sizeof(*fixedWeights))
+              goto invalid_skin_weights;
 
-            flist_sp_insert(&mesh->skins, skin);
+            fixedWeights = ak_heap_calloc(dst->heap,
+                                          ctlr->data,
+                                          sizeof(*fixedWeights)
+                                          * (size_t)mesh->primitiveCount);
+            if (!fixedWeights)
+              goto invalid_skin_weights;
 
             while (prim) {
               AkAccessor    *posAcc;
@@ -435,27 +462,39 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
               size_t         count;
               size_t         baseVertexOffset;
 
-              if (!prim->pos || !(posAcc = prim->pos->accessor)) {
-                primIndex++;
-                prim = prim->next;
-                continue;
-              }
+              if (primIndex >= mesh->primitiveCount
+                  || !prim->pos
+                  || !(posAcc = prim->pos->accessor))
+                goto invalid_skin_weights;
 
               dupl  = ak__docDuplicatorFind(doc, prim);
               count = 0;
-              if (dupl && dupl->range)
+              if (dupl && dupl->range) {
+                if (dupl->bufCount > SIZE_MAX - dupl->dupCount)
+                  goto invalid_skin_weights;
                 count = dupl->bufCount + dupl->dupCount;
+              }
               if (count == 0)
                 count = posAcc->count;
+              if (count == 0
+                  || count > SIZE_MAX / sizeof(*weights->counts)
+                  || count > SIZE_MAX / sizeof(*weights->indexes))
+                goto invalid_skin_weights;
 
-              weights = ak_heap_calloc(dst->heap, ctlr->data, sizeof(*weights));
+              weights = ak_heap_calloc(dst->heap,
+                                       fixedWeights,
+                                       sizeof(*weights));
+              if (!weights)
+                goto invalid_skin_weights;
 
               weights->counts  = ak_heap_calloc(dst->heap,
-                                                ctlr->data,
+                                                weights,
                                                 count * sizeof(uint32_t));
               weights->indexes = ak_heap_calloc(dst->heap,
-                                                ctlr->data,
+                                                weights,
                                                 count * sizeof(size_t));
+              if (!weights->counts || !weights->indexes)
+                goto invalid_skin_weights;
 
               weights->nVertex = count;
               if (dupl
@@ -467,27 +506,41 @@ dae_fixup_ctlr(DAEState * __restrict dst) {
                 baseVertexOffset = dae_skin_weight_vertex_offset(mesh, prim);
               }
 
-              ak_fixBoneWeights(dst->heap,
-                                posAcc->count,
-                                baseVertexOffset,
-                                skin,
-                                dupl,
-                                intrWeights,
-                                weights,
-                                weightsAcc,
-                                jointswInp->indexOffset,
-                                weightsInp->indexOffset);
+              if (ak_fixBoneWeights(dst->heap,
+                                    posAcc->count,
+                                    baseVertexOffset,
+                                    skin,
+                                    dupl,
+                                    intrWeights,
+                                    weights,
+                                    weightsAcc,
+                                    jointswInp->indexOffset,
+                                    weightsInp->indexOffset) != AK_OK)
+                goto invalid_skin_weights;
 
-              skin->weights[primIndex] = weights;
+              fixedWeights[primIndex] = weights;
               primIndex++;
               prim = prim->next;
             }
 
+            if (primIndex != mesh->primitiveCount)
+              goto invalid_skin_weights;
+
+            skin->weights = fixedWeights;
             skin->nPrims = primIndex;
 
             ak_free(intrWeights);
+            flist_sp_insert(&mesh->skins, skin);
             AK_LIB_PREPEND(doc->lib.skins, skin, next);
 
+            break;
+
+          invalid_skin_weights:
+            ak_free(fixedWeights);
+            ak_free(intrWeights);
+            skin->weights    = NULL;
+            skin->nPrims     = 0;
+            skin->nMaxJoints = 0;
             break;
           }
           default:
@@ -808,20 +861,22 @@ ak_fixBoneWeights(AkHeap        *heap,
   AkIndexArray *dupc, *dupcsum;
   AkUIntArray  *v;
   uint32_t     *pv, *pOldCountSum, *old;
-  size_t       *wi, vc, d, s, pno, poo, nwsum, newidx, next, tmp;
-  uint32_t     *nj, i, j, k, vcount, viStride, widx;
-  bool          useDupl;
+  size_t       *wi, vc, d, s, pno, poo, newidx, next, tmp;
+  size_t        i, j, k, oldIndex, oldOffset;
+  uint32_t     *nj, vcount, viStride, widx;
+  bool          dispatched, useDupl;
 
   if (!skin || !intrWeights || !weights || !weightsAcc)
     return AK_ERR;
 
   skindae  = ak_userData(skin);
+  if (!skindae)
+    return AK_ERR;
   dupc     = NULL;
   dupcsum  = NULL;
   useDupl  = false;
   nj       = weights->counts;
   wi       = weights->indexes;
-  nwsum    = 0;
 
   if (duplicator && duplicator->range) {
     dupc    = duplicator->range->dupc;
@@ -857,25 +912,25 @@ ak_fixBoneWeights(AkHeap        *heap,
     switch (dupc->componentType) {                                           \
       case AKT_UBYTE:                                                        \
         switch (dupcsum->componentType) {                                    \
-          case AKT_UBYTE:  OP(uint8_t, uint8_t);   break;                    \
-          case AKT_USHORT: OP(uint8_t, uint16_t);  break;                    \
-          case AKT_UINT:   OP(uint8_t, AkUInt);    break;                    \
+          case AKT_UBYTE:  dispatched = true; OP(uint8_t, uint8_t);  break;  \
+          case AKT_USHORT: dispatched = true; OP(uint8_t, uint16_t); break;  \
+          case AKT_UINT:   dispatched = true; OP(uint8_t, AkUInt);   break;  \
           default: break;                                                    \
         }                                                                    \
         break;                                                               \
       case AKT_USHORT:                                                       \
         switch (dupcsum->componentType) {                                    \
-          case AKT_UBYTE:  OP(uint16_t, uint8_t);  break;                    \
-          case AKT_USHORT: OP(uint16_t, uint16_t); break;                    \
-          case AKT_UINT:   OP(uint16_t, AkUInt);   break;                    \
+          case AKT_UBYTE:  dispatched = true; OP(uint16_t, uint8_t);  break; \
+          case AKT_USHORT: dispatched = true; OP(uint16_t, uint16_t); break; \
+          case AKT_UINT:   dispatched = true; OP(uint16_t, AkUInt);   break; \
           default: break;                                                    \
         }                                                                    \
         break;                                                               \
       case AKT_UINT:                                                         \
         switch (dupcsum->componentType) {                                    \
-          case AKT_UBYTE:  OP(AkUInt, uint8_t);    break;                    \
-          case AKT_USHORT: OP(AkUInt, uint16_t);   break;                    \
-          case AKT_UINT:   OP(AkUInt, AkUInt);     break;                    \
+          case AKT_UBYTE:  dispatched = true; OP(AkUInt, uint8_t);  break;   \
+          case AKT_USHORT: dispatched = true; OP(AkUInt, uint16_t); break;   \
+          case AKT_UINT:   dispatched = true; OP(AkUInt, AkUInt);   break;   \
           default: break;                                                    \
         }                                                                    \
         break;                                                               \
@@ -896,20 +951,26 @@ ak_fixBoneWeights(AkHeap        *heap,
                                                                              \
       pno = dupcItems_[3 * i];                                               \
       d   = dupcItems_[3 * i + 1];                                           \
-      if (pno >= dupcsum->count)                                             \
+      if (pno >= dupcsum->count || d == SIZE_MAX)                            \
         continue;                                                            \
                                                                              \
       s      = sumItems_[pno];                                               \
+      if (poo - 1u > SIZE_MAX - baseVertexOffset)                            \
+        continue;                                                            \
+      oldIndex = baseVertexOffset + poo - 1u;                                \
       vcount = ak_daeSafeWeightCount(intrWeights, v, viStride,               \
-                                     baseVertexOffset + poo - 1);            \
+                                     oldIndex);                              \
+      if (vcount > skin->nMaxJoints)                                         \
+        skin->nMaxJoints = vcount;                                           \
                                                                              \
       for (j = 0; j <= d; j++) {                                             \
+        if (j > SIZE_MAX - pno || pno + j > SIZE_MAX - s)                    \
+          break;                                                             \
         newidx = pno + j + s;                                                \
         if (newidx >= weights->nVertex)                                      \
           continue;                                                          \
         wi[newidx] = vcount;                                                 \
         nj[newidx] = vcount;                                                 \
-        nwsum     += vcount;                                                 \
       }                                                                      \
     }                                                                        \
   } while (0)
@@ -926,45 +987,58 @@ ak_fixBoneWeights(AkHeap        *heap,
         continue;                                                            \
       pno = dupcItems_[3 * i];                                               \
       d   = dupcItems_[3 * i + 1];                                           \
-      if (pno >= dupcsum->count)                                             \
+      if (pno >= dupcsum->count || d == SIZE_MAX)                            \
         continue;                                                            \
                                                                              \
       s      = sumItems_[pno];                                               \
+      if (poo - 1u > SIZE_MAX - baseVertexOffset)                            \
+        continue;                                                            \
+      oldIndex = baseVertexOffset + poo - 1u;                                \
       vcount = ak_daeSafeWeightCount(intrWeights, v, viStride,               \
-                                     baseVertexOffset + poo - 1);            \
-      old    = &pv[pOldCountSum[baseVertexOffset + poo - 1] * viStride];     \
+                                     oldIndex);                              \
+      if (vcount == 0)                                                       \
+        continue;                                                            \
+      oldOffset = (size_t)pOldCountSum[oldIndex] * (size_t)viStride;          \
+      old       = &pv[oldOffset];                                            \
                                                                              \
       for (j = 0; j <= d; j++) {                                             \
+        if (j > SIZE_MAX - pno || pno + j > SIZE_MAX - s)                    \
+          break;                                                             \
         tmp = pno + j + s;                                                   \
         if (tmp >= weights->nVertex)                                         \
           continue;                                                          \
                                                                              \
         newidx = wi[tmp];                                                    \
+        if (newidx > weights->nWeights                                      \
+            || (size_t)vcount > weights->nWeights - newidx)                 \
+          continue;                                                          \
                                                                              \
         for (k = 0; k < vcount; k++) {                                       \
-          widx       = old[k * viStride + weightsOffset];                    \
+          widx       = old[k * (size_t)viStride + weightsOffset];            \
           iw         = &w[newidx + k];                                       \
-          iw->joint  = old[k * viStride + jointOffset];                      \
+          iw->joint  = old[k * (size_t)viStride + jointOffset];              \
           iw->weight = ak_daeReadSkinWeight(weightsAcc, widx);               \
         }                                                                    \
-                                                                             \
-        nwsum += vcount;                                                     \
       }                                                                      \
     }                                                                        \
   } while (0)
 
   /* copy to new location and duplicate if needed */
   if (useDupl) {
+    dispatched = false;
     AK_CTLR_FIX_DISPATCH(AK_CTLR_FIX_COUNT_PASS);
+    if (!dispatched)
+      return AK_ERR;
   } else {
     for (i = 0; i < vc; i++) {
       vcount = ak_daeSafeWeightCount(intrWeights,
                                      v,
                                      viStride,
                                      baseVertexOffset + i);
+      if (vcount > skin->nMaxJoints)
+        skin->nMaxJoints = vcount;
       wi[i]  = vcount;
       nj[i]  = vcount;
-      nwsum += vcount;
     }
   }
 
@@ -972,32 +1046,46 @@ ak_fixBoneWeights(AkHeap        *heap,
   for (next = j = 0; j < weights->nVertex; j++) {
     tmp   = wi[j];
     wi[j] = next;
-    next  = tmp + next;
+    if (tmp > SIZE_MAX - next)
+      return AK_ERR;
+    next += tmp;
   }
 
   /* now we know the size of arrays: weights, pJointsCount, npWeightsIndex */
-  w     = nwsum > 0 ? ak_heap_alloc(heap, weights, sizeof(*w) * nwsum) : NULL;
-  nwsum = 0;
+  if (next > SIZE_MAX / sizeof(*w))
+    return AK_ERR;
+  weights->nWeights = next;
+  w = next > 0 ? ak_heap_alloc(heap, weights, sizeof(*w) * next) : NULL;
+  if (next > 0 && !w)
+    return AK_ERR;
 
   if (useDupl) {
+    dispatched = false;
     AK_CTLR_FIX_DISPATCH(AK_CTLR_FIX_COPY_PASS);
+    if (!dispatched)
+      return AK_ERR;
   } else {
     for (i = 0; i < vc; i++) {
       vcount = ak_daeSafeWeightCount(intrWeights,
                                      v,
                                      viStride,
                                      baseVertexOffset + i);
-      old    = &pv[pOldCountSum[baseVertexOffset + i] * viStride];
+      if (vcount == 0)
+        continue;
+      oldIndex = baseVertexOffset + i;
+      oldOffset = (size_t)pOldCountSum[oldIndex] * (size_t)viStride;
+      old    = &pv[oldOffset];
       newidx = wi[i];
+      if (newidx > weights->nWeights
+          || (size_t)vcount > weights->nWeights - newidx)
+        return AK_ERR;
 
       for (k = 0; k < vcount; k++) {
-        widx       = old[k * viStride + weightsOffset];
+        widx       = old[k * (size_t)viStride + weightsOffset];
         iw         = &w[newidx + k];
-        iw->joint  = old[k * viStride + jointOffset];
+        iw->joint  = old[k * (size_t)viStride + jointOffset];
         iw->weight = ak_daeReadSkinWeight(weightsAcc, widx);
       }
-
-      nwsum += vcount;
     }
   }
 
@@ -1006,7 +1094,6 @@ ak_fixBoneWeights(AkHeap        *heap,
 #undef AK_CTLR_FIX_DISPATCH
 
   weights->weights  = w;
-  weights->nWeights = nwsum;
 
   return AK_OK;
 }

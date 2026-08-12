@@ -134,12 +134,36 @@ dae_anim_channel_target_type(AkChannel * __restrict channel) {
 
 static
 bool
-dae_anim_float_accessor_supported(AkAccessor            * __restrict acc,
-                                  uint32_t                           count,
-                                  AkTargetPropertyType               targetType) {
+dae_anim_accessor_storage_supported(AkAccessor * __restrict acc) {
+  size_t rowBytes, stride, last;
+
   if (!acc
       || !acc->buffer
       || !acc->buffer->data
+      || acc->count == 0u
+      || acc->componentCount == 0u
+      || acc->bytesPerComponent == 0u
+      || (size_t)acc->componentCount
+           > (size_t)-1 / acc->bytesPerComponent)
+    return false;
+
+  rowBytes = (size_t)acc->componentCount * acc->bytesPerComponent;
+  stride   = acc->byteStride ? acc->byteStride : rowBytes;
+  if (stride < rowBytes || acc->byteOffset > acc->buffer->length)
+    return false;
+  if ((size_t)(acc->count - 1u) > ((size_t)-1 - acc->byteOffset) / stride)
+    return false;
+  last = acc->byteOffset + (size_t)(acc->count - 1u) * stride;
+  return last <= acc->buffer->length
+         && rowBytes <= acc->buffer->length - last;
+}
+
+static
+bool
+dae_anim_float_accessor_supported(AkAccessor            * __restrict acc,
+                                  uint32_t                           count,
+                                  AkTargetPropertyType               targetType) {
+  if (!dae_anim_accessor_storage_supported(acc)
       || acc->count != count
       || acc->componentCount == 0)
     return false;
@@ -158,6 +182,38 @@ dae_anim_float_accessor_supported(AkAccessor            * __restrict acc,
   }
 
   return true;
+}
+
+static
+bool
+dae_anim_tangent_accessor_supported(AkAccessor            * __restrict acc,
+                                    uint32_t                           count,
+                                    AkTargetPropertyType               targetType,
+                                    uint32_t                           outputComponents) {
+  if (!dae_anim_accessor_storage_supported(acc) || acc->count != count)
+    return false;
+
+  switch (targetType) {
+    case AK_TARGET_POSITION:
+    case AK_TARGET_SCALE:
+      return outputComponents == 3u
+             && (acc->componentCount == 3u || acc->componentCount == 6u);
+    case AK_TARGET_ROTATE:
+      return outputComponents == 4u
+             && (acc->componentCount == 4u || acc->componentCount == 8u);
+    case AK_TARGET_QUAT:
+      return false;
+    case AK_TARGET_FLOAT:
+      if (outputComponents == 1u)
+        return acc->componentCount == 1u || acc->componentCount == 2u;
+      if (outputComponents == 16u)
+        return acc->componentCount == 16u;
+      return false;
+    case AK_TARGET_UNKNOWN:
+      return true;
+    default:
+      return acc->componentCount == outputComponents;
+  }
 }
 
 static
@@ -221,7 +277,9 @@ bool
 dae_anim_morph_output_split_supported(AkAccessor * __restrict acc,
                                       uint32_t                keyCount,
                                       uint32_t                targetCount) {
-  if (!acc || keyCount == 0 || targetCount == 0)
+  if (!dae_anim_accessor_storage_supported(acc)
+      || keyCount == 0
+      || targetCount == 0)
     return false;
 
   if (acc->componentCount == targetCount && acc->count == keyCount)
@@ -345,8 +403,7 @@ dae_anim_sampler_supported(AkAnimSampler        * __restrict sampler,
 
   inputAcc = dae_anim_accessor(sampler, AK_INPUT_INPUT);
   if (!inputAcc
-      || !inputAcc->buffer
-      || !inputAcc->buffer->data
+      || !dae_anim_accessor_storage_supported(inputAcc)
       || inputAcc->count == 0
       || inputAcc->componentCount != 1)
     return false;
@@ -356,8 +413,7 @@ dae_anim_sampler_supported(AkAnimSampler        * __restrict sampler,
 
   if (targetType == AK_TARGET_WEIGHTS && morphTargetCount > 0) {
     if (!outputAcc
-        || !outputAcc->buffer
-        || !outputAcc->buffer->data
+        || !dae_anim_accessor_storage_supported(outputAcc)
         || outputAcc->componentCount == 0)
       return false;
 
@@ -384,14 +440,20 @@ dae_anim_sampler_supported(AkAnimSampler        * __restrict sampler,
   if (targetType == AK_TARGET_QUAT && inTanAcc)
     return false;
   if (inTanAcc
-      && !dae_anim_float_accessor_supported(inTanAcc, keyCount, targetType))
+      && !dae_anim_tangent_accessor_supported(inTanAcc,
+                                               keyCount,
+                                               targetType,
+                                               outputAcc->componentCount))
     return false;
 
   outTanAcc = dae_anim_accessor(sampler, AK_INPUT_OUT_TANGENT);
   if (targetType == AK_TARGET_QUAT && outTanAcc)
     return false;
   if (outTanAcc
-      && !dae_anim_float_accessor_supported(outTanAcc, keyCount, targetType))
+      && !dae_anim_tangent_accessor_supported(outTanAcc,
+                                               keyCount,
+                                               targetType,
+                                               outputAcc->componentCount))
     return false;
 
 interp:
@@ -530,9 +592,28 @@ static
 DAEExpName
 dae_anim_float_param_name(AkInputSemantic       semantic,
                           AkTargetPropertyType targetType,
+                          uint32_t             componentCount,
                           uint32_t             idx) {
   if (semantic == AK_INPUT_INPUT)
     return DAE_EXP_NAME_LIT("TIME");
+
+  if ((semantic == AK_INPUT_IN_TANGENT
+       || semantic == AK_INPUT_OUT_TANGENT)
+      && (componentCount == 2u
+          || (targetType == AK_TARGET_POSITION && componentCount == 6u)
+          || (targetType == AK_TARGET_SCALE && componentCount == 6u)
+          || (targetType == AK_TARGET_ROTATE && componentCount == 8u))) {
+    uint32_t valueIndex;
+
+    if ((idx & 1u) == 0u)
+      return DAE_EXP_NAME_LIT("TIME");
+    valueIndex = idx / 2u;
+    if (targetType == AK_TARGET_ROTATE && valueIndex == 3u)
+      return DAE_EXP_NAME_LIT("ANGLE");
+    if (targetType == AK_TARGET_FLOAT)
+      return DAE_EXP_NAME_LIT("VALUE");
+    return dae_param_exp_name(valueIndex);
+  }
 
   if ((targetType == AK_TARGET_ROTATE || targetType == AK_TARGET_QUAT)
       && idx == 3)
@@ -625,19 +706,28 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
                                     uint32_t                    samplerIdx,
                                     uint32_t                    variantIdx,
                                     AkInputSemantic             semantic,
-                                    AkTargetPropertyType        targetType) {
+                                    AkTargetPropertyType        targetType,
+                                    bool                        scalarAngle) {
   DAEExpWriter *w;
   DAEExpName    semName;
   float        *scratch;
   uint32_t      i;
   uint32_t      c;
   uint32_t      componentCount;
+  size_t        floatCount;
   bool          direct;
   bool          convertQuatOutput;
+  bool          convertMatrixValues;
   bool          hasQuatAxisHint;
   vec3          quatAxisHint;
 
   if (!acc || acc->componentCount == 0)
+    return false;
+
+  if ((size_t)acc->count > (size_t)-1 / acc->componentCount)
+    return false;
+  floatCount = (size_t)acc->count * acc->componentCount;
+  if (floatCount > (size_t)-1 / sizeof(float))
     return false;
 
   w              = &st->w;
@@ -648,17 +738,17 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
   convertQuatOutput = semantic == AK_INPUT_OUTPUT
                       && targetType == AK_TARGET_QUAT
                       && componentCount == 4;
+  convertMatrixValues = targetType == AK_TARGET_FLOAT
+                        && componentCount == 16
+                        && (semantic == AK_INPUT_OUTPUT
+                            || semantic == AK_INPUT_IN_TANGENT
+                            || semantic == AK_INPUT_OUT_TANGENT);
   hasQuatAxisHint = false;
   quatAxisHint[0] = 0.0f;
   quatAxisHint[1] = 0.0f;
   quatAxisHint[2] = 1.0f;
 
   if (!direct) {
-    size_t floatCount;
-
-    if ((size_t)acc->count > (size_t)-1 / componentCount)
-      return false;
-    floatCount = (size_t)acc->count * componentCount;
     scratch = dae_scratch(st, sizeof(float) * floatCount);
     if (!scratch)
       return false;
@@ -686,7 +776,7 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
   dae_w_lit(w, "\"><float_array id=\"");
   dae_w_anim_source_id_variant(w, animIdx, samplerIdx, variantIdx, semName);
   dae_w_lit(w, "_array\" count=\"");
-  dae_w_uint_fast(w, (size_t)acc->count * componentCount);
+  dae_w_uint_fast(w, floatCount);
   dae_w_lit(w, "\">");
 
   for (i = 0; i < acc->count; i++) {
@@ -713,6 +803,19 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
       row = quatConverted;
     }
 
+    if (convertMatrixValues) {
+      mat4 matrix;
+
+      /* Animation matrices use AssetKit's internal column-major layout,
+         while COLLADA float arrays store matrices row-major.  Mirror static
+         matrix and skin export instead of serializing the raw accessor row. */
+      if (i > 0)
+        dae_w_ch(w, ' ');
+      memcpy(matrix, row, sizeof(matrix));
+      dae_w_matrix4x4_dae(w, matrix);
+      continue;
+    }
+
     for (c = 0; c < componentCount; c++) {
       float val;
 
@@ -724,7 +827,15 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
            || semantic == AK_INPUT_IN_TANGENT
            || semantic == AK_INPUT_OUT_TANGENT)
           && targetType == AK_TARGET_ROTATE
-          && c == 3)
+          && ((componentCount == 4u && c == 3u)
+              || (componentCount == 8u && c == 7u)))
+        val = glm_deg(val);
+      if (scalarAngle
+          && (semantic == AK_INPUT_OUTPUT
+              || semantic == AK_INPUT_IN_TANGENT
+              || semantic == AK_INPUT_OUT_TANGENT)
+          && ((componentCount == 1u && c == 0u)
+              || (componentCount == 2u && c == 1u)))
         val = glm_deg(val);
       dae_w_float_fast(w, val);
     }
@@ -740,7 +851,10 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
 
   for (c = 0; c < componentCount; c++) {
     dae_w_lit(w, "<param name=\"");
-    dae_w_name(w, dae_anim_float_param_name(semantic, targetType, c));
+    dae_w_name(w, dae_anim_float_param_name(semantic,
+                                            targetType,
+                                            componentCount,
+                                            c));
     dae_w_lit(w, "\" type=\"float\"/>");
   }
 
@@ -762,6 +876,7 @@ dae_write_anim_morph_output_source(DAEExpState * __restrict st,
   float        *scratch;
   uint32_t      i;
   uint32_t      componentCount;
+  size_t        floatCount;
   bool          direct;
   bool          interleavedWeights;
 
@@ -769,6 +884,12 @@ dae_write_anim_morph_output_source(DAEExpState * __restrict st,
       || acc->componentCount == 0
       || weightIdx >= targetCount
       || !dae_anim_morph_output_split_supported(acc, keyCount, targetCount))
+    return false;
+
+  if ((size_t)acc->count > (size_t)-1 / acc->componentCount)
+    return false;
+  floatCount = (size_t)acc->count * acc->componentCount;
+  if (floatCount > (size_t)-1 / sizeof(float))
     return false;
 
   w                  = &st->w;
@@ -779,11 +900,6 @@ dae_write_anim_morph_output_source(DAEExpState * __restrict st,
                        && acc->count == keyCount;
 
   if (!direct) {
-    size_t floatCount;
-
-    if ((size_t)acc->count > (size_t)-1 / componentCount)
-      return false;
-    floatCount = (size_t)acc->count * componentCount;
     scratch = dae_scratch(st, sizeof(float) * floatCount);
     if (!scratch)
       return false;
@@ -955,13 +1071,36 @@ dae_anim_sampler_target_type(AkAnimation   * __restrict anim,
 
 static
 bool
+dae_anim_sampler_is_scalar_angle(AkAnimation   * __restrict anim,
+                                 AkAnimSampler * __restrict sampler) {
+  AkChannel *channel;
+
+  for (channel = anim ? anim->channel : NULL; channel; channel = channel->next) {
+    AkObject *target;
+
+    if (ak_getObjectByUrl(&channel->source) != sampler
+        || !channel->resolvedTarget
+        || !channel->resolvedTarget->isPartial
+        || channel->resolvedTarget->off != 3u)
+      continue;
+    target = channel->resolvedTarget->target;
+    if (target && ak_typeid(target) == AKT_OBJECT && target->type == AKT_ROTATE)
+      return true;
+  }
+
+  return false;
+}
+
+static
+bool
 dae_write_anim_sampler_source_variant(DAEExpState    * __restrict st,
                                       AkAnimSampler  * __restrict sampler,
                                       uint32_t                    animIdx,
                                       uint32_t                    samplerIdx,
                                       uint32_t                    variantIdx,
                                       AkInputSemantic             semantic,
-                                      AkTargetPropertyType        targetType) {
+                                      AkTargetPropertyType        targetType,
+                                      bool                        scalarAngle) {
   AkAccessor *acc;
 
   acc = dae_anim_accessor(sampler, semantic);
@@ -974,7 +1113,8 @@ dae_write_anim_sampler_source_variant(DAEExpState    * __restrict st,
                                              samplerIdx,
                                              variantIdx,
                                              semantic,
-                                             targetType);
+                                             targetType,
+                                             scalarAngle);
 }
 
 static
@@ -984,14 +1124,16 @@ dae_write_anim_sampler_source(DAEExpState    * __restrict st,
                               uint32_t                    animIdx,
                               uint32_t                    samplerIdx,
                               AkInputSemantic             semantic,
-                              AkTargetPropertyType        targetType) {
+                              AkTargetPropertyType        targetType,
+                              bool                        scalarAngle) {
   return dae_write_anim_sampler_source_variant(st,
                                                sampler,
                                                animIdx,
                                                samplerIdx,
                                                UINT32_MAX,
                                                semantic,
-                                               targetType);
+                                               targetType,
+                                               scalarAngle);
 }
 
 static
@@ -1003,33 +1145,39 @@ dae_write_anim_sampler(DAEExpState    * __restrict st,
                        uint32_t                    samplerIdx) {
   DAEExpWriter *w;
   AkTargetPropertyType targetType;
+  bool                 scalarAngle;
 
   targetType = dae_anim_sampler_target_type(anim, sampler);
+  scalarAngle = dae_anim_sampler_is_scalar_angle(anim, sampler);
 
   if (!dae_write_anim_sampler_source(st,
                                      sampler,
                                      animIdx,
                                      samplerIdx,
                                      AK_INPUT_INPUT,
-                                     targetType)
+                                     targetType,
+                                     scalarAngle)
       || !dae_write_anim_sampler_source(st,
                                         sampler,
                                         animIdx,
                                         samplerIdx,
                                         AK_INPUT_OUTPUT,
-                                        targetType)
+                                        targetType,
+                                        scalarAngle)
       || !dae_write_anim_sampler_source(st,
                                         sampler,
                                         animIdx,
                                         samplerIdx,
                                         AK_INPUT_IN_TANGENT,
-                                        targetType)
+                                        targetType,
+                                        scalarAngle)
       || !dae_write_anim_sampler_source(st,
                                         sampler,
                                         animIdx,
                                         samplerIdx,
                                         AK_INPUT_OUT_TANGENT,
-                                        targetType)
+                                        targetType,
+                                        scalarAngle)
       || !dae_write_anim_interp_source(st, sampler, animIdx, samplerIdx)) {
     return false;
   }
@@ -1074,7 +1222,8 @@ dae_write_anim_morph_split_common_sources(DAEExpState    * __restrict st,
                                        animIdx,
                                        samplerIdx,
                                        AK_INPUT_INPUT,
-                                       AK_TARGET_WEIGHTS)
+                                       AK_TARGET_WEIGHTS,
+                                       false)
          && dae_write_anim_interp_source(st, sampler, animIdx, samplerIdx);
 }
 
@@ -1173,6 +1322,75 @@ dae_write_animation_channel_target_at(DAEExpState * __restrict st,
   }
 
   transformTarget = dae_anim_transform_target(channel);
+  if (transformTarget
+      && transformTarget->type == AKT_MATRIX
+      && channel->target
+      && channel->resolvedTarget
+      && channel->resolvedTarget->isPartial
+      && channel->resolvedTarget->off < 16u) {
+    const char *open;
+
+    open = strchr(channel->target, '(');
+    if (open) {
+      size_t prefixLen;
+      char  *target;
+      uint32_t off;
+
+      prefixLen = (size_t)(open - channel->target);
+      target = dae_scratch(st, prefixLen + 7u);
+      if (!target) {
+        w->result = AK_ENOMEM;
+        return false;
+      }
+
+      off = channel->resolvedTarget->off;
+      memcpy(target, channel->target, prefixLen);
+      target[prefixLen + 0u] = '(';
+      target[prefixLen + 1u] = (char)('0' + off % 4u);
+      target[prefixLen + 2u] = ')';
+      target[prefixLen + 3u] = '(';
+      target[prefixLen + 4u] = (char)('0' + off / 4u);
+      target[prefixLen + 5u] = ')';
+      target[prefixLen + 6u] = '\0';
+      dae_w_xml(w, target, true);
+      return true;
+    }
+  }
+
+  if (transformTarget
+      && channel->target
+      && channel->resolvedTarget
+      && channel->resolvedTarget->isPartial
+      && (transformTarget->type == AKT_TRANSLATE
+          || transformTarget->type == AKT_SCALE
+          || transformTarget->type == AKT_ROTATE)
+      && channel->resolvedTarget->off < 3u) {
+    const char *dot;
+
+    /* Coordinate conversion may remap a partial transform channel to a
+       different axis while retaining the source target string as provenance.
+       Serialize the resolved slot so roundtrip behavior matches runtime
+       consumers of ak_channelTarget(). */
+    dot = strrchr(channel->target, '.');
+    if (dot) {
+      static const char axes[] = {'X', 'Y', 'Z'};
+      size_t            prefixLen;
+      char             *target;
+
+      prefixLen = (size_t)(dot - channel->target + 1);
+      target = dae_scratch(st, prefixLen + 2u);
+      if (!target) {
+        w->result = AK_ENOMEM;
+        return false;
+      }
+      memcpy(target, channel->target, prefixLen);
+      target[prefixLen]     = axes[channel->resolvedTarget->off];
+      target[prefixLen + 1] = '\0';
+      dae_w_xml(w, target, true);
+      return true;
+    }
+  }
+
   if (transformTarget && !channel->target) {
     AkNode *node;
 

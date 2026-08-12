@@ -281,31 +281,55 @@ dae_source(DAEState * __restrict dst,
       tq->next = (AkTechnique *)source->reserved;
       source->reserved = tq;
     } else if (xml_valtype(xml) == XML_STRING && (sval = xmls(xml))) {
-      count            = xmla_u32(DAE_XMLA8(xml, count), 0);
+      size_t availableCount;
+
+      count = xmla_u32(DAE_XMLA8(xml, count), 0);
+      availableCount = xml_strtok_count_fast(sval, NULL);
+      if (availableCount < count)
+        count = (uint32_t)availableCount;
       buffer           = ak_heap_alloc(heap, rootmemp, sizeof(*buffer));
+      if (!buffer) {
+        xml = xml->next;
+        continue;
+      }
+      memset(buffer, 0, sizeof(*buffer));
       buffer->name     = DAE_XMLA_STRDUP8(xml, heap, name, buffer);
       source->buffer   = buffer;
       
       xmla_setid(xml, heap, buffer);
       
       if (DAE_XML_TAG_EQ(xml, float_array)) {
-        buffer->length = sizeof(float) * count;
-        buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
+        if ((size_t)count > (size_t)-1 / sizeof(float))
+          count = 0u;
+        buffer->length = sizeof(float) * (size_t)count;
+        buffer->data   = buffer->length
+                           ? ak_heap_alloc(heap, buffer, buffer->length)
+                           : NULL;
         /* Float sources remain independent until DAE post-processing. */
-        if (!dae_defer_float_source(dst, sval, buffer, count))
+        if (buffer->data && !dae_defer_float_source(dst, sval, buffer, count))
           xml_strtof_fast(sval, buffer->data, count);
         
         ak_setUserData(buffer, (void *)(uintptr_t)AKT_FLOAT);
       } else if (DAE_XML_TAG_EQ(xml, int_array)) {
-        buffer->length = sizeof(uint32_t) * count;
-        buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
-        xml_strtoi_fast(sval, buffer->data, count);
+        if ((size_t)count > (size_t)-1 / sizeof(uint32_t))
+          count = 0u;
+        buffer->length = sizeof(uint32_t) * (size_t)count;
+        buffer->data   = buffer->length
+                           ? ak_heap_alloc(heap, buffer, buffer->length)
+                           : NULL;
+        if (buffer->data)
+          xml_strtoi_fast(sval, buffer->data, count);
         
         ak_setUserData(buffer, (void *)(uintptr_t)AKT_INT);
       } else if (DAE_XML_TAG_EQ(xml, bool_array)) {
-        buffer->length = sizeof(bool) * count;
-        buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
-        xml_strtob_fast(sval, buffer->data, count);
+        if ((size_t)count > (size_t)-1 / sizeof(bool))
+          count = 0u;
+        buffer->length = sizeof(bool) * (size_t)count;
+        buffer->data   = buffer->length
+                           ? ak_heap_alloc(heap, buffer, buffer->length)
+                           : NULL;
+        if (buffer->data)
+          xml_strtob_fast(sval, buffer->data, count);
         
         ak_setUserData(buffer, (void *)(uintptr_t)AKT_BOOL);
       } else if ((DAE_XML_TAG_EQ(xml, Name_array)   & (1|(t = AKT_NAME)))
@@ -331,11 +355,15 @@ dae_source(DAEState * __restrict dst,
           ak_setUserData(buffer, (void *)(uintptr_t)enumType);
           
           enumLen        = ak_typeDesc(enumType)->size;
-          buffer->length = enumLen * count;
-          buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
+          if (!enumLen || (size_t)count > (size_t)-1 / enumLen)
+            count = 0u;
+          buffer->length = enumLen * (size_t)count;
+          buffer->data   = buffer->length
+                             ? ak_heap_alloc(heap, buffer, buffer->length)
+                             : NULL;
           pData          = buffer->data;
 
-          if ((v = sval) && (tok = v->val)) {
+          if (pData && (v = sval) && (tok = v->val)) {
             do {
               if (idx >= count)
                 break;
@@ -361,16 +389,43 @@ dae_source(DAEState * __restrict dst,
             } while ((v = xmls_next(v)) && (tok = v->val));
           }
         } else {
+          size_t pointerBytes, stringBytes;
+
           ak_setUserData(buffer, (void *)(uintptr_t)t);
 
-          buffer->length = sizeof(char *) * count * 2
-                            + xmls_sumlen(sval) + 1 /* NULL */;
-          iter  = buffer->data = ak_heap_alloc(heap, buffer, buffer->length);
-          pData = (char *)buffer->data + sizeof(char *) * (count + 1);
+          stringBytes = xmls_sumlen(sval);
+          if ((size_t)count > (size_t)-1 / 2u
+              || (size_t)count * 2u > (size_t)-1 / sizeof(char *)
+              || stringBytes == (size_t)-1) {
+            count = 0u;
+            pointerBytes = 0u;
+            buffer->length = 0u;
+          } else {
+            /* Preserve the established buffer layout/size: two pointer slots
+               per declared token, with the packed strings beginning after
+               the count+1 pointer table. */
+            pointerBytes = sizeof(char *)
+                           * (count ? (size_t)count * 2u : 1u);
+            if (pointerBytes > (size_t)-1 - stringBytes - 1u) {
+              count = 0u;
+              pointerBytes = 0u;
+              buffer->length = 0u;
+            } else {
+              buffer->length = pointerBytes + stringBytes + 1u;
+            }
+          }
+          iter = buffer->length
+                   ? ak_heap_alloc(heap, buffer, buffer->length)
+                   : NULL;
+          buffer->data = iter;
+          pData = iter
+                    ? (char *)iter + sizeof(char *) * ((size_t)count + 1u)
+                    : NULL;
           
-          iter[count] = pData;
+          if (iter)
+            iter[count] = pData;
 
-          if ((v = sval) && (tok = v->val)) {
+          if (iter && (v = sval) && (tok = v->val)) {
             do {
               if (idx >= count)
                 break;

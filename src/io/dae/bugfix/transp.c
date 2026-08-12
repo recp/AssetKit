@@ -57,6 +57,45 @@ dae_contains_nocase(const char * __restrict str,
 }
 
 static
+bool
+dae_is_version_token_char(char c) {
+  return (c >= '0' && c <= '9')
+         || (c >= 'a' && c <= 'z')
+         || (c >= 'A' && c <= 'Z')
+         || c == '.'
+         || c == '_'
+         || c == '-';
+}
+
+static
+bool
+dae_contains_exact_version_nocase(const char * __restrict str,
+                                  const char * __restrict signature) {
+  const char *s, *n, *p;
+
+  if (!str || !signature || !signature[0])
+    return false;
+
+  for (p = str; *p; p++) {
+    if (p != str && dae_is_version_token_char(p[-1]))
+      continue;
+
+    s = p;
+    n = signature;
+    while (*s && *n
+           && dae_ascii_tolower(*s) == dae_ascii_tolower(*n)) {
+      s++;
+      n++;
+    }
+
+    if (!*n && !dae_is_version_token_char(*s))
+      return true;
+  }
+
+  return false;
+}
+
+static
 const char*
 dae_parse_next_uint(const char * __restrict p,
                     int        * __restrict out) {
@@ -77,13 +116,36 @@ dae_parse_next_uint(const char * __restrict p,
 
 AK_HIDE
 void
-dae_bugfix_transp(AkTransparent * __restrict transp) {
+dae_bugfix_transp(AkTransparent * __restrict transp,
+                  bool                       opaqueSpecified) {
   AkContributor *contr;
   const char    *tool;
 
   if (!(contr = ak_getAssetInfo(transp, offsetof(AkAssetInf, contributor)))
       || !(tool = (const char *)contr->authoringTool))
     return;
+
+  /* ColladaMaya v2.03b / FCollada v1.13 wrote this exact opaque-material
+     sentinel with the schema-default A_ONE mode.  The zero factor makes the
+     material invisible under the COLLADA equation even though black was the
+     exporter's opaque transparency color.  Explicit opaque modes are authored
+     semantics and must not be reinterpreted. */
+  if (!opaqueSpecified
+      && transp->opaque == AK_OPAQUE_A_ONE
+      && transp->amount == 0.0f
+      && transp->color
+      && transp->color->color
+      && !transp->color->param
+      && !transp->color->texture
+      && transp->color->color->rgba.R == 0.0f
+      && transp->color->color->rgba.G == 0.0f
+      && transp->color->color->rgba.B == 0.0f
+      && transp->color->color->rgba.A == 1.0f
+      && dae_contains_exact_version_nocase(tool, "ColladaMaya v2.03b")
+      && dae_contains_exact_version_nocase(tool, "FCollada v1.13")) {
+    transp->amount = 1.0f;
+    return;
+  }
 
   /* fix old SketchUp transparency bug */
   if (dae_contains_nocase(tool, _s_dae_sketchup)) {
@@ -96,7 +158,9 @@ dae_bugfix_transp(AkTransparent * __restrict transp) {
         dae_parse_next_uint(p, &patch);
 
       /* don't flip >= 7.1.1 */
-      if (major <= 7 && minor < 2 && patch < 1) {
+      if (major < 7
+          || (major == 7
+              && (minor < 1 || (minor == 1 && patch < 1)))) {
         transp->amount = 1.0f - transp->amount;
       }
     }

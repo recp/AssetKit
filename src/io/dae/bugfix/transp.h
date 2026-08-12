@@ -21,6 +21,7 @@
 
 AK_HIDE
 void
-dae_bugfix_transp(AkTransparent * __restrict transp);
+dae_bugfix_transp(AkTransparent * __restrict transp,
+                  bool                       opaqueSpecified);
 
 #endif /* dae_bugfix_transp_h */

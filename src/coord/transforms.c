@@ -76,9 +76,17 @@ ak_coordCvtNodeTransformsTo(AkDoc      * __restrict doc,
       }
       case AKT_ROTATE: {
         AkRotate *rotate;
+        AkAxisRotDirection rotDirection;
         rotate = ak_objGet(transform);
 
         AK_CVT_VEC(rotate->val);
+        rotDirection = (oldCoordSys->rotDirection + 1)
+                       * (newCoordsys->rotDirection + 1);
+        if (rotDirection < 0) {
+          rotate->val[0] = -rotate->val[0];
+          rotate->val[1] = -rotate->val[1];
+          rotate->val[2] = -rotate->val[2];
+        }
         break;
       }
       case AKT_QUATERNION: {
@@ -106,7 +114,11 @@ ak_coordCvtNodeTransformsTo(AkDoc      * __restrict doc,
         break;
       }
       case AKT_SKEW: {
-        /* TODO: */
+        AkSkew *skew;
+
+        skew = ak_objGet(transform);
+        AK_CVT_VEC(skew->rotateAxis);
+        AK_CVT_VEC(skew->aroundAxis);
         break;
       }
     }

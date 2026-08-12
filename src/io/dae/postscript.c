@@ -29,6 +29,7 @@
 #include "fixup/ctlr.h"
 #include "fixup/channel.h"
 #include "bugfix/scenekit.h"
+#include "../../coord/common.h"
 #include "../../mat/internal.h"
 #include "../../instance/list.h"
 
@@ -273,11 +274,27 @@ dae_postscript(DAEState * __restrict dst) {
      instances exist (including the orphan-attach pass above). */
   if (dst->doc->lib.animations.first)
     dae_fixup_channel(dst);
+  dae_fixPartialRotateAngles(dst);
   dae_normalize_srgb_animation_colors(dst);
 
+  /* Mesh and node parsing apply ALL conversion incrementally.  Animation
+     accessors and skin bind matrices are not parsed through either path, so
+     convert only those here; a full document conversion would convert meshes
+     and nodes twice. */
+  if (coordCvtType == AK_COORD_CVT_ALL
+      && sourceCoordSys
+      && targetCoordSys
+      && sourceCoordSys != targetCoordSys) {
+    ak_coordCvtAnimationsTo(dst->doc, sourceCoordSys, targetCoordSys);
+    ak_coordCvtSkinsTo(dst->doc, sourceCoordSys, targetCoordSys);
+  }
+
   /* now set used coordSys */
-  if (coordCvtType != AK_COORD_CVT_DISABLED)
+  if (coordCvtType != AK_COORD_CVT_DISABLED) {
     dst->doc->coordSys = targetCoordSys;
+    if (dst->doc->inf)
+      dst->doc->inf->base.coordSys = targetCoordSys;
+  }
 
   dae_fix_textures(dst);
   dae_build_material_surfaces(dst);

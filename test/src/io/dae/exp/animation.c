@@ -861,6 +861,125 @@ TEST_IMPL(dae_export_skips_unsupported_animation) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(dae_export_rejects_invalid_animation_accessor_layouts) {
+  AkDoc         *doc;
+  AkHeap        *heap;
+  AkAnimation   *anim;
+  AkChannel     *channel;
+  AkAnimSampler *sampler;
+  AkInput       *tangent;
+  AkAccessor    *output;
+  char           dirTemplate[PATH_MAX];
+  char          *tmpdir;
+  char           daePath[PATH_MAX];
+  char           outDir[PATH_MAX];
+  char           outDae[PATH_MAX];
+  const char    *tmpBase;
+  float          tangent16[32];
+  float          tangent2[4];
+  float          matrixValues[32];
+  uint32_t       i;
+
+  doc = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-animation-layout-XXXXXX"));
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "anim.dae"));
+  ASSERT(ak_test_path_join(outDir, sizeof(outDir), tmpdir, "out"));
+  ASSERT(ak_test_path_join(outDae, sizeof(outDae), outDir, "anim.dae"));
+  ASSERT(ak_test_write_dae_animation_minimal(daePath));
+
+  for (i = 0; i < 32u; i++) {
+    tangent16[i] = (float)i;
+    matrixValues[i] = (float)(i + 1u);
+  }
+  tangent2[0] = -0.1f;
+  tangent2[1] = 1.0f;
+  tangent2[2] = 0.9f;
+  tangent2[3] = 2.0f;
+
+  /* Scalar OUTPUT cannot be paired with a 16-component tangent. */
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_DAE) == AK_OK && doc);
+  heap = ak_heap_getheap(doc);
+  anim = doc->lib.animations.first;
+  channel = anim ? anim->channel : NULL;
+  sampler = ak_test_channel_sampler(channel);
+  ASSERT(heap && sampler && sampler->outputInput);
+  tangent = ak_heap_calloc(heap, sampler, sizeof(*tangent));
+  ASSERT(tangent != NULL);
+  tangent->semantic = AK_INPUT_IN_TANGENT;
+  tangent->accessor = ak_test_make_float_accessor(heap,
+                                                   tangent,
+                                                   tangent16,
+                                                   16u,
+                                                   2u);
+  ASSERT(tangent->accessor != NULL);
+  tangent->next = sampler->input;
+  sampler->input = tangent;
+  sampler->inTangentInput = tangent;
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(!ak_test_file_contains(outDae, "<library_animations>"));
+  ak_free(doc);
+  ak_test_export_cleanup(outDir);
+  doc = NULL;
+
+  /* Matrix OUTPUT requires matrix-shaped tangents, not scalar pairs. */
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_DAE) == AK_OK && doc);
+  heap = ak_heap_getheap(doc);
+  anim = doc->lib.animations.first;
+  channel = anim ? anim->channel : NULL;
+  sampler = ak_test_channel_sampler(channel);
+  ASSERT(heap && sampler && sampler->outputInput);
+  sampler->outputInput->accessor = ak_test_make_float_accessor(
+                                     heap,
+                                     sampler->outputInput,
+                                     matrixValues,
+                                     16u,
+                                     2u);
+  ASSERT(sampler->outputInput->accessor != NULL);
+  tangent = ak_heap_calloc(heap, sampler, sizeof(*tangent));
+  ASSERT(tangent != NULL);
+  tangent->semantic = AK_INPUT_IN_TANGENT;
+  tangent->accessor = ak_test_make_float_accessor(heap,
+                                                   tangent,
+                                                   tangent2,
+                                                   2u,
+                                                   2u);
+  tangent->next = sampler->input;
+  sampler->input = tangent;
+  sampler->inTangentInput = tangent;
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(!ak_test_file_contains(outDae, "<library_animations>"));
+  ak_free(doc);
+  ak_test_export_cleanup(outDir);
+  doc = NULL;
+
+  /* Declared accessor rows must be fully covered by the backing buffer. */
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_DAE) == AK_OK && doc);
+  anim = doc->lib.animations.first;
+  channel = anim ? anim->channel : NULL;
+  sampler = ak_test_channel_sampler(channel);
+  output = sampler && sampler->outputInput
+           ? sampler->outputInput->accessor : NULL;
+  ASSERT(output && output->buffer && output->buffer->length >= sizeof(float));
+  output->buffer->length = sizeof(float);
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(!ak_test_file_contains(outDae, "<library_animations>"));
+
+  ak_free(doc);
+  ak_test_export_cleanup(outDir);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(dae_export_keeps_supported_child_animation) {
   AkHeap        *heap;
   AkDoc         *doc;

@@ -232,6 +232,7 @@ typedef AK_ALIGN(16) struct DAEState {
   FListItem       *bindMaterials;
   FListItem       *inputs;
   FListItem       *toRadiansSampelers;
+  FListItem       *radianAccessors;
   FListItem       *linkedUserData;
   AkURL            activeScene;
   RBTree          *meshInfo;

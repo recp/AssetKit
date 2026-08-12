@@ -17,14 +17,14 @@
 #include "angle.h"
 
 /*
- COLLADA uses degress for all angles, convert desgress to radians. It may exists
- in these places as far as I know:
+ COLLADA uses degrees for all angles; convert degrees to radians. They may
+ appear in these places:
 
  1. Rotate element - fixed in place
  2. Perspective (xfov, yfov) - fixed in place
  3. Light (fallofAngle) - fixed in place
  4. Skew element - fixed in place
- 5. Animation data (output, tangents...)!!!! - NEEDS TO BE FIXED?
+ 5. Animation output and tangent data - fixed below
 
  */
 
@@ -34,8 +34,8 @@ dae_cvtAnglesAt(AkAccessor * __restrict acc,
                 AkBuffer   * __restrict buff,
                 uint32_t                paramIndex) {
   AkAccessorDAE *accdae;
-  float         *pbuff;
-  size_t         i, count, st, off;
+  unsigned char *base;
+  size_t         i, count, st, off, last, lastByte;
 
   if (!acc || !buff || !buff->data || !(accdae = ak_userData(acc)))
     return;
@@ -48,12 +48,33 @@ dae_cvtAnglesAt(AkAccessor * __restrict acc,
   if (paramIndex >= st)
     return;
 
-  off   = accdae->offset + paramIndex;
+  if ((size_t)accdae->offset > (size_t)-1 - paramIndex)
+    return;
+  off   = (size_t)accdae->offset + paramIndex;
   count = acc->count;
-  pbuff = buff->data;
+  if (count == 0u)
+    return;
 
-  for (i = 0; i < count; i++)
-    glm_make_rad(pbuff + off + i * st);
+  if ((count - 1u) > ((size_t)-1 - off) / st)
+    return;
+  last = off + (count - 1u) * st;
+  if (last > ((size_t)-1 - sizeof(float)) / sizeof(float))
+    return;
+  lastByte = last * sizeof(float);
+  if (lastByte > buff->length
+      || sizeof(float) > buff->length - lastByte)
+    return;
+
+  base = buff->data;
+  for (i = 0; i < count; i++) {
+    unsigned char *valuePtr;
+    float          value;
+
+    valuePtr = base + (off + i * st) * sizeof(float);
+    memcpy(&value, valuePtr, sizeof(value));
+    value = glm_rad(value);
+    memcpy(valuePtr, &value, sizeof(value));
+  }
 }
 
 AK_HIDE
@@ -80,8 +101,29 @@ dae_cvtAngles(AkAccessor * __restrict acc,
 }
 
 static
+bool
+dae_angleAccessorSeen(DAEState   * __restrict dst,
+                      AkAccessor * __restrict acc,
+                      bool                    mark) {
+  FListItem *item;
+
+  if (!dst || !acc)
+    return true;
+
+  for (item = dst->radianAccessors; item; item = item->next) {
+    if (item->data == acc)
+      return true;
+  }
+
+  if (mark)
+    flist_sp_insert(&dst->radianAccessors, acc);
+  return false;
+}
+
+static
 void
-dae_fixAngleTangent(AkInput  * __restrict inp,
+dae_fixAngleTangent(DAEState * __restrict dst,
+                    AkInput  * __restrict inp,
                     uint32_t              outputAngleIndex,
                     uint32_t              outputStride) {
   AkAccessor    *acc;
@@ -92,6 +134,7 @@ dae_fixAngleTangent(AkInput  * __restrict inp,
 
   if (!inp
       || !(acc = inp->accessor)
+      || dae_angleAccessorSeen(dst, acc, false)
       || !(accdae = ak_userData(acc))
       || !(buff = ak_getObjectByUrl(&accdae->source)))
     return;
@@ -114,6 +157,7 @@ dae_fixAngleTangent(AkInput  * __restrict inp,
   }
 
   dae_cvtAnglesAt(acc, buff, idx);
+  dae_angleAccessorSeen(dst, acc, true);
 }
 
 /* TODO: This works for BERZIER but HERMITE?? */
@@ -158,10 +202,13 @@ dae_fixAngles(DAEState * __restrict dst) {
       if (!foundAngle)
         goto nxt_sampler;
 
-      dae_cvtAngles(acc, buff, _s_dae_angle);
+      if (!dae_angleAccessorSeen(dst, acc, false)) {
+        dae_cvtAngles(acc, buff, _s_dae_angle);
+        dae_angleAccessorSeen(dst, acc, true);
+      }
 
-      dae_fixAngleTangent(sampler->inTangentInput,  index, outStride);
-      dae_fixAngleTangent(sampler->outTangentInput, index, outStride);
+      dae_fixAngleTangent(dst, sampler->inTangentInput,  index, outStride);
+      dae_fixAngleTangent(dst, sampler->outTangentInput, index, outStride);
     }
 
   nxt_sampler:
@@ -169,4 +216,112 @@ dae_fixAngles(DAEState * __restrict dst) {
   }
 
   flist_sp_destroy(&dst->toRadiansSampelers);
+}
+
+static
+void
+dae_fixPartialRotateAngleAccessor(AkAccessor * __restrict acc,
+                                  bool                     tangent) {
+  unsigned char *base;
+  size_t         stride, valueOffset, last;
+  uint32_t       i;
+
+  if (!acc
+      || acc->componentType != AKT_FLOAT
+      || acc->bytesPerComponent != sizeof(float)
+      || !acc->buffer
+      || !acc->buffer->data
+      || acc->componentCount == 0u)
+    return;
+
+  valueOffset = tangent && acc->componentCount == 2u ? sizeof(float) : 0u;
+  stride = acc->byteStride
+           ? acc->byteStride
+           : (size_t)acc->componentCount * sizeof(float);
+  if (stride < valueOffset + sizeof(float)
+      || acc->byteOffset > acc->buffer->length
+      || (acc->count > 0u
+          && (size_t)(acc->count - 1u)
+               > ((size_t)-1 - acc->byteOffset) / stride))
+    return;
+
+  last = acc->byteOffset;
+  if (acc->count > 0u)
+    last += (size_t)(acc->count - 1u) * stride;
+  if (last > acc->buffer->length
+      || (acc->count > 0u
+          && valueOffset + sizeof(float) > acc->buffer->length - last))
+    return;
+
+  base = (unsigned char *)acc->buffer->data + acc->byteOffset + valueOffset;
+  for (i = 0; i < acc->count; i++) {
+    float value;
+
+    memcpy(&value, base + (size_t)i * stride, sizeof(value));
+    value = glm_rad(value);
+    memcpy(base + (size_t)i * stride, &value, sizeof(value));
+  }
+}
+
+static
+void
+dae_fixPartialRotateAnglesWalk(DAEState   * __restrict dst,
+                               AkAnimation * __restrict anim) {
+  for (; anim; anim = anim->next) {
+    AkChannel *channel;
+
+    for (channel = anim->channel; channel; channel = channel->next) {
+      AkResolvedTarget *resolved;
+      AkObject         *target;
+      AkAnimSampler    *sampler;
+
+      resolved = channel->resolvedTarget;
+      target   = resolved ? resolved->target : NULL;
+      if (!resolved
+          || !resolved->isPartial
+          || resolved->off != 3u
+          || !target
+          || ak_typeid(target) != AKT_OBJECT
+          || target->type != AKT_ROTATE)
+        continue;
+
+      sampler = ak_getObjectByUrl(&channel->source);
+      if (!sampler)
+        continue;
+
+      {
+        AkAccessor *acc;
+
+        acc = sampler->outputInput ? sampler->outputInput->accessor : NULL;
+        if (!dae_angleAccessorSeen(dst, acc, false)) {
+          dae_fixPartialRotateAngleAccessor(acc, false);
+          dae_angleAccessorSeen(dst, acc, true);
+        }
+        acc = sampler->inTangentInput
+              ? sampler->inTangentInput->accessor : NULL;
+        if (!dae_angleAccessorSeen(dst, acc, false)) {
+          dae_fixPartialRotateAngleAccessor(acc, true);
+          dae_angleAccessorSeen(dst, acc, true);
+        }
+        acc = sampler->outTangentInput
+              ? sampler->outTangentInput->accessor : NULL;
+        if (!dae_angleAccessorSeen(dst, acc, false)) {
+          dae_fixPartialRotateAngleAccessor(acc, true);
+          dae_angleAccessorSeen(dst, acc, true);
+        }
+      }
+    }
+
+    if (anim->animation)
+      dae_fixPartialRotateAnglesWalk(dst, anim->animation);
+  }
+}
+
+AK_HIDE
+void
+dae_fixPartialRotateAngles(DAEState * __restrict dst) {
+  if (dst && dst->doc) {
+    dae_fixPartialRotateAnglesWalk(dst, dst->doc->lib.animations.first);
+    flist_sp_destroy(&dst->radianAccessors);
+  }
 }

@@ -16,7 +16,236 @@
 
 #include "../../../test_export_common.h"
 
+#include <cglm/cglm.h>
+
 static char ak_test_dae_image_load_path[PATH_MAX];
+
+static
+bool
+ak_test_dae_float_near(float a, float b) {
+  return fabsf(a - b) < 0.00001f;
+}
+
+static
+const float*
+ak_test_dae_accessor_float_row(AkAccessor *accessor, uint32_t row) {
+  size_t stride;
+
+  if (!accessor
+      || accessor->componentType != AKT_FLOAT
+      || accessor->bytesPerComponent != sizeof(float)
+      || !accessor->buffer
+      || !accessor->buffer->data
+      || row >= accessor->count)
+    return NULL;
+
+  stride = accessor->byteStride
+             ? accessor->byteStride
+             : (size_t)accessor->componentCount * sizeof(float);
+
+  return (const float *)((const unsigned char *)accessor->buffer->data
+                         + accessor->byteOffset
+                         + (size_t)row * stride);
+}
+
+static
+bool
+ak_test_dae_accessor_near(AkAccessor *a, AkAccessor *b) {
+  uint32_t row, component;
+
+  if (!a || !b
+      || a->count != b->count
+      || a->componentCount != b->componentCount)
+    return false;
+
+  for (row = 0; row < a->count; row++) {
+    const float *arow, *brow;
+
+    arow = ak_test_dae_accessor_float_row(a, row);
+    brow = ak_test_dae_accessor_float_row(b, row);
+    if (!arow || !brow)
+      return false;
+
+    for (component = 0; component < a->componentCount; component++) {
+      if (!ak_test_dae_float_near(arow[component], brow[component]))
+        return false;
+    }
+  }
+
+  return true;
+}
+
+static
+bool
+ak_test_dae_matrix_near(const float a[4][4], const float b[4][4]) {
+  uint32_t column, row;
+
+  for (column = 0; column < 4; column++) {
+    for (row = 0; row < 4; row++) {
+      if (!ak_test_dae_float_near(a[column][row], b[column][row]))
+        return false;
+    }
+  }
+
+  return true;
+}
+
+static
+AkChannel*
+ak_test_dae_find_channel(AkAnimation *animation, const char *target) {
+  for (; animation; animation = animation->next) {
+    AkChannel *channel;
+
+    for (channel = animation->channel; channel; channel = channel->next) {
+      if (channel->target && strcmp(channel->target, target) == 0)
+        return channel;
+    }
+
+    if (animation->animation) {
+      channel = ak_test_dae_find_channel(animation->animation, target);
+      if (channel)
+        return channel;
+    }
+  }
+
+  return NULL;
+}
+
+static
+AkAnimSampler*
+ak_test_dae_channel_sampler(AkChannel *channel) {
+  AkAnimSampler *sampler;
+
+  if (!channel)
+    return NULL;
+
+  sampler = channel->source.ptr;
+  if (!sampler)
+    sampler = ak_getObjectByUrl(&channel->source);
+
+  return sampler;
+}
+
+static
+AkAccessor*
+ak_test_dae_sampler_accessor(AkAnimSampler *sampler,
+                             AkInputSemantic semantic) {
+  AkInput *input;
+
+  if (!sampler)
+    return NULL;
+
+  switch (semantic) {
+    case AK_INPUT_OUTPUT:
+      if (sampler->outputInput)
+        return sampler->outputInput->accessor;
+      break;
+    case AK_INPUT_IN_TANGENT:
+      if (sampler->inTangentInput)
+        return sampler->inTangentInput->accessor;
+      break;
+    case AK_INPUT_OUT_TANGENT:
+      if (sampler->outTangentInput)
+        return sampler->outTangentInput->accessor;
+      break;
+    default:
+      break;
+  }
+
+  for (input = sampler->input; input; input = input->next) {
+    if (input->semantic == semantic)
+      return input->accessor;
+  }
+
+  return NULL;
+}
+
+static
+bool
+ak_test_dae_pointer_add_unique(const void **items,
+                               uint32_t    *count,
+                               uint32_t     capacity,
+                               const void  *item) {
+  uint32_t i;
+
+  if (!item)
+    return true;
+  for (i = 0; i < *count; i++) {
+    if (items[i] == item)
+      return true;
+  }
+  if (*count >= capacity)
+    return false;
+  items[(*count)++] = item;
+  return true;
+}
+
+static
+bool
+ak_test_dae_animation_counts_walk(AkAnimation *animation,
+                                  uint32_t    *samplerCount,
+                                  const void **accessors,
+                                  uint32_t    *accessorCount,
+                                  const void **buffers,
+                                  uint32_t    *bufferCount,
+                                  uint32_t     capacity) {
+  for (; animation; animation = animation->next) {
+    AkAnimSampler *sampler;
+
+    for (sampler = animation->sampler;
+         sampler;
+         sampler = (AkAnimSampler *)sampler->base.next) {
+      AkInput *input;
+
+      (*samplerCount)++;
+      for (input = sampler->input; input; input = input->next) {
+        AkAccessor *accessor;
+
+        accessor = input->accessor;
+        if (!ak_test_dae_pointer_add_unique(accessors,
+                                            accessorCount,
+                                            capacity,
+                                            accessor)
+            || !ak_test_dae_pointer_add_unique(buffers,
+                                               bufferCount,
+                                               capacity,
+                                               accessor
+                                                 ? accessor->buffer : NULL))
+          return false;
+      }
+    }
+
+    if (animation->animation
+        && !ak_test_dae_animation_counts_walk(animation->animation,
+                                              samplerCount,
+                                              accessors,
+                                              accessorCount,
+                                              buffers,
+                                              bufferCount,
+                                              capacity))
+      return false;
+  }
+  return true;
+}
+
+static
+bool
+ak_test_dae_animation_counts(AkAnimation *animation,
+                             uint32_t    *samplerCount,
+                             uint32_t    *accessorCount,
+                             uint32_t    *bufferCount) {
+  const void *accessors[256];
+  const void *buffers[256];
+
+  *samplerCount = *accessorCount = *bufferCount = 0u;
+  return ak_test_dae_animation_counts_walk(animation,
+                                           samplerCount,
+                                           accessors,
+                                           accessorCount,
+                                           buffers,
+                                           bufferCount,
+                                           256u);
+}
 
 static
 AkImageData*
@@ -259,6 +488,502 @@ TEST_IMPL(dae_skin_multi_source_primitives_keep_weight_offsets) {
   ASSERT(weights1->weights[weights1->indexes[0]].weight == 1.0f);
 
   ak_free(doc);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(dae_coord_all_converts_skin_and_animation_once) {
+  AkDoc          *expected, *actual, *roundtrip;
+  AkGeometry     *expectedGeom, *actualGeom;
+  AkMesh         *expectedMesh, *actualMesh;
+  AkSkin         *expectedSkin, *actualSkin;
+  AkNode         *expectedJoint, *actualJoint;
+  AkChannel      *expectedChannel, *actualChannel;
+  AkAnimSampler  *expectedSampler, *actualSampler;
+  AkAccessor     *expectedAccessor, *actualAccessor;
+  mat4            expectedJointMatrix, actualJointMatrix;
+  mat4            bindProduct;
+  const float    *firstPosition;
+  char            dirTemplate[PATH_MAX];
+  char           *tmpdir;
+  char            daePath[PATH_MAX];
+  char            exportDir[PATH_MAX];
+  char            exportDaePath[PATH_MAX];
+  const char     *tmpBase;
+  uintptr_t       previousCoord, previousCoordCvtType;
+  AkResult        expectedResult, actualResult;
+  uint32_t        column, row;
+  uint32_t        samplerCount, accessorCount, bufferCount;
+  uint32_t        samplerCountAfter, accessorCountAfter, bufferCountAfter;
+
+  expected = actual = roundtrip = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-coord-all-XXXXXX"));
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "coord-all.dae"));
+  ASSERT(ak_test_path_join(exportDir, sizeof(exportDir), tmpdir, "export"));
+  ASSERT(ak_test_path_join(exportDaePath,
+                           sizeof(exportDaePath),
+                           exportDir,
+                           "coord-all.dae"));
+  ASSERT(ak_test_write_dae_coord_all_skin_animation(daePath));
+
+  previousCoord        = ak_opt_get(AK_OPT_COORD);
+  previousCoordCvtType = ak_opt_get(AK_OPT_COORD_CONVERT_TYPE);
+  ak_opt_set(AK_OPT_COORD, (uintptr_t)AK_YUP);
+
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, AK_COORD_CVT_DISABLED);
+  expectedResult = ak_load(&expected, daePath, AK_FILE_TYPE_AUTO);
+
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, AK_COORD_CVT_ALL);
+  actualResult = ak_load(&actual, daePath, AK_FILE_TYPE_AUTO);
+
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, previousCoordCvtType);
+  ak_opt_set(AK_OPT_COORD, previousCoord);
+
+  ASSERT(expectedResult == AK_OK && expected);
+  ASSERT(actualResult == AK_OK && actual);
+  ASSERT(expected->coordSys == AK_ZUP);
+  ASSERT(actual->coordSys == AK_YUP);
+  ASSERT(ak_getCoordSys(actual) == AK_YUP);
+
+  /* The public document conversion is the canonical whole-payload result. */
+  ak_changeCoordSys(expected, AK_YUP);
+  ASSERT(expected->coordSys == AK_YUP);
+  ASSERT(ak_getCoordSys(expected) == AK_YUP);
+
+  expectedGeom = ak_getObjectById(expected, "geom");
+  actualGeom   = ak_getObjectById(actual, "geom");
+  ASSERT(expectedGeom && actualGeom);
+  expectedMesh = ak_objGet(expectedGeom->gdata);
+  actualMesh   = ak_objGet(actualGeom->gdata);
+  ASSERT(expectedMesh && actualMesh);
+  ASSERT(expectedMesh->primitive && actualMesh->primitive);
+  ASSERT(expectedMesh->primitive->pos && actualMesh->primitive->pos);
+  ASSERT(ak_test_dae_accessor_near(expectedMesh->primitive->pos->accessor,
+                                   actualMesh->primitive->pos->accessor));
+
+  firstPosition = ak_test_dae_accessor_float_row(
+    actualMesh->primitive->pos->accessor,
+    0);
+  ASSERT(firstPosition != NULL);
+  ASSERT(ak_test_dae_float_near(firstPosition[0], 1.0f));
+  ASSERT(ak_test_dae_float_near(firstPosition[1], 3.0f));
+  ASSERT(ak_test_dae_float_near(firstPosition[2], -2.0f));
+
+  expectedSkin = expected->lib.skins.first;
+  actualSkin   = actual->lib.skins.first;
+  ASSERT(expectedSkin && actualSkin);
+  ASSERT(expectedSkin->nJoints == 1 && actualSkin->nJoints == 1);
+  ASSERT(expectedSkin->invBindPoses && actualSkin->invBindPoses);
+  ASSERT(ak_test_dae_matrix_near(expectedSkin->bindShapeMatrix,
+                                 actualSkin->bindShapeMatrix));
+  ASSERT(ak_test_dae_matrix_near(expectedSkin->invBindPoses[0],
+                                 actualSkin->invBindPoses[0]));
+  ASSERT(ak_test_dae_float_near(actualSkin->bindShapeMatrix[3][0], 1.0f));
+  ASSERT(ak_test_dae_float_near(actualSkin->bindShapeMatrix[3][1], 3.0f));
+  ASSERT(ak_test_dae_float_near(actualSkin->bindShapeMatrix[3][2], -2.0f));
+  ASSERT(ak_test_dae_float_near(actualSkin->invBindPoses[0][3][0], -4.0f));
+  ASSERT(ak_test_dae_float_near(actualSkin->invBindPoses[0][3][1], 6.0f));
+  ASSERT(ak_test_dae_float_near(actualSkin->invBindPoses[0][3][2], -5.0f));
+
+  expectedJoint = ak_getObjectById(expected, "joint0");
+  actualJoint   = ak_getObjectById(actual, "joint0");
+  ASSERT(expectedJoint && actualJoint);
+  ak_transformCombine(expectedJoint->transform, expectedJointMatrix[0]);
+  ak_transformCombine(actualJoint->transform, actualJointMatrix[0]);
+  ASSERT(ak_test_dae_matrix_near(expectedJointMatrix,
+                                 actualJointMatrix));
+
+  /* The authored static joint transform and IBM remain mutual inverses. */
+  glm_mat4_mul(actualJointMatrix,
+               actualSkin->invBindPoses[0],
+               bindProduct);
+  for (column = 0; column < 4; column++) {
+    for (row = 0; row < 4; row++) {
+      ASSERT(ak_test_dae_float_near(bindProduct[column][row],
+                                    column == row ? 1.0f : 0.0f));
+    }
+  }
+
+#define AK_TEST_DAE_COMPARE_ANIM(TARGET, TYPE, SEMANTIC)                     \
+  expectedChannel = ak_test_dae_find_channel(expected->lib.animations.first, \
+                                              (TARGET));                     \
+  actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,     \
+                                            (TARGET));                       \
+  ASSERT(expectedChannel && actualChannel);                                  \
+  ASSERT(expectedChannel->targetType == (TYPE));                             \
+  ASSERT(actualChannel->targetType == (TYPE));                               \
+  expectedSampler = ak_test_dae_channel_sampler(expectedChannel);            \
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);                \
+  ASSERT(expectedSampler && actualSampler);                                  \
+  expectedAccessor = ak_test_dae_sampler_accessor(expectedSampler,           \
+                                                   (SEMANTIC));              \
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, (SEMANTIC));  \
+  ASSERT(expectedAccessor && actualAccessor);                                \
+  ASSERT(ak_test_dae_accessor_near(expectedAccessor, actualAccessor))
+
+  AK_TEST_DAE_COMPARE_ANIM("joint0/translation",
+                           AK_TARGET_POSITION,
+                           AK_INPUT_OUTPUT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/translation",
+                           AK_TARGET_POSITION,
+                           AK_INPUT_IN_TANGENT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/translation",
+                           AK_TARGET_POSITION,
+                           AK_INPUT_OUT_TANGENT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/rotation",
+                           AK_TARGET_ROTATE,
+                           AK_INPUT_OUTPUT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/rotation",
+                           AK_TARGET_ROTATE,
+                           AK_INPUT_IN_TANGENT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/rotation",
+                           AK_TARGET_ROTATE,
+                           AK_INPUT_OUT_TANGENT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/scalingShared",
+                           AK_TARGET_SCALE,
+                           AK_INPUT_OUTPUT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/scaling",
+                           AK_TARGET_SCALE,
+                           AK_INPUT_OUTPUT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/translation.Y",
+                           AK_TARGET_FLOAT,
+                           AK_INPUT_OUTPUT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/translation.Y",
+                           AK_TARGET_FLOAT,
+                           AK_INPUT_IN_TANGENT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/translation.Y",
+                           AK_TARGET_FLOAT,
+                           AK_INPUT_OUT_TANGENT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/scaling.Y",
+                           AK_TARGET_FLOAT,
+                           AK_INPUT_OUTPUT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/rotation.Y",
+                           AK_TARGET_FLOAT,
+                           AK_INPUT_OUTPUT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/matrixTransform",
+                           AK_TARGET_FLOAT,
+                           AK_INPUT_OUTPUT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/matrixTransform",
+                           AK_TARGET_FLOAT,
+                           AK_INPUT_IN_TANGENT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/matrixTransform",
+                           AK_TARGET_FLOAT,
+                           AK_INPUT_OUT_TANGENT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/matrixTransform(1)(3)",
+                           AK_TARGET_FLOAT,
+                           AK_INPUT_OUTPUT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/matrixTransform(1)(3)",
+                           AK_TARGET_FLOAT,
+                           AK_INPUT_IN_TANGENT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/matrixTransform(1)(3)",
+                           AK_TARGET_FLOAT,
+                           AK_INPUT_OUT_TANGENT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/rotationAngleValueA.ANGLE",
+                           AK_TARGET_FLOAT,
+                           AK_INPUT_OUTPUT);
+  AK_TEST_DAE_COMPARE_ANIM("joint0/rotationAngleNamedA.ANGLE",
+                           AK_TARGET_FLOAT,
+                           AK_INPUT_OUTPUT);
+
+#undef AK_TEST_DAE_COMPARE_ANIM
+
+  actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,
+                                            "joint0/translation");
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, AK_INPUT_OUTPUT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition != NULL);
+  ASSERT(ak_test_dae_float_near(firstPosition[0], 1.0f));
+  ASSERT(ak_test_dae_float_near(firstPosition[1], 3.0f));
+  ASSERT(ak_test_dae_float_near(firstPosition[2], -2.0f));
+
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler,
+                                                AK_INPUT_IN_TANGENT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && actualAccessor->componentCount == 6u);
+  ASSERT(ak_test_dae_float_near(firstPosition[0], -0.1f));
+  ASSERT(ak_test_dae_float_near(firstPosition[1], 1.5f));
+  ASSERT(ak_test_dae_float_near(firstPosition[2], -0.3f));
+  ASSERT(ak_test_dae_float_near(firstPosition[3], 3.5f));
+  ASSERT(ak_test_dae_float_near(firstPosition[4], -0.2f));
+  ASSERT(ak_test_dae_float_near(firstPosition[5], -2.5f));
+
+  actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,
+                                            "joint0/rotation");
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler,
+                                                AK_INPUT_IN_TANGENT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && actualAccessor->componentCount == 8u);
+  ASSERT(ak_test_dae_float_near(firstPosition[0], -0.1f));
+  ASSERT(ak_test_dae_float_near(firstPosition[1], 1.0f));
+  ASSERT(ak_test_dae_float_near(firstPosition[2], -0.3f));
+  ASSERT(ak_test_dae_float_near(firstPosition[3], 3.0f));
+  ASSERT(ak_test_dae_float_near(firstPosition[4], -0.2f));
+  ASSERT(ak_test_dae_float_near(firstPosition[5], -2.0f));
+  ASSERT(ak_test_dae_float_near(firstPosition[6], -0.4f));
+  ASSERT(ak_test_dae_float_near(firstPosition[7], glm_rad(9.0f)));
+
+  actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,
+                                            "joint0/scalingShared");
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, AK_INPUT_OUTPUT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0], 1.0f));
+  ASSERT(ak_test_dae_float_near(firstPosition[1], 3.0f));
+  ASSERT(ak_test_dae_float_near(firstPosition[2], 2.0f));
+
+  actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,
+                                            "joint0/matrixTransform");
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, AK_INPUT_OUTPUT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition != NULL);
+  ASSERT(ak_test_dae_float_near(firstPosition[12], 7.0f));
+  ASSERT(ak_test_dae_float_near(firstPosition[13], 9.0f));
+  ASSERT(ak_test_dae_float_near(firstPosition[14], -8.0f));
+
+  actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,
+                                            "joint0/translation.Y");
+  ASSERT(actualChannel && actualChannel->resolvedTarget);
+  ASSERT(actualChannel->resolvedTarget->isPartial);
+  ASSERT(actualChannel->resolvedTarget->off == 2u);
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, AK_INPUT_OUTPUT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0], -2.0f));
+  ASSERT(ak_typeid(actualAccessor) == AKT_ACCESSOR);
+
+  {
+    AkAccessor *negativeAccessor;
+
+    negativeAccessor = actualAccessor;
+    actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,
+                                              "joint0/translation.Z");
+    actualSampler = ak_test_dae_channel_sampler(actualChannel);
+    actualAccessor = ak_test_dae_sampler_accessor(actualSampler,
+                                                  AK_INPUT_OUTPUT);
+    ASSERT(actualAccessor && actualAccessor != negativeAccessor);
+    ASSERT(actualAccessor->buffer != negativeAccessor->buffer);
+    ASSERT(ak_typeid(actualAccessor) == AKT_ACCESSOR);
+  }
+
+  actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,
+                                            "joint0/matrixTransform(1)(3)");
+  ASSERT(actualChannel && actualChannel->resolvedTarget);
+  ASSERT(actualChannel->resolvedTarget->isPartial);
+  ASSERT(actualChannel->resolvedTarget->off == 14u);
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, AK_INPUT_OUTPUT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0], -4.0f));
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler,
+                                                AK_INPUT_IN_TANGENT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0], -0.1f));
+  ASSERT(ak_test_dae_float_near(firstPosition[1], -3.5f));
+
+  actualChannel = ak_test_dae_find_channel(
+                    actual->lib.animations.first,
+                    "joint0/rotationAngleValueA.ANGLE");
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, AK_INPUT_OUTPUT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0],
+                                                 glm_rad(30.0f)));
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler,
+                                                AK_INPUT_IN_TANGENT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0], -0.1f));
+  ASSERT(ak_test_dae_float_near(firstPosition[1], glm_rad(25.0f)));
+
+  actualChannel = ak_test_dae_find_channel(
+                    actual->lib.animations.first,
+                    "joint0/rotationAngleValueB.ANGLE");
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, AK_INPUT_OUTPUT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0],
+                                                 glm_rad(30.0f)));
+
+  actualChannel = ak_test_dae_find_channel(
+                    actual->lib.animations.first,
+                    "joint0/rotationAngleNamedA.ANGLE");
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, AK_INPUT_OUTPUT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0],
+                                                 glm_rad(45.0f)));
+
+  ASSERT(ak_test_dae_animation_counts(actual->lib.animations.first,
+                                      &samplerCount,
+                                      &accessorCount,
+                                      &bufferCount));
+  ak_changeCoordSys(actual, AK_ZUP);
+  ak_changeCoordSys(actual, AK_YUP);
+  ASSERT(actual->coordSys == AK_YUP && ak_getCoordSys(actual) == AK_YUP);
+  ASSERT(ak_test_dae_animation_counts(actual->lib.animations.first,
+                                      &samplerCountAfter,
+                                      &accessorCountAfter,
+                                      &bufferCountAfter));
+  ASSERT(samplerCountAfter == samplerCount);
+  ASSERT(accessorCountAfter == accessorCount);
+  ASSERT(bufferCountAfter == bufferCount);
+
+  ASSERT(ak_export(actual, exportDir, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(ak_test_file_contains(exportDaePath,
+                               "target=\"joint0/translation.Z\""));
+  ASSERT(ak_test_file_contains(exportDaePath,
+                               "target=\"joint0/translation.Y\""));
+  ASSERT(!ak_test_file_contains(exportDaePath,
+                                "target=\"joint0/scaling.Y\""));
+  ASSERT(ak_test_file_contains(exportDaePath,
+                               "target=\"joint0/scaling.Z\""));
+  ASSERT(ak_test_file_contains(exportDaePath,
+                               "target=\"joint0/matrixTransform(2)(3)\""));
+  ASSERT(ak_test_file_contains(exportDaePath,
+                               "target=\"joint0/rotationAngleValueA.ANGLE\""));
+  ASSERT(ak_test_file_contains(exportDaePath,
+                               "<param name=\"TIME\" type=\"float\"/><param name=\"VALUE\" type=\"float\"/>"));
+
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, AK_COORD_CVT_DISABLED);
+  actualResult = ak_load(&roundtrip, exportDaePath, AK_FILE_TYPE_AUTO);
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, previousCoordCvtType);
+  ASSERT(actualResult == AK_OK && roundtrip);
+
+#define AK_TEST_DAE_COMPARE_MATRIX_ROUNDTRIP(SEMANTIC)                       \
+  actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,     \
+                                            "joint0/matrixTransform");       \
+  expectedChannel = ak_test_dae_find_channel(roundtrip->lib.animations.first,\
+                                              "joint0/matrixTransform");     \
+  ASSERT(actualChannel && expectedChannel);                                  \
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);                \
+  expectedSampler = ak_test_dae_channel_sampler(expectedChannel);            \
+  ASSERT(actualSampler && expectedSampler);                                  \
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, (SEMANTIC));  \
+  expectedAccessor = ak_test_dae_sampler_accessor(expectedSampler,           \
+                                                   (SEMANTIC));              \
+  ASSERT(actualAccessor && expectedAccessor);                                \
+  ASSERT(ak_test_dae_accessor_near(actualAccessor, expectedAccessor))
+
+  AK_TEST_DAE_COMPARE_MATRIX_ROUNDTRIP(AK_INPUT_OUTPUT);
+  AK_TEST_DAE_COMPARE_MATRIX_ROUNDTRIP(AK_INPUT_IN_TANGENT);
+  AK_TEST_DAE_COMPARE_MATRIX_ROUNDTRIP(AK_INPUT_OUT_TANGENT);
+
+#undef AK_TEST_DAE_COMPARE_MATRIX_ROUNDTRIP
+
+#define AK_TEST_DAE_COMPARE_TARGET_ROUNDTRIP(ACTUAL_TARGET, EXPORTED_TARGET, SEMANTIC) \
+  actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,            \
+                                            (ACTUAL_TARGET));                        \
+  expectedChannel = ak_test_dae_find_channel(roundtrip->lib.animations.first,       \
+                                              (EXPORTED_TARGET));                    \
+  ASSERT(actualChannel && expectedChannel);                                          \
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);                        \
+  expectedSampler = ak_test_dae_channel_sampler(expectedChannel);                    \
+  ASSERT(actualSampler && expectedSampler);                                           \
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, (SEMANTIC));           \
+  expectedAccessor = ak_test_dae_sampler_accessor(expectedSampler, (SEMANTIC));       \
+  ASSERT(actualAccessor && expectedAccessor);                                         \
+  ASSERT(ak_test_dae_accessor_near(actualAccessor, expectedAccessor))
+
+  AK_TEST_DAE_COMPARE_TARGET_ROUNDTRIP("joint0/translation",
+                                       "joint0/translation",
+                                       AK_INPUT_IN_TANGENT);
+  AK_TEST_DAE_COMPARE_TARGET_ROUNDTRIP("joint0/translation",
+                                       "joint0/translation",
+                                       AK_INPUT_OUT_TANGENT);
+  AK_TEST_DAE_COMPARE_TARGET_ROUNDTRIP("joint0/rotation",
+                                       "joint0/rotation",
+                                       AK_INPUT_IN_TANGENT);
+  AK_TEST_DAE_COMPARE_TARGET_ROUNDTRIP("joint0/rotation",
+                                       "joint0/rotation",
+                                       AK_INPUT_OUT_TANGENT);
+  AK_TEST_DAE_COMPARE_TARGET_ROUNDTRIP("joint0/matrixTransform(1)(3)",
+                                       "joint0/matrixTransform(2)(3)",
+                                       AK_INPUT_OUTPUT);
+  AK_TEST_DAE_COMPARE_TARGET_ROUNDTRIP("joint0/matrixTransform(1)(3)",
+                                       "joint0/matrixTransform(2)(3)",
+                                       AK_INPUT_IN_TANGENT);
+  AK_TEST_DAE_COMPARE_TARGET_ROUNDTRIP("joint0/matrixTransform(1)(3)",
+                                       "joint0/matrixTransform(2)(3)",
+                                       AK_INPUT_OUT_TANGENT);
+  AK_TEST_DAE_COMPARE_TARGET_ROUNDTRIP("joint0/rotationAngleValueA.ANGLE",
+                                       "joint0/rotationAngleValueA.ANGLE",
+                                       AK_INPUT_OUTPUT);
+  AK_TEST_DAE_COMPARE_TARGET_ROUNDTRIP("joint0/rotationAngleValueA.ANGLE",
+                                       "joint0/rotationAngleValueA.ANGLE",
+                                       AK_INPUT_IN_TANGENT);
+  AK_TEST_DAE_COMPARE_TARGET_ROUNDTRIP("joint0/rotationAngleNamedA.ANGLE",
+                                       "joint0/rotationAngleNamedA.ANGLE",
+                                       AK_INPUT_OUTPUT);
+
+#undef AK_TEST_DAE_COMPARE_TARGET_ROUNDTRIP
+
+  actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,
+                                            "joint0/translation.Y");
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, AK_INPUT_OUTPUT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 1);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0], -5.0f));
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler,
+                                                AK_INPUT_IN_TANGENT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0], -0.1f));
+  ASSERT(ak_test_dae_float_near(firstPosition[1], -1.5f));
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler,
+                                                AK_INPUT_OUT_TANGENT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0], 0.1f));
+  ASSERT(ak_test_dae_float_near(firstPosition[1], -2.5f));
+
+  /* The same scalar sampler is also shared by source Z, whose conversion has
+     positive sign.  It must not undo the one negative source-Y conversion. */
+  actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,
+                                            "joint0/translation.Z");
+  ASSERT(actualChannel && actualChannel->resolvedTarget);
+  ASSERT(actualChannel->resolvedTarget->isPartial);
+  ASSERT(actualChannel->resolvedTarget->off == 1u);
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, AK_INPUT_OUTPUT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0], 2.0f));
+
+  actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,
+                                            "joint0/scaling.Y");
+  ASSERT(actualChannel && actualChannel->resolvedTarget);
+  ASSERT(actualChannel->resolvedTarget->isPartial);
+  ASSERT(actualChannel->resolvedTarget->off == 2u);
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, AK_INPUT_OUTPUT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0], 2.0f));
+
+  actualChannel = ak_test_dae_find_channel(actual->lib.animations.first,
+                                            "joint0/rotation.Y");
+  ASSERT(actualChannel && actualChannel->resolvedTarget);
+  ASSERT(actualChannel->resolvedTarget->isPartial);
+  ASSERT(actualChannel->resolvedTarget->off == 2u);
+  actualSampler = ak_test_dae_channel_sampler(actualChannel);
+  actualAccessor = ak_test_dae_sampler_accessor(actualSampler, AK_INPUT_OUTPUT);
+  firstPosition = ak_test_dae_accessor_float_row(actualAccessor, 0);
+  ASSERT(firstPosition && ak_test_dae_float_near(firstPosition[0], -0.25f));
+
+  ak_free(actual);
+  ak_free(expected);
+  ak_free(roundtrip);
+  ak_test_export_cleanup(exportDir);
   unlink(daePath);
   rmdir(tmpdir);
 

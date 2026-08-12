@@ -22,7 +22,13 @@
 typedef struct DAEMatrixAnimFix {
   struct DAEMatrixAnimFix *next;
   AkAccessor              *acc;
+  AkBuffer                *buffer;
+  size_t                   byteOffset;
+  size_t                   byteStride;
+  uint32_t                 count;
 } DAEMatrixAnimFix;
+
+#define DAE_MATRIX_ANIM_FIX_FAILED ((DAEMatrixAnimFix *)(uintptr_t)1u)
 
 static
 AkTargetPropertyType
@@ -353,8 +359,23 @@ static
 bool
 dae_matrixAnimFixed(DAEMatrixAnimFix * __restrict it,
                     AkAccessor       * __restrict acc) {
+  if (it == DAE_MATRIX_ANIM_FIX_FAILED)
+    return true;
+
   for (; it; it = it->next) {
     if (it->acc == acc)
+      return true;
+    if (acc
+        && acc->buffer
+        && acc->componentType == AKT_FLOAT
+        && acc->bytesPerComponent == sizeof(float)
+        && acc->componentCount == 16u
+        && it->buffer == acc->buffer
+        && it->byteOffset == acc->byteOffset
+        && it->byteStride == (acc->byteStride
+                                ? acc->byteStride
+                                : sizeof(float) * 16u)
+        && it->count == acc->count)
       return true;
   }
 
@@ -369,7 +390,17 @@ dae_matrixAnimMark(DAEState          * __restrict dst,
   DAEMatrixAnimFix *it;
 
   it      = ak_heap_calloc(dst->heap, dst->doc, sizeof(*it));
+  if (!it) {
+    *done = DAE_MATRIX_ANIM_FIX_FAILED;
+    return;
+  }
   it->acc = acc;
+  it->buffer = acc->buffer;
+  it->byteOffset = acc->byteOffset;
+  it->byteStride = acc->byteStride
+                     ? acc->byteStride
+                     : sizeof(float) * 16u;
+  it->count = acc->count;
   it->next = *done;
   *done   = it;
 }
@@ -377,26 +408,42 @@ dae_matrixAnimMark(DAEState          * __restrict dst,
 static
 bool
 dae_transposeMat4Output(AkAccessor * __restrict acc) {
-  char     *base;
-  float    *m;
-  size_t    st;
-  uint32_t  i;
+  unsigned char *base;
+  size_t         rowBytes, stride, last;
+  uint32_t       i;
 
   if (!acc
       || !acc->buffer
       || !acc->buffer->data
       || acc->componentType != AKT_FLOAT
+      || acc->bytesPerComponent != sizeof(float)
       || acc->componentCount != 16)
     return false;
 
-  st = acc->byteStride;
-  if (st == 0)
-    st = sizeof(float) * 16;
+  rowBytes = sizeof(float) * 16u;
+  stride   = acc->byteStride ? acc->byteStride : rowBytes;
+  if (stride < rowBytes || acc->byteOffset > acc->buffer->length)
+    return false;
 
-  base = (char *)acc->buffer->data + acc->byteOffset;
+  if (acc->count > 0u
+      && (size_t)(acc->count - 1u)
+           > ((size_t)-1 - acc->byteOffset) / stride)
+    return false;
+
+  last = acc->byteOffset;
+  if (acc->count > 0u)
+    last += (size_t)(acc->count - 1u) * stride;
+  if (last > acc->buffer->length
+      || (acc->count > 0u && rowBytes > acc->buffer->length - last))
+    return false;
+
+  base = (unsigned char *)acc->buffer->data + acc->byteOffset;
   for (i = 0; i < acc->count; i++) {
-    m = (float *)(base + st * i);
-    glm_mat4_transpose((vec4 *)m);
+    mat4 matrix;
+
+    memcpy(matrix, base + (size_t)i * stride, rowBytes);
+    glm_mat4_transpose(matrix);
+    memcpy(base + (size_t)i * stride, matrix, rowBytes);
   }
 
   return true;
