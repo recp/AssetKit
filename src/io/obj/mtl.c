@@ -807,6 +807,8 @@ wobj_handleMaterial(WOState  * __restrict wst,
                                             AK_TEXTURE_CHANNEL_RGB);
   }
   classic->shininess = mtl->Ns;
+  if (mtl->has_Ns)
+    classic->base.flags |= AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS;
   classic->ior = mtl->Ni;
   classic->illum = mtl->illum;
   wobj_featurePush(surface, &classic->base);

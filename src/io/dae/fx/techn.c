@@ -386,6 +386,7 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
 
       specularProp->strength = dae_float(dst, xml, specularProp, 
                                          offsetof(AkMaterialSpecularProp, shininess), 1.0f);
+      specularProp->hasShininess = true;
     } else if (DAE_XML_TAG_EQ(xml, reflectivity)) {
       if (!techn->reflective)
         techn->reflective = ak_heap_calloc(heap, techn, sizeof(*techn->reflective));

@@ -97,6 +97,7 @@ typedef struct AkMaterialSpecularProp {
     float           shininess;
   };
   AkTextureChannels textureChannels;
+  bool              hasShininess;
 } AkMaterialSpecularProp;
 
 typedef struct AkMaterialEmissionProp {

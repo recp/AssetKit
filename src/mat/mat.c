@@ -995,6 +995,8 @@ ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
     }
 
     classic->shininess    = common->specular ? common->specular->shininess : 0.0f;
+    if (common->specular && common->specular->hasShininess)
+      classic->base.flags |= AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS;
     classic->reflectivity = common->reflective ? common->reflective->amount : 0.0f;
     classic->ior          = common->ior;
 

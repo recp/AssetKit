@@ -136,6 +136,23 @@ test_write_material_dae(const char *path) {
         "<diffuse><color>1 1 1 1</color></diffuse>"
         "<bump><texture texture=\"sampler_normal\" texcoord=\"UVSET0\"/></bump>"
         "</phong></technique></profile_COMMON></effect>\n"
+        "<effect id=\"effect_shininess_absent\"><profile_COMMON>"
+        "<technique sid=\"common\"><phong>"
+        "<diffuse><color>1 1 1 1</color></diffuse>"
+        "<specular><color>1 1 1 1</color></specular>"
+        "</phong></technique></profile_COMMON></effect>\n"
+        "<effect id=\"effect_shininess_zero\"><profile_COMMON>"
+        "<technique sid=\"common\"><phong>"
+        "<diffuse><color>1 1 1 1</color></diffuse>"
+        "<specular><color>1 1 1 1</color></specular>"
+        "<shininess><float>0</float></shininess>"
+        "</phong></technique></profile_COMMON></effect>\n"
+        "<effect id=\"effect_shininess_fifty\"><profile_COMMON>"
+        "<technique sid=\"common\"><phong>"
+        "<diffuse><color>1 1 1 1</color></diffuse>"
+        "<specular><color>1 1 1 1</color></specular>"
+        "<shininess><float>50</float></shininess>"
+        "</phong></technique></profile_COMMON></effect>\n"
         "</library_effects>\n"
         "<library_materials>"
         "<material id=\"mat_edge\" name=\"edge\"><instance_effect url=\"#effect_edge\"/></material>"
@@ -151,6 +168,9 @@ test_write_material_dae(const char *path) {
         "<material id=\"mat_fcollada_normal\" name=\"fcollada_normal\"><instance_effect url=\"#effect_fcollada_normal\"/></material>"
         "<material id=\"mat_max_height_specular\" name=\"max_height_specular\"><instance_effect url=\"#effect_max_height_specular\"/></material>"
         "<material id=\"mat_direct_bump\" name=\"direct_bump\"><instance_effect url=\"#effect_direct_bump\"/></material>"
+        "<material id=\"mat_shininess_absent\" name=\"shininess_absent\"><instance_effect url=\"#effect_shininess_absent\"/></material>"
+        "<material id=\"mat_shininess_zero\" name=\"shininess_zero\"><instance_effect url=\"#effect_shininess_zero\"/></material>"
+        "<material id=\"mat_shininess_fifty\" name=\"shininess_fifty\"><instance_effect url=\"#effect_shininess_fifty\"/></material>"
         "</library_materials>\n"
         "<library_visual_scenes><visual_scene id=\"Scene\"/></library_visual_scenes>\n"
         "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
@@ -671,6 +691,10 @@ TEST_IMPL(material_dae_adapter) {
   AkMaterial  *fcolladaNormal;
   AkMaterial  *maxHeightSpecular;
   AkMaterial  *directBump;
+  AkMaterial  *shininessAbsent;
+  AkMaterial  *shininessZero;
+  AkMaterial  *shininessFifty;
+  AkMaterialClassicFeature *classic;
   AkMaterialSpecularFeature *specularLevel;
   AkDoc       *noExtraDoc;
   AkMaterial  *noExtraEdge;
@@ -809,6 +833,28 @@ TEST_IMPL(material_dae_adapter) {
   ASSERT(directBump->surface->normal->source == AK_MATERIAL_INPUT_TEXTURE);
   ASSERT(!(directBump->surface->normal->flags
            & AK_MATERIAL_INPUT_FLAG_HEIGHT));
+
+  shininessAbsent = test_material_by_name(doc, "shininess_absent");
+  shininessZero   = test_material_by_name(doc, "shininess_zero");
+  shininessFifty  = test_material_by_name(doc, "shininess_fifty");
+  ASSERT(shininessAbsent && shininessAbsent->surface);
+  ASSERT(shininessZero && shininessZero->surface);
+  ASSERT(shininessFifty && shininessFifty->surface);
+  classic = (AkMaterialClassicFeature *)ak_materialFeature(
+              shininessAbsent->surface, AK_MATERIAL_FEATURE_CLASSIC);
+  ASSERT(classic);
+  ASSERT(!(classic->base.flags & AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS));
+  ASSERT(classic->shininess == 0.0f);
+  classic = (AkMaterialClassicFeature *)ak_materialFeature(
+              shininessZero->surface, AK_MATERIAL_FEATURE_CLASSIC);
+  ASSERT(classic);
+  ASSERT(classic->base.flags & AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS);
+  ASSERT(classic->shininess == 0.0f);
+  classic = (AkMaterialClassicFeature *)ak_materialFeature(
+              shininessFifty->surface, AK_MATERIAL_FEATURE_CLASSIC);
+  ASSERT(classic);
+  ASSERT(classic->base.flags & AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS);
+  ASSERT(fabsf(classic->shininess - 50.0f) < 0.001f);
   ASSERT(ak_extra(edge));
   ASSERT(test_tree_has_name(ak_extra(edge), "profile_COMMON"));
   ASSERT(test_tree_has_name(ak_extra(edge), "technique"));

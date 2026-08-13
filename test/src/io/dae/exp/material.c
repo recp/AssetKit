@@ -783,13 +783,22 @@ TEST_IMPL(dae_export_material_technique_types) {
   AkMaterial        *matConstant;
   AkMaterial        *matLambert;
   AkMaterial        *matBlinn;
+  AkMaterial        *matLegacyPhong;
+  AkMaterial        *matAbsentPhong;
   AkMaterial        *roundTripConstant;
   AkMaterialSurface *surfaceConstant;
   AkMaterialSurface *surfaceLambert;
   AkMaterialSurface *surfaceBlinn;
+  AkMaterialSurface *surfaceLegacyPhong;
+  AkMaterialSurface *surfaceAbsentPhong;
+  AkMaterialClassicFeature *classicBlinn;
+  AkMaterialClassicFeature *classicLegacyPhong;
+  AkMaterialClassicFeature *classicAbsentPhong;
   AkMaterialInput   *colorConstant;
   AkMaterialInput   *colorLambert;
   AkMaterialInput   *colorBlinn;
+  AkMaterialInput   *colorLegacyPhong;
+  AkMaterialInput   *colorAbsentPhong;
   AkMaterialInput   *constantMetallic;
   AkMaterialInput   *constantRoughness;
   const char        *outDir  = "./assetkit_export_dae_material_technique";
@@ -804,29 +813,53 @@ TEST_IMPL(dae_export_material_technique_types) {
   matConstant     = ak_heap_calloc(heap, doc, sizeof(*matConstant));
   matLambert      = ak_heap_calloc(heap, doc, sizeof(*matLambert));
   matBlinn        = ak_heap_calloc(heap, doc, sizeof(*matBlinn));
+  matLegacyPhong  = ak_heap_calloc(heap, doc, sizeof(*matLegacyPhong));
+  matAbsentPhong  = ak_heap_calloc(heap, doc, sizeof(*matAbsentPhong));
   surfaceConstant = ak_heap_calloc(heap, matConstant, sizeof(*surfaceConstant));
   surfaceLambert  = ak_heap_calloc(heap, matLambert, sizeof(*surfaceLambert));
   surfaceBlinn    = ak_heap_calloc(heap, matBlinn, sizeof(*surfaceBlinn));
+  surfaceLegacyPhong = ak_heap_calloc(heap, matLegacyPhong,
+                                      sizeof(*surfaceLegacyPhong));
+  surfaceAbsentPhong = ak_heap_calloc(heap, matAbsentPhong,
+                                      sizeof(*surfaceAbsentPhong));
+  classicBlinn    = ak_heap_calloc(heap, surfaceBlinn, sizeof(*classicBlinn));
+  classicLegacyPhong = ak_heap_calloc(heap, surfaceLegacyPhong,
+                                      sizeof(*classicLegacyPhong));
+  classicAbsentPhong = ak_heap_calloc(heap, surfaceAbsentPhong,
+                                      sizeof(*classicAbsentPhong));
   colorConstant = ak_test_material_input(heap, surfaceConstant);
   colorLambert = ak_test_material_input(heap, surfaceLambert);
   colorBlinn = ak_test_material_input(heap, surfaceBlinn);
+  colorLegacyPhong = ak_test_material_input(heap, surfaceLegacyPhong);
+  colorAbsentPhong = ak_test_material_input(heap, surfaceAbsentPhong);
   constantMetallic = ak_test_material_input(heap, surfaceConstant);
   constantRoughness = ak_test_material_input(heap, surfaceConstant);
   ASSERT(matConstant != NULL);
   ASSERT(matLambert != NULL);
   ASSERT(matBlinn != NULL);
+  ASSERT(matLegacyPhong != NULL);
+  ASSERT(matAbsentPhong != NULL);
   ASSERT(surfaceConstant != NULL);
   ASSERT(surfaceLambert != NULL);
   ASSERT(surfaceBlinn != NULL);
+  ASSERT(surfaceLegacyPhong != NULL);
+  ASSERT(surfaceAbsentPhong != NULL);
+  ASSERT(classicBlinn != NULL);
+  ASSERT(classicLegacyPhong != NULL);
+  ASSERT(classicAbsentPhong != NULL);
   ASSERT(colorConstant != NULL);
   ASSERT(colorLambert != NULL);
   ASSERT(colorBlinn != NULL);
+  ASSERT(colorLegacyPhong != NULL);
+  ASSERT(colorAbsentPhong != NULL);
   ASSERT(constantMetallic != NULL);
   ASSERT(constantRoughness != NULL);
 
   matConstant->name = "constant";
   matLambert->name  = "lambert";
   matBlinn->name    = "blinn";
+  matLegacyPhong->name = "legacy_positive";
+  matAbsentPhong->name = "absent_zero";
 
   colorConstant->source       = AK_MATERIAL_INPUT_CONSTANT;
   colorConstant->valueType    = AK_MATERIAL_VALUE_COLOR;
@@ -848,6 +881,8 @@ TEST_IMPL(dae_export_material_technique_types) {
   colorBlinn->color.rgba.G = 0.0f;
   colorBlinn->color.rgba.B = 1.0f;
   colorBlinn->color.rgba.A = 1.0f;
+  *colorLegacyPhong = *colorBlinn;
+  *colorAbsentPhong = *colorBlinn;
 
   surfaceConstant->type      = AK_MATERIAL_TYPE_CONSTANT;
   surfaceConstant->baseColor = colorConstant;
@@ -863,16 +898,40 @@ TEST_IMPL(dae_export_material_technique_types) {
   surfaceLambert->baseColor  = colorLambert;
   surfaceBlinn->type         = AK_MATERIAL_TYPE_BLINN;
   surfaceBlinn->baseColor    = colorBlinn;
+  classicBlinn->base.type    = AK_MATERIAL_FEATURE_CLASSIC;
+  classicBlinn->base.flags   = AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS;
+  classicBlinn->diffuse      = colorBlinn;
+  classicBlinn->shininess    = 0.0f;
+  surfaceBlinn->features     = &classicBlinn->base;
+  surfaceBlinn->featureMask  = 1u << AK_MATERIAL_FEATURE_CLASSIC;
+  surfaceLegacyPhong->type      = AK_MATERIAL_TYPE_PHONG;
+  surfaceLegacyPhong->baseColor = colorLegacyPhong;
+  classicLegacyPhong->base.type = AK_MATERIAL_FEATURE_CLASSIC;
+  classicLegacyPhong->diffuse   = colorLegacyPhong;
+  classicLegacyPhong->shininess = 25.0f;
+  surfaceLegacyPhong->features  = &classicLegacyPhong->base;
+  surfaceLegacyPhong->featureMask = 1u << AK_MATERIAL_FEATURE_CLASSIC;
+  surfaceAbsentPhong->type      = AK_MATERIAL_TYPE_PHONG;
+  surfaceAbsentPhong->baseColor = colorAbsentPhong;
+  classicAbsentPhong->base.type = AK_MATERIAL_FEATURE_CLASSIC;
+  classicAbsentPhong->diffuse   = colorAbsentPhong;
+  classicAbsentPhong->shininess = 0.0f;
+  surfaceAbsentPhong->features  = &classicAbsentPhong->base;
+  surfaceAbsentPhong->featureMask = 1u << AK_MATERIAL_FEATURE_CLASSIC;
 
   matConstant->surface = surfaceConstant;
   matLambert->surface  = surfaceLambert;
   matBlinn->surface    = surfaceBlinn;
+  matLegacyPhong->surface = surfaceLegacyPhong;
+  matAbsentPhong->surface = surfaceAbsentPhong;
   matConstant->next    = matLambert;
   matLambert->next     = matBlinn;
+  matBlinn->next       = matLegacyPhong;
+  matLegacyPhong->next = matAbsentPhong;
 
   doc->lib.materials.first = matConstant;
-  doc->lib.materials.last  = matBlinn;
-  doc->lib.materials.count = 3;
+  doc->lib.materials.last  = matAbsentPhong;
+  doc->lib.materials.count = 5;
 
   ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
   ASSERT(ak_test_file_contains(daePath,
@@ -880,7 +939,12 @@ TEST_IMPL(dae_export_material_technique_types) {
   ASSERT(ak_test_file_contains(daePath,
                                "<lambert><diffuse><color>0 1 0 1</color></diffuse></lambert>"));
   ASSERT(ak_test_file_contains(daePath,
-                               "<blinn><diffuse><color>0 0 1 1</color></diffuse></blinn>"));
+                               "<blinn><diffuse><color>0 0 1 1</color></diffuse>"));
+  ASSERT(ak_test_file_contains(daePath,
+                               "<shininess><float>0</float></shininess>"));
+  ASSERT(ak_test_file_contains(daePath,
+                               "<shininess><float>25</float></shininess>"));
+  ASSERT(ak_test_file_count(daePath, "<shininess>") == 2);
   ASSERT(!ak_test_file_contains(daePath, "<constant><diffuse>"));
 
   roundTrip = NULL;
