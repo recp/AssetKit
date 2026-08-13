@@ -29,6 +29,7 @@
 #include "fixup/tex.h"
 #include "fixup/ctlr.h"
 #include "fixup/channel.h"
+#include "bugfix/ohana.h"
 #include "bugfix/scenekit.h"
 #include "../../coord/common.h"
 #include "../../mat/internal.h"
@@ -290,6 +291,12 @@ dae_postscript(DAEState * __restrict dst) {
     ak_coordCvtAnimationsTo(dst->doc, sourceCoordSys, targetCoordSys);
     ak_coordCvtSkinsTo(dst->doc, sourceCoordSys, targetCoordSys);
   }
+
+  /* Ohana3DS-Rebirth's Gauss-Jordan inverse fails on near-zero pivots.
+     Inspect after skin conversion so joint worlds and inverse binds are in
+     the same coordinate system before rebuilding a positively identified
+     malformed palette. */
+  dae_bugfix_ohana_inverse_bind_poses(dst);
 
   /* now set used coordSys */
   if (coordCvtType != AK_COORD_CVT_DISABLED) {

@@ -33,8 +33,149 @@ typedef enum AkTestDaeSkinWeightsCase {
   AK_TEST_DAE_SKIN_PARTIAL_PRIMITIVE_FAILURE
 } AkTestDaeSkinWeightsCase;
 
+typedef enum AkTestDaeOhanaCase {
+  AK_TEST_DAE_OHANA_MALFORMED,
+  AK_TEST_DAE_OHANA_RENAMED,
+  AK_TEST_DAE_OHANA_UNRESOLVED,
+  AK_TEST_DAE_OHANA_POSED
+} AkTestDaeOhanaCase;
+
 static const char *ak_test_dae_identity4x4 =
   "1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1";
+
+static
+bool
+ak_test_write_dae_ohana_skin(const char         *path,
+                             AkTestDaeOhanaCase  testCase) {
+  static const char *jointNames[] = {
+    "root", "joint1", "joint2", "joint3",
+    "joint4", "joint5", "joint6", "joint7"
+  };
+  const char *meshBase;
+  const char *joint7Id;
+  FILE       *file;
+  uint32_t    i;
+
+  meshBase = testCase == AK_TEST_DAE_OHANA_RENAMED
+             ? "generic_mesh"
+             : "mesh_0_Test";
+  joint7Id = testCase == AK_TEST_DAE_OHANA_UNRESOLVED
+             ? "unresolved_bone_id"
+             : "joint7_bone_id";
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fprintf(file,
+          "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+          "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" "
+          "version=\"1.4.1\"><asset><up_axis>Z_UP</up_axis></asset>"
+          "<library_geometries><geometry id=\"%s_id\" name=\"%s\"><mesh>"
+          "<source id=\"%s_position_id\"><float_array "
+          "id=\"%s_position_array_id\" count=\"9\">"
+          "0 0 0 1 0 0 0 1 0</float_array><technique_common><accessor "
+          "source=\"#%s_position_array_id\" count=\"3\" stride=\"3\">"
+          "<param name=\"X\" type=\"float\"/><param name=\"Y\" "
+          "type=\"float\"/><param name=\"Z\" type=\"float\"/>"
+          "</accessor></technique_common></source><vertices "
+          "id=\"%s_vertices_id\"><input semantic=\"POSITION\" "
+          "source=\"#%s_position_id\"/></vertices><triangles count=\"1\">"
+          "<input semantic=\"VERTEX\" source=\"#%s_vertices_id\" "
+          "offset=\"0\"/><p>0 1 2</p></triangles></mesh></geometry>"
+          "</library_geometries><library_controllers><controller "
+          "id=\"%s_ctrl_id\"><skin source=\"#%s_id\">"
+          "<bind_shape_matrix>%s</bind_shape_matrix>"
+          "<source id=\"%s_ctrl_joint_names_id\"><Name_array "
+          "id=\"%s_ctrl_joint_names_array_id\" count=\"8\">"
+          "root joint1 joint2 joint3 joint4 joint5 joint6 joint7"
+          "</Name_array><technique_common><accessor "
+          "source=\"#%s_ctrl_joint_names_array_id\" count=\"8\" "
+          "stride=\"1\"><param name=\"JOINT\" type=\"Name\"/>"
+          "</accessor></technique_common></source>"
+          "<source id=\"%s_ctrl_inv_bind_poses_id\"><float_array "
+          "id=\"%s_ctrl_inv_bind_poses_array_id\" count=\"128\">",
+          meshBase, meshBase,
+          meshBase, meshBase, meshBase,
+          meshBase, meshBase, meshBase,
+          meshBase, meshBase,
+          ak_test_dae_identity4x4,
+          meshBase, meshBase, meshBase,
+          meshBase, meshBase);
+
+  for (i = 0u; i < 8u; i++) {
+    const char *inverseBind;
+
+    if (testCase == AK_TEST_DAE_OHANA_POSED) {
+      inverseBind = "1 0 0 -10 0 1 0 0 0 0 1 0 0 0 0 1";
+    } else if (i == 7u) {
+      /* Finite/invertible but non-rigid: the Ohana near-zero-pivot symptom. */
+      inverseBind = "1 2 0 0 0 1 0 -7 0 0 1 0 0 0 0 1";
+    } else {
+      inverseBind = ak_test_dae_identity4x4;
+    }
+    fprintf(file, "%s%s", i ? " " : "", inverseBind);
+  }
+
+  fprintf(file,
+          "</float_array><technique_common><accessor "
+          "source=\"#%s_ctrl_inv_bind_poses_array_id\" count=\"8\" "
+          "stride=\"16\"><param name=\"TRANSFORM\" type=\"float4x4\"/>"
+          "</accessor></technique_common></source>"
+          "<source id=\"%s_ctrl_weights_id\"><float_array "
+          "id=\"%s_ctrl_weights_array_id\" count=\"1\">1</float_array>"
+          "<technique_common><accessor "
+          "source=\"#%s_ctrl_weights_array_id\" count=\"1\" stride=\"1\">"
+          "<param name=\"WEIGHT\" type=\"float\"/></accessor>"
+          "</technique_common></source><joints>"
+          "<input semantic=\"JOINT\" source=\"#%s_ctrl_joint_names_id\"/>"
+          "<input semantic=\"INV_BIND_MATRIX\" "
+          "source=\"#%s_ctrl_inv_bind_poses_id\"/></joints>"
+          "<vertex_weights count=\"3\"><input semantic=\"JOINT\" "
+          "source=\"#%s_ctrl_joint_names_id\" offset=\"0\"/>"
+          "<input semantic=\"WEIGHT\" source=\"#%s_ctrl_weights_id\" "
+          "offset=\"1\"/><vcount>1 1 1</vcount><v>0 0 0 0 0 0</v>"
+          "</vertex_weights></skin></controller></library_controllers>"
+          "<library_visual_scenes><visual_scene id=\"vs_Test_id\" "
+          "name=\"vs_Test\"><node id=\"root_bone_id\" sid=\"root\" "
+          "name=\"root\" type=\"JOINT\"><matrix>%s</matrix>",
+          meshBase,
+          meshBase, meshBase, meshBase,
+          meshBase, meshBase, meshBase, meshBase,
+          ak_test_dae_identity4x4);
+
+  for (i = 1u; i < 8u; i++) {
+    char        generatedId[32];
+    const char *authoredName;
+    const char *jointId;
+    const char *matrix;
+
+    snprintf(generatedId, sizeof(generatedId), "joint%u_bone_id", i);
+    jointId = i == 7u ? joint7Id : generatedId;
+    authoredName = testCase == AK_TEST_DAE_OHANA_UNRESOLVED && i == 7u
+                   ? "unresolved"
+                   : jointNames[i];
+    matrix = testCase == AK_TEST_DAE_OHANA_POSED
+             ? "1 0 0 1 0 1 0 0 0 0 1 0 0 0 0 1"
+             : ak_test_dae_identity4x4;
+    fprintf(file,
+            "<node id=\"%s\" sid=\"%s\" name=\"%s\" type=\"JOINT\">"
+            "<matrix>%s</matrix></node>",
+            jointId,
+            authoredName, authoredName, matrix);
+  }
+
+  fputs("</node>", file);
+  fprintf(file,
+          "<node id=\"vsn_%s_id\" name=\"vsn_%s\">"
+          "<matrix>%s</matrix><instance_controller url=\"#%s_ctrl_id\">"
+          "<skeleton>#root_bone_id</skeleton></instance_controller></node>"
+          "</visual_scene></library_visual_scenes><scene>"
+          "<instance_visual_scene url=\"#vs_Test_id\"/></scene></COLLADA>",
+          meshBase, meshBase, ak_test_dae_identity4x4, meshBase);
+
+  return fclose(file) == 0;
+}
 
 static
 bool
@@ -274,6 +415,64 @@ ak_test_dae_first_skin_weights(AkSkin *skin) {
   if (!skin || !skin->weights || skin->nPrims == 0)
     return NULL;
   return skin->weights[0];
+}
+
+static
+AkDoc*
+ak_test_load_dae_ohana(const char    *path,
+                       bool           bugfixes,
+                       AkCoordCvtType  coordCvtType,
+                       AkCoordSys    *coord,
+                       AkResult      *result) {
+  AkDoc    *doc;
+  uintptr_t previousBugfixes;
+  uintptr_t previousCoordCvtType;
+  uintptr_t previousCoord;
+
+  doc = NULL;
+  previousBugfixes = ak_opt_get(AK_OPT_BUGFIXES);
+  previousCoordCvtType = ak_opt_get(AK_OPT_COORD_CONVERT_TYPE);
+  previousCoord = ak_opt_get(AK_OPT_COORD);
+
+  ak_opt_set(AK_OPT_BUGFIXES, bugfixes);
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, coordCvtType);
+  ak_opt_set(AK_OPT_COORD, (uintptr_t)coord);
+  *result = ak_load(&doc, path, AK_FILE_TYPE_DAE);
+  ak_opt_set(AK_OPT_COORD, previousCoord);
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, previousCoordCvtType);
+  ak_opt_set(AK_OPT_BUGFIXES, previousBugfixes);
+
+  return doc;
+}
+
+static
+float
+ak_test_dae_skin_bind_error(AkSkin *skin, size_t jointIndex) {
+  mat4     world;
+  mat4     product;
+  float    error;
+  uint32_t column, row;
+
+  if (!skin || jointIndex >= skin->nJoints
+      || !skin->joints || !skin->joints[jointIndex]
+      || !skin->invBindPoses)
+    return FLT_MAX;
+
+  ak_transformCombineWorld(skin->joints[jointIndex], world[0]);
+  glm_mat4_mul(world, skin->invBindPoses[jointIndex], product);
+  error = 0.0f;
+  for (column = 0u; column < 4u; column++) {
+    for (row = 0u; row < 4u; row++) {
+      float expected;
+      float delta;
+
+      expected = column == row ? 1.0f : 0.0f;
+      delta = fabsf(product[column][row] - expected);
+      if (delta > error)
+        error = delta;
+    }
+  }
+  return error;
 }
 
 TEST_IMPL(float_array_invalid_token_alignment) {
@@ -553,6 +752,115 @@ TEST_IMPL(dae_skin_vertex_weight_tolerance) {
     ASSERT(rowWeights[1] == 0.0f);
     ak_free(buffer);
   }
+  ak_free(doc);
+
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(dae_ohana_inverse_bind_pose_tolerance) {
+  AkDoc         *doc;
+  AkSkin        *skin;
+  AkResult       result;
+  char           dirTemplate[PATH_MAX];
+  char          *tmpdir;
+  char           daePath[PATH_MAX];
+  const char    *tmpBase;
+  size_t         i;
+
+  doc = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-ohana-bind-XXXXXX"));
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "ohana.dae"));
+
+  ASSERT(ak_test_write_dae_ohana_skin(daePath,
+                                      AK_TEST_DAE_OHANA_MALFORMED));
+  doc = ak_test_load_dae_ohana(daePath,
+                               true,
+                               AK_COORD_CVT_DISABLED,
+                               AK_ZUP,
+                               &result);
+  ASSERT(result == AK_OK && doc && doc->lib.skins.count == 1u);
+  skin = doc->lib.skins.first;
+  ASSERT(skin && skin->nJoints == 8u);
+  for (i = 0u; i < skin->nJoints; i++)
+    ASSERT(ak_test_dae_skin_bind_error(skin, i) < 1.0e-5f);
+  ASSERT(fabsf(skin->invBindPoses[7][1][0]) < 1.0e-6f);
+  ak_free(doc);
+
+  /* Disabling compatibility fixes must preserve the authored payload. */
+  doc = ak_test_load_dae_ohana(daePath,
+                               false,
+                               AK_COORD_CVT_DISABLED,
+                               AK_ZUP,
+                               &result);
+  ASSERT(result == AK_OK && doc);
+  skin = doc->lib.skins.first;
+  ASSERT(skin && fabsf(skin->invBindPoses[7][1][0] - 2.0f) < 1.0e-6f);
+  ASSERT(ak_test_dae_skin_bind_error(skin, 7u) > 1.0f);
+  ak_free(doc);
+
+  /* A generic controller with the same numbers is outside the fingerprint. */
+  ASSERT(ak_test_write_dae_ohana_skin(daePath, AK_TEST_DAE_OHANA_RENAMED));
+  doc = ak_test_load_dae_ohana(daePath,
+                               true,
+                               AK_COORD_CVT_DISABLED,
+                               AK_ZUP,
+                               &result);
+  ASSERT(result == AK_OK && doc);
+  skin = doc->lib.skins.first;
+  ASSERT(skin && fabsf(skin->invBindPoses[7][1][0] - 2.0f) < 1.0e-6f);
+  ak_free(doc);
+
+  /* A missing palette joint aborts the repair without touching earlier IBMs. */
+  ASSERT(ak_test_write_dae_ohana_skin(daePath,
+                                      AK_TEST_DAE_OHANA_UNRESOLVED));
+  doc = ak_test_load_dae_ohana(daePath,
+                               true,
+                               AK_COORD_CVT_DISABLED,
+                               AK_ZUP,
+                               &result);
+  ASSERT(result == AK_OK && doc);
+  skin = doc->lib.skins.first;
+  ASSERT(skin && skin->joints && skin->joints[7] == NULL);
+  ASSERT(fabsf(skin->invBindPoses[0][0][0] - 1.0f) < 1.0e-6f);
+  ASSERT(fabsf(skin->invBindPoses[7][1][0] - 2.0f) < 1.0e-6f);
+  ak_free(doc);
+
+  /* Rigid current-pose mismatch has no non-rigid corruption evidence. */
+  ASSERT(ak_test_write_dae_ohana_skin(daePath, AK_TEST_DAE_OHANA_POSED));
+  doc = ak_test_load_dae_ohana(daePath,
+                               true,
+                               AK_COORD_CVT_DISABLED,
+                               AK_ZUP,
+                               &result);
+  ASSERT(result == AK_OK && doc);
+  skin = doc->lib.skins.first;
+  ASSERT(skin && fabsf(skin->invBindPoses[0][3][0] + 10.0f) < 1.0e-6f);
+  ak_free(doc);
+
+  /* The hook runs after ALL conversion, so both sides share one basis. */
+  ASSERT(ak_test_write_dae_ohana_skin(daePath,
+                                      AK_TEST_DAE_OHANA_MALFORMED));
+  doc = ak_test_load_dae_ohana(daePath,
+                               true,
+                               AK_COORD_CVT_ALL,
+                               AK_YUP,
+                               &result);
+  ASSERT(result == AK_OK && doc && doc->coordSys == AK_YUP);
+  skin = doc->lib.skins.first;
+  ASSERT(skin && skin->nJoints == 8u);
+  for (i = 0u; i < skin->nJoints; i++)
+    ASSERT(ak_test_dae_skin_bind_error(skin, i) < 1.0e-5f);
   ak_free(doc);
 
   unlink(daePath);
