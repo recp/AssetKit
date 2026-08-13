@@ -113,6 +113,23 @@ dae_write_attenuation(DAEExpWriter       * __restrict w,
                        attn ? attn->quadratic : 0.0f);
 }
 
+static
+void
+dae_write_float_elem_sid(DAEExpWriter * __restrict w,
+                         DAEExpName                tag,
+                         const char   * __restrict sid,
+                         float                     val) {
+  dae_w_ch(w, '<');
+  dae_w_name(w, tag);
+  dae_w_lit(w, " sid=\"");
+  dae_w_xml(w, sid, true);
+  dae_w_lit(w, "\">");
+  dae_w_float_fast(w, val);
+  dae_w_lit(w, "</");
+  dae_w_name(w, tag);
+  dae_w_ch(w, '>');
+}
+
 AK_HIDE
 void
 dae_write_light(DAEExpState * __restrict st,
@@ -149,14 +166,19 @@ dae_write_light(DAEExpState * __restrict st,
       dae_write_attenuation(w, &point->attenuation);
   } else if (base && base->type == AK_LIGHT_TYPE_SPOT) {
     AkSpotLight *spot;
+    const char  *falloffSid;
 
     spot = (AkSpotLight *)base;
     if (dae_light_attenuation_default(&spot->attenuation) && base->range > 0.0f)
       dae_write_range_attenuation(w, base->range);
     else
       dae_write_attenuation(w, &spot->attenuation);
-    dae_write_float_elem(w, DAE_EXP_NAME(falloff_angle),
-                         spot->outerConeAngle * DAE_EXP_RAD_TO_DEG);
+    falloffSid = ak_sid_geta(spot, &spot->outerConeAngle);
+    dae_write_float_elem_sid(w,
+                             DAE_EXP_NAME(falloff_angle),
+                             falloffSid ? falloffSid : "falloff_angle",
+                             spot->outerConeAngle
+                             * (2.0f * DAE_EXP_RAD_TO_DEG));
     dae_write_float_elem(w, DAE_EXP_NAME(falloff_exp),
                          spot->coneFalloffExponent);
   }

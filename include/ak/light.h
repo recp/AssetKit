@@ -56,8 +56,8 @@ typedef struct AkPointLight {
 typedef struct AkSpotLight {
   AkLightBase        base;
   AkLightAttenuation attenuation;
-  float              innerConeAngle;
-  float              outerConeAngle;
+  float              innerConeAngle; /* half angle in radians */
+  float              outerConeAngle; /* half angle in radians */
   float              coneFalloffExponent;
 } AkSpotLight;
 
@@ -83,8 +83,8 @@ typedef struct AkResolvedLight {
   float              range;
   AkLightAttenuation attenuation;
   float              attenuationFalloffExponent;
-  float              innerConeAngle;
-  float              outerConeAngle;
+  float              innerConeAngle; /* half angle in radians */
+  float              outerConeAngle; /* half angle in radians */
   float              coneFalloffExponent;
 } AkResolvedLight;
 

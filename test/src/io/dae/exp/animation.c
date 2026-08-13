@@ -184,6 +184,84 @@ TEST_IMPL(dae_export_animation_roundtrip) {
   TEST_SUCCESS
 }
 
+TEST_IMPL(dae_spot_falloff_angle_roundtrip) {
+  AkDoc         *doc;
+  AkDoc         *roundTrip;
+  AkLight       *light;
+  AkSpotLight   *spot;
+  AkChannel     *channel;
+  AkAnimSampler *sampler;
+  AkAccessor    *output;
+  char           dirTemplate[PATH_MAX];
+  char          *tmpdir;
+  char           daePath[PATH_MAX];
+  char           outDir[PATH_MAX];
+  char           outDae[PATH_MAX];
+  const char    *tmpBase;
+
+  doc       = NULL;
+  roundTrip = NULL;
+  tmpBase   = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-spot-angle-XXXXXX"));
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "spot.dae"));
+  ASSERT(ak_test_path_join(outDir, sizeof(outDir), tmpdir, "out"));
+  ASSERT(ak_test_path_join(outDae, sizeof(outDae), outDir, "spot.dae"));
+  ASSERT(ak_test_write_dae_spot_falloff_animation(daePath));
+
+  ASSERT(ak_load(&doc, daePath, AK_FILE_TYPE_DAE) == AK_OK && doc);
+  light = doc->lib.lights.first;
+  ASSERT(light != NULL && light->data != NULL);
+  ASSERT(light->data->type == AK_LIGHT_TYPE_SPOT);
+  spot = (AkSpotLight *)light->data;
+  ASSERT(fabsf(spot->outerConeAngle - 0.34906585f) < 0.00001f);
+  channel = doc->lib.animations.first->channel;
+  ASSERT(channel != NULL);
+  sampler = ak_test_channel_sampler(channel);
+  ASSERT(sampler != NULL && sampler->outputInput != NULL);
+  output = sampler->outputInput->accessor;
+  ASSERT(output != NULL);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(output, 0u, 0u)
+               - 0.17453293f) < 0.00001f);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(output, 1u, 0u)
+               - 0.34906585f) < 0.00001f);
+
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
+  ASSERT(ak_test_file_contains(outDae,
+                               "<falloff_angle sid=\"falloff\">40"));
+  ASSERT(ak_test_file_contains(outDae,
+                               "target=\"light_0/falloff\""));
+  ASSERT(ak_load(&roundTrip, outDae, AK_FILE_TYPE_DAE) == AK_OK && roundTrip);
+  light = roundTrip->lib.lights.first;
+  ASSERT(light != NULL && light->data != NULL);
+  spot = (AkSpotLight *)light->data;
+  ASSERT(fabsf(spot->outerConeAngle - 0.34906585f) < 0.00001f);
+  channel = roundTrip->lib.animations.first->channel;
+  sampler = ak_test_channel_sampler(channel);
+  ASSERT(sampler != NULL && sampler->outputInput != NULL);
+  output = sampler->outputInput->accessor;
+  ASSERT(fabsf(ak_test_animation_accessor_f32(output, 0u, 0u)
+               - 0.17453293f) < 0.00001f);
+  ASSERT(fabsf(ak_test_animation_accessor_f32(output, 1u, 0u)
+               - 0.34906585f) < 0.00001f);
+
+  ak_free(roundTrip);
+  ak_free(doc);
+  unlink(outDae);
+  rmdir(outDir);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
 TEST_IMPL(dae_export_animation_vec3_interpolation_roundtrip) {
   AkDoc       *doc;
   AkDoc       *roundTrip;

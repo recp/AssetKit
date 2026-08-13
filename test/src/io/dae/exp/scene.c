@@ -298,13 +298,20 @@ TEST_IMPL(dae_export_camera_light_smoke) {
   ASSERT(ak_test_file_contains(daePath, "<library_lights>"));
   ASSERT(ak_test_file_contains(daePath, "<instance_light url=\"#light_0\"/>"));
   ASSERT(ak_test_file_contains(daePath, "<spot>"));
-  ASSERT(ak_test_file_contains(daePath, "<falloff_angle>28.647"));
+  ASSERT(ak_test_file_contains(
+    daePath,
+    "<falloff_angle sid=\"falloff_angle\">57.295"));
 
   roundTrip = NULL;
   ASSERT(ak_load(&roundTrip, daePath, AK_FILE_TYPE_DAE) == AK_OK);
   ASSERT(roundTrip != NULL);
   ASSERT(roundTrip->lib.cameras.count == 1);
   ASSERT(roundTrip->lib.lights.count == 1);
+  ASSERT(roundTrip->lib.lights.first->data != NULL);
+  ASSERT(roundTrip->lib.lights.first->data->type == AK_LIGHT_TYPE_SPOT);
+  ASSERT(fabsf(((AkSpotLight *)roundTrip->lib.lights.first->data)
+                 ->outerConeAngle
+               - 0.5f) < 0.00001f);
   ASSERT(roundTrip->scene != NULL);
   ASSERT(roundTrip->scene->node != NULL);
   ASSERT(roundTrip->scene->node->chld != NULL);

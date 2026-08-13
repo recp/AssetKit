@@ -822,6 +822,47 @@ ak_test_write_dae_animation_minimal(const char *path) {
 
 static inline
 bool
+ak_test_write_dae_spot_falloff_animation(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
+        "<asset><unit name=\"meter\" meter=\"1\"/><up_axis>Y_UP</up_axis></asset>\n"
+        "<library_lights><light id=\"spot-light\"><technique_common><spot>"
+        "<color>1 1 1</color><falloff_angle sid=\"falloff\">40</falloff_angle>"
+        "<falloff_exponent>1</falloff_exponent></spot></technique_common>"
+        "</light></library_lights>\n"
+        "<library_animations><animation id=\"spot-angle\" name=\"Spot Angle\">"
+        "<source id=\"spot-angle-input\"><float_array id=\"spot-angle-input-array\" count=\"2\">0 1</float_array>"
+        "<technique_common><accessor source=\"#spot-angle-input-array\" count=\"2\" stride=\"1\">"
+        "<param name=\"TIME\" type=\"float\"/></accessor></technique_common></source>"
+        "<source id=\"spot-angle-output\"><float_array id=\"spot-angle-output-array\" count=\"2\">20 40</float_array>"
+        "<technique_common><accessor source=\"#spot-angle-output-array\" count=\"2\" stride=\"1\">"
+        "<param name=\"ANGLE\" type=\"float\"/></accessor></technique_common></source>"
+        "<source id=\"spot-angle-interp\"><Name_array id=\"spot-angle-interp-array\" count=\"2\">LINEAR LINEAR</Name_array>"
+        "<technique_common><accessor source=\"#spot-angle-interp-array\" count=\"2\" stride=\"1\">"
+        "<param name=\"INTERPOLATION\" type=\"name\"/></accessor></technique_common></source>"
+        "<sampler id=\"spot-angle-sampler\">"
+        "<input semantic=\"INPUT\" source=\"#spot-angle-input\"/>"
+        "<input semantic=\"OUTPUT\" source=\"#spot-angle-output\"/>"
+        "<input semantic=\"INTERPOLATION\" source=\"#spot-angle-interp\"/>"
+        "</sampler><channel source=\"#spot-angle-sampler\" target=\"spot-light/falloff\"/>"
+        "</animation></library_animations>\n"
+        "<library_visual_scenes><visual_scene id=\"Scene\"><node id=\"spot-node\">"
+        "<instance_light url=\"#spot-light\"/></node></visual_scene></library_visual_scenes>\n"
+        "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
+        "</COLLADA>\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static inline
+bool
 ak_test_write_dae_srgb_color_carriers(const char *path,
                                       const char *authoringTool) {
   FILE *file;

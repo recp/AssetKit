@@ -44,6 +44,18 @@ dae_lightVendorAngle(xml_t * __restrict xml, float fallback) {
   return glm_clamp(angle, 0.0f, GLM_PI_2f);
 }
 
+/* profile_COMMON falloff_angle is the full spot cone angle in degrees.
+   AssetKit stores the conventional half angle used by glTF and its public
+   light API, so normalize at the DAE boundary. */
+static
+float
+dae_lightCommonOuterHalfAngle(xml_t * __restrict xml, float fallback) {
+  float fullAngle;
+
+  fullAngle = xml_float(xml, glm_deg(fallback) * 2.0f);
+  return glm_clamp(glm_rad(fullAngle) * 0.5f, 0.0f, GLM_PI_2f);
+}
+
 static
 void
 dae_lightVendorTechnique(xml_t    * __restrict technique,
@@ -273,10 +285,9 @@ dae_light(DAEState * __restrict dst,
             spot->attenuation.quadratic = xml_float(xtechv, 0.0f);
           } else if (DAE_XML_TAG_EQ(xtechv, falloff_angle)) {
             sid_seta(xtechv, heap, spot, &spot->outerConeAngle);
-            spot->outerConeAngle = xml_float(xtechv, 180.0f);
-            glm_make_rad(&spot->outerConeAngle);
-            if (spot->outerConeAngle > GLM_PI_2f)
-              spot->outerConeAngle = GLM_PI_2f;
+            spot->outerConeAngle = dae_lightCommonOuterHalfAngle(
+              xtechv,
+              GLM_PI_2f);
           } else if (DAE_XML_TAG_EQ(xtechv, falloff_exp)) {
             sid_seta(xtechv, heap, spot, &spot->coneFalloffExponent);
             spot->coneFalloffExponent = xml_float(xtechv, 1.0f);

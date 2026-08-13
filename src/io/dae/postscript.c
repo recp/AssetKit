@@ -277,6 +277,7 @@ dae_postscript(DAEState * __restrict dst) {
      instances exist (including the orphan-attach pass above). */
   if (dst->doc->lib.animations.first)
     dae_fixup_channel(dst);
+  dae_fixSpotFalloffAngles(dst);
   dae_fixPartialRotateAngles(dst);
   dae_normalize_srgb_animation_colors(dst);
 

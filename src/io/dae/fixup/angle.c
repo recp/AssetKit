@@ -15,6 +15,7 @@
  */
 
 #include "angle.h"
+#include "../../../accessor.h"
 
 /*
  COLLADA uses degrees for all angles; convert degrees to radians. They may
@@ -216,6 +217,430 @@ dae_fixAngles(DAEState * __restrict dst) {
   }
 
   flist_sp_destroy(&dst->toRadiansSampelers);
+}
+
+static
+AkSpotLight*
+dae_spotFalloffChannel(DAEState  * __restrict dst,
+                       AkChannel * __restrict channel) {
+  AkContext   context;
+  AkLight    *light;
+  const char *targetSid;
+  const char *slash;
+  const char *attribute;
+  void       *target;
+
+  if (!dst || !dst->doc || !channel || !channel->target)
+    return NULL;
+
+  slash     = strrchr(channel->target, '/');
+  if (!slash || slash == channel->target)
+    return NULL;
+  targetSid = slash + 1;
+  {
+    char   *id;
+    size_t  idLen;
+    void   *lightObject;
+
+    idLen = (size_t)(slash - channel->target);
+    id    = malloc(idLen + 1u);
+    if (!id)
+      return NULL;
+    memcpy(id, channel->target, idLen);
+    id[idLen] = '\0';
+    lightObject = ak_getObjectById(dst->doc, id);
+    free(id);
+    if (!lightObject || ak_typeid(lightObject) != AKT_LIGHT)
+      return NULL;
+  }
+
+  context     = AkContextZeroed();
+  context.doc = dst->doc;
+  attribute = NULL;
+  target    = ak_sid_resolve(&context, channel->target, &attribute);
+  if (attribute)
+    ak_free((void *)attribute);
+  if (!target)
+    return NULL;
+
+  for (light = dst->doc->lib.lights.first; light; light = light->next) {
+    AkSpotLight *spot;
+    const char  *sid;
+
+    if (!light->data || light->data->type != AK_LIGHT_TYPE_SPOT)
+      continue;
+    spot = (AkSpotLight *)light->data;
+    sid  = ak_sid_geta(spot, &spot->outerConeAngle);
+    if (target == spot && sid && strcmp(targetSid, sid) == 0)
+      return spot;
+  }
+
+  return NULL;
+}
+
+static
+void
+dae_spotSamplerUsageWalk(DAEState     * __restrict dst,
+                         AkAnimation  * __restrict anim,
+                         AkAnimSampler * __restrict sampler,
+                         uint32_t     * __restrict spotCount,
+                         uint32_t     * __restrict otherCount) {
+  for (; anim; anim = anim->next) {
+    AkChannel *channel;
+
+    for (channel = anim->channel; channel; channel = channel->next) {
+      if (ak_getObjectByUrl(&channel->source) != sampler)
+        continue;
+      if (dae_spotFalloffChannel(dst, channel))
+        (*spotCount)++;
+      else
+        (*otherCount)++;
+    }
+    if (anim->animation)
+      dae_spotSamplerUsageWalk(dst,
+                               anim->animation,
+                               sampler,
+                               spotCount,
+                               otherCount);
+  }
+}
+
+static
+AkAccessor*
+dae_spotCloneAccessor(void       * __restrict parent,
+                      AkAccessor * __restrict source,
+                      DAEState   * __restrict dst) {
+  AkHeap     *heap;
+  AkAccessor *clone;
+  AkBuffer   *sourceBuffer;
+  AkBuffer   *cloneBuffer;
+
+  if (!parent
+      || !source
+      || !(heap = ak_heap_getheap(parent))
+      || !(clone = ak_accessor_dup(source)))
+    return NULL;
+
+  ak_heap_setpm(clone, parent);
+  clone->next = NULL;
+  sourceBuffer = source->buffer;
+  cloneBuffer  = NULL;
+  if (sourceBuffer) {
+    cloneBuffer = ak_heap_calloc(heap, clone, sizeof(*cloneBuffer));
+    if (!cloneBuffer) {
+      ak_free(clone);
+      return NULL;
+    }
+    *cloneBuffer      = *sourceBuffer;
+    cloneBuffer->next = NULL;
+    cloneBuffer->data = NULL;
+    if (sourceBuffer->data && sourceBuffer->length > 0u) {
+      cloneBuffer->data = ak_heap_alloc(heap,
+                                        cloneBuffer,
+                                        sourceBuffer->length);
+      if (!cloneBuffer->data) {
+        ak_free(clone);
+        return NULL;
+      }
+      memcpy(cloneBuffer->data,
+             sourceBuffer->data,
+             sourceBuffer->length);
+    }
+  }
+  clone->buffer = cloneBuffer;
+  if (dae_angleAccessorSeen(dst, source, false))
+    dae_angleAccessorSeen(dst, clone, true);
+  return clone;
+}
+
+static
+AkAnimSampler*
+dae_spotCloneSampler(DAEState      * __restrict dst,
+                     AkAnimation   * __restrict anim,
+                     AkChannel     * __restrict channel,
+                     AkAnimSampler * __restrict sampler) {
+  AkHeap        *heap;
+  AkAnimSampler *clone;
+  AkInput       *sourceInput;
+  AkInput       *cloneInput;
+  AkInput       *lastInput;
+
+  if (!anim
+      || !channel
+      || !sampler
+      || !(heap = ak_heap_getheap(channel)))
+    return NULL;
+
+  clone = ak_heap_calloc(heap, anim, sizeof(*clone));
+  if (!clone)
+    return NULL;
+  *clone                 = *sampler;
+  clone->input           = NULL;
+  clone->inputInput      = NULL;
+  clone->outputInput     = NULL;
+  clone->interpInput     = NULL;
+  clone->inTangentInput  = NULL;
+  clone->outTangentInput = NULL;
+  clone->base.next       = NULL;
+  lastInput              = NULL;
+
+  for (sourceInput = sampler->input;
+       sourceInput;
+       sourceInput = sourceInput->next) {
+    AkAccessor *cloneAccessor;
+
+    cloneInput = ak_heap_calloc(heap, clone, sizeof(*cloneInput));
+    if (!cloneInput) {
+      ak_free(clone);
+      return NULL;
+    }
+    *cloneInput      = *sourceInput;
+    cloneInput->next = NULL;
+    cloneAccessor    = NULL;
+    if (sourceInput->accessor
+        && !(cloneAccessor = dae_spotCloneAccessor(cloneInput,
+                                                   sourceInput->accessor,
+                                                   dst))) {
+      ak_free(clone);
+      return NULL;
+    }
+    cloneInput->accessor = cloneAccessor;
+    if (lastInput)
+      lastInput->next = cloneInput;
+    else
+      clone->input = cloneInput;
+    lastInput = cloneInput;
+
+    if (sourceInput == sampler->inputInput)
+      clone->inputInput = cloneInput;
+    if (sourceInput == sampler->outputInput)
+      clone->outputInput = cloneInput;
+    if (sourceInput == sampler->interpInput)
+      clone->interpInput = cloneInput;
+    if (sourceInput == sampler->inTangentInput)
+      clone->inTangentInput = cloneInput;
+    if (sourceInput == sampler->outTangentInput)
+      clone->outTangentInput = cloneInput;
+  }
+
+  clone->base.next     = (AkOneWayIterBase *)anim->sampler;
+  anim->sampler        = clone;
+  channel->source.ptr  = clone;
+  return clone;
+}
+
+static
+bool
+dae_spotAccessorLayout(AkAccessor * __restrict accessor,
+                       bool                    tangent,
+                       size_t                 *strideOut,
+                       size_t                 *valueOffsetOut) {
+  size_t         stride;
+  size_t         valueOffset;
+  size_t         last;
+
+  if (!accessor)
+    return true;
+  if (accessor->componentType != AKT_FLOAT
+      || accessor->bytesPerComponent != sizeof(float)
+      || !accessor->buffer
+      || !accessor->buffer->data
+      || accessor->componentCount == 0u
+      || accessor->componentCount > 2u)
+    return false;
+
+  valueOffset = tangent && accessor->componentCount == 2u
+                ? sizeof(float)
+                : 0u;
+  stride = accessor->byteStride
+           ? accessor->byteStride
+           : (size_t)accessor->componentCount * sizeof(float);
+  if (stride < valueOffset + sizeof(float)
+      || accessor->byteOffset > accessor->buffer->length
+      || (accessor->count > 0u
+          && (size_t)(accessor->count - 1u)
+               > ((size_t)-1 - accessor->byteOffset) / stride))
+    return false;
+
+  last = accessor->byteOffset;
+  if (accessor->count > 0u)
+    last += (size_t)(accessor->count - 1u) * stride;
+  if (last > accessor->buffer->length
+      || (accessor->count > 0u
+          && valueOffset + sizeof(float) > accessor->buffer->length - last))
+    return false;
+
+  if (strideOut)
+    *strideOut = stride;
+  if (valueOffsetOut)
+    *valueOffsetOut = valueOffset;
+  return true;
+}
+
+static
+bool
+dae_spotScaleAccessor(DAEState   * __restrict dst,
+                      AkAccessor * __restrict accessor,
+                      bool                    tangent) {
+  unsigned char *base;
+  size_t         stride;
+  size_t         valueOffset;
+  float          scale;
+  uint32_t       i;
+
+  if (!accessor)
+    return true;
+  if (!dae_spotAccessorLayout(accessor, tangent, &stride, &valueOffset))
+    return false;
+
+  /* Generic ANGLE accessors were already converted from degrees to radians.
+     Nonstandard exporters sometimes name the scalar VALUE instead; convert
+     those here based on the resolved light target. */
+  scale = dae_angleAccessorSeen(dst, accessor, false)
+          ? 0.5f
+          : GLM_PI / 360.0f;
+  base = (unsigned char *)accessor->buffer->data
+         + accessor->byteOffset
+         + valueOffset;
+  for (i = 0u; i < accessor->count; i++) {
+    float value;
+
+    memcpy(&value, base + (size_t)i * stride, sizeof(value));
+    value *= scale;
+    memcpy(base + (size_t)i * stride, &value, sizeof(value));
+  }
+  dae_angleAccessorSeen(dst, accessor, true);
+  return true;
+}
+
+static
+bool
+dae_spotScaleSampler(DAEState     * __restrict dst,
+                     AkAnimSampler * __restrict sampler) {
+  AkAccessor *output;
+  AkAccessor *inTangent;
+  AkAccessor *outTangent;
+
+  if (!sampler)
+    return false;
+  output = sampler->outputInput ? sampler->outputInput->accessor : NULL;
+  inTangent = sampler->inTangentInput
+              ? sampler->inTangentInput->accessor
+              : NULL;
+  outTangent = sampler->outTangentInput
+               ? sampler->outTangentInput->accessor
+               : NULL;
+  if (!dae_spotAccessorLayout(output, false, NULL, NULL)
+      || !dae_spotAccessorLayout(inTangent, true, NULL, NULL)
+      || !dae_spotAccessorLayout(outTangent, true, NULL, NULL))
+    return false;
+  return dae_spotScaleAccessor(dst, output, false)
+         && dae_spotScaleAccessor(dst, inTangent, true)
+         && dae_spotScaleAccessor(dst, outTangent, true);
+}
+
+static
+bool
+dae_spotDetachSamplerData(DAEState     * __restrict dst,
+                          AkAnimSampler * __restrict sampler) {
+  AkInput *inputs[3];
+  size_t   i;
+
+  if (!sampler)
+    return false;
+  inputs[0] = sampler->outputInput;
+  inputs[1] = sampler->inTangentInput;
+  inputs[2] = sampler->outTangentInput;
+  for (i = 0u; i < AK_ARRAY_LEN(inputs); i++) {
+    AkAccessor *clone;
+
+    if (!inputs[i] || !inputs[i]->accessor)
+      continue;
+    clone = dae_spotCloneAccessor(inputs[i], inputs[i]->accessor, dst);
+    if (!clone)
+      return false;
+    inputs[i]->accessor = clone;
+  }
+  return true;
+}
+
+static
+void
+dae_fixSpotFalloffAnglesWalk(DAEState    * __restrict dst,
+                             AkAnimation * __restrict anim,
+                             FListItem  ** __restrict processed) {
+  for (; anim; anim = anim->next) {
+    AkChannel *channel;
+
+    for (channel = anim->channel; channel; channel = channel->next) {
+      AkSpotLight   *spot;
+      AkAnimSampler *sampler;
+      FListItem     *item;
+      uint32_t       spotCount;
+      uint32_t       otherCount;
+
+      spot = dae_spotFalloffChannel(dst, channel);
+      if (!spot)
+        continue;
+
+      if (!channel->resolvedTarget) {
+        AkResolvedTarget *resolved;
+
+        resolved = ak_heap_calloc(dst->heap, channel, sizeof(*resolved));
+        if (resolved) {
+          resolved->target       = &spot->outerConeAngle;
+          channel->resolvedTarget = resolved;
+          channel->targetType     = AK_TARGET_FLOAT;
+        }
+      }
+
+      sampler = ak_getObjectByUrl(&channel->source);
+      if (!sampler)
+        continue;
+
+      spotCount  = 0u;
+      otherCount = 0u;
+      dae_spotSamplerUsageWalk(dst,
+                               dst->doc->lib.animations.first,
+                               sampler,
+                               &spotCount,
+                               &otherCount);
+      if (otherCount > 0u) {
+        sampler = dae_spotCloneSampler(dst, anim, channel, sampler);
+        if (sampler)
+          dae_spotScaleSampler(dst, sampler);
+        continue;
+      }
+
+      for (item = *processed; item; item = item->next) {
+        if (item->data == sampler)
+          break;
+      }
+      if (item)
+        continue;
+      if (spotCount > 0u
+          && dae_spotDetachSamplerData(dst, sampler)
+          && dae_spotScaleSampler(dst, sampler))
+        flist_sp_insert(processed, sampler);
+    }
+
+    if (anim->animation)
+      dae_fixSpotFalloffAnglesWalk(dst, anim->animation, processed);
+  }
+}
+
+AK_HIDE
+void
+dae_fixSpotFalloffAngles(DAEState * __restrict dst) {
+  FListItem *processed;
+
+  if (!dst || !dst->doc || !dst->doc->lib.animations.first)
+    return;
+  processed = NULL;
+  dae_fixSpotFalloffAnglesWalk(dst,
+                               dst->doc->lib.animations.first,
+                               &processed);
+  flist_sp_destroy(&processed);
 }
 
 static

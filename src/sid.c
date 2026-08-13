@@ -57,12 +57,12 @@ ak_sid_geta(void *memnode,
   heapNode = ak__alignof(memnode);
   sidnode  = ak_heap_ext_get(heapNode, AK_HEAP_NODE_FLAGS_SID);
 
-  if (!sidnode)
+  if (!sidnode || !sidnode->sids)
     return NULL;
 
-  sidCount = *(size_t *)sidnode->sid;
+  sidCount = *(size_t *)sidnode->sids;
   off      = (uint16_t)((char *)memptr - (char *)memnode);
-  ptr      = (char *)sidnode->sid + sizeof(size_t);
+  ptr      = (char *)sidnode->sids + sizeof(size_t);
 
   for (i = 0; i < sidCount; i++) {
     if (*(uint16_t *)ptr == off) {
@@ -258,7 +258,7 @@ ak_sidElement(AkContext  * __restrict ctx,
       }
     }
 
-    *idnode = ak__alignas(parent);
+    *idnode = parent ? ak__alignas(parent) : NULL;
 
     /* no need to offset again */
     if (*idnode)

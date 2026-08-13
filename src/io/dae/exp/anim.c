@@ -707,7 +707,7 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
                                     uint32_t                    variantIdx,
                                     AkInputSemantic             semantic,
                                     AkTargetPropertyType        targetType,
-                                    bool                        scalarAngle) {
+                                    float                       scalarAngleScale) {
   DAEExpWriter *w;
   DAEExpName    semName;
   float        *scratch;
@@ -830,13 +830,13 @@ dae_write_anim_float_source_variant(DAEExpState    * __restrict st,
           && ((componentCount == 4u && c == 3u)
               || (componentCount == 8u && c == 7u)))
         val = glm_deg(val);
-      if (scalarAngle
+      if (scalarAngleScale != 0.0f
           && (semantic == AK_INPUT_OUTPUT
               || semantic == AK_INPUT_IN_TANGENT
               || semantic == AK_INPUT_OUT_TANGENT)
           && ((componentCount == 1u && c == 0u)
               || (componentCount == 2u && c == 1u)))
-        val = glm_deg(val);
+        val *= scalarAngleScale;
       dae_w_float_fast(w, val);
     }
   }
@@ -1070,25 +1070,103 @@ dae_anim_sampler_target_type(AkAnimation   * __restrict anim,
 }
 
 static
+AkLight*
+dae_anim_channel_spot_outer_angle(DAEExpState  * __restrict st,
+                                  AkChannel    * __restrict channel,
+                                  const char  ** __restrict sidOut) {
+  AkContext   context;
+  AkLight    *light;
+  const char *slash;
+  const char *targetSid;
+  const char *attribute;
+  void       *target;
+
+  if (sidOut)
+    *sidOut = NULL;
+  if (!st || !st->doc || !channel)
+    return NULL;
+  slash     = channel->target ? strrchr(channel->target, '/') : NULL;
+  targetSid = channel->target ? (slash ? slash + 1 : channel->target) : NULL;
+  target    = channel->resolvedTarget
+              ? channel->resolvedTarget->target
+              : NULL;
+  attribute = NULL;
+  if (!target && channel->target) {
+    context     = AkContextZeroed();
+    context.doc = st->doc;
+    target      = ak_sid_resolve(&context, channel->target, &attribute);
+  }
+
+  for (light = st->doc->lib.lights.first; light; light = light->next) {
+    AkSpotLight *spot;
+    const char  *sid;
+
+    if (!light->data || light->data->type != AK_LIGHT_TYPE_SPOT)
+      continue;
+    spot = (AkSpotLight *)light->data;
+    sid  = ak_sid_geta(spot, &spot->outerConeAngle);
+    if (target == &spot->outerConeAngle
+        || (target == spot
+            && sid
+            && targetSid
+            && strcmp(targetSid, sid) == 0)) {
+      if (sidOut)
+        *sidOut = sid ? sid : "falloff_angle";
+      if (attribute)
+        ak_free((void *)attribute);
+      return light;
+    }
+  }
+
+  if (attribute)
+    ak_free((void *)attribute);
+  return NULL;
+}
+
+static
 bool
-dae_anim_sampler_is_scalar_angle(AkAnimation   * __restrict anim,
-                                 AkAnimSampler * __restrict sampler) {
+dae_anim_channel_is_spot_outer_angle(DAEExpState * __restrict st,
+                                     AkChannel   * __restrict channel) {
+  return dae_anim_channel_spot_outer_angle(st, channel, NULL) != NULL;
+}
+
+static
+float
+dae_anim_sampler_scalar_angle_scale(DAEExpState  * __restrict st,
+                                    AkAnimation  * __restrict anim,
+                                    AkAnimSampler * __restrict sampler) {
   AkChannel *channel;
+  float      scale;
+
+  scale = 0.0f;
 
   for (channel = anim ? anim->channel : NULL; channel; channel = channel->next) {
     AkObject *target;
+    float     channelScale;
 
-    if (ak_getObjectByUrl(&channel->source) != sampler
-        || !channel->resolvedTarget
-        || !channel->resolvedTarget->isPartial
-        || channel->resolvedTarget->off != 3u)
+    if (ak_getObjectByUrl(&channel->source) != sampler)
       continue;
-    target = channel->resolvedTarget->target;
-    if (target && ak_typeid(target) == AKT_OBJECT && target->type == AKT_ROTATE)
-      return true;
+    channelScale = 0.0f;
+    if (dae_anim_channel_is_spot_outer_angle(st, channel)) {
+      channelScale = 2.0f * DAE_EXP_RAD_TO_DEG;
+    } else if (channel->resolvedTarget
+               && channel->resolvedTarget->isPartial
+               && channel->resolvedTarget->off == 3u) {
+      target = channel->resolvedTarget->target;
+      if (target
+          && ak_typeid(target) == AKT_OBJECT
+          && target->type == AKT_ROTATE)
+        channelScale = DAE_EXP_RAD_TO_DEG;
+    }
+
+    if (channelScale == 0.0f)
+      continue;
+    if (scale != 0.0f && fabsf(scale - channelScale) > 0.00001f)
+      return NAN;
+    scale = channelScale;
   }
 
-  return false;
+  return scale;
 }
 
 static
@@ -1100,7 +1178,7 @@ dae_write_anim_sampler_source_variant(DAEExpState    * __restrict st,
                                       uint32_t                    variantIdx,
                                       AkInputSemantic             semantic,
                                       AkTargetPropertyType        targetType,
-                                      bool                        scalarAngle) {
+                                      float                       scalarAngleScale) {
   AkAccessor *acc;
 
   acc = dae_anim_accessor(sampler, semantic);
@@ -1114,7 +1192,7 @@ dae_write_anim_sampler_source_variant(DAEExpState    * __restrict st,
                                              variantIdx,
                                              semantic,
                                              targetType,
-                                             scalarAngle);
+                                             scalarAngleScale);
 }
 
 static
@@ -1125,7 +1203,7 @@ dae_write_anim_sampler_source(DAEExpState    * __restrict st,
                               uint32_t                    samplerIdx,
                               AkInputSemantic             semantic,
                               AkTargetPropertyType        targetType,
-                              bool                        scalarAngle) {
+                              float                       scalarAngleScale) {
   return dae_write_anim_sampler_source_variant(st,
                                                sampler,
                                                animIdx,
@@ -1133,7 +1211,7 @@ dae_write_anim_sampler_source(DAEExpState    * __restrict st,
                                                UINT32_MAX,
                                                semantic,
                                                targetType,
-                                               scalarAngle);
+                                               scalarAngleScale);
 }
 
 static
@@ -1145,10 +1223,12 @@ dae_write_anim_sampler(DAEExpState    * __restrict st,
                        uint32_t                    samplerIdx) {
   DAEExpWriter *w;
   AkTargetPropertyType targetType;
-  bool                 scalarAngle;
+  float                scalarAngleScale;
 
   targetType = dae_anim_sampler_target_type(anim, sampler);
-  scalarAngle = dae_anim_sampler_is_scalar_angle(anim, sampler);
+  scalarAngleScale = dae_anim_sampler_scalar_angle_scale(st, anim, sampler);
+  if (!isfinite(scalarAngleScale))
+    return false;
 
   if (!dae_write_anim_sampler_source(st,
                                      sampler,
@@ -1156,28 +1236,28 @@ dae_write_anim_sampler(DAEExpState    * __restrict st,
                                      samplerIdx,
                                      AK_INPUT_INPUT,
                                      targetType,
-                                     scalarAngle)
+                                     scalarAngleScale)
       || !dae_write_anim_sampler_source(st,
                                         sampler,
                                         animIdx,
                                         samplerIdx,
                                         AK_INPUT_OUTPUT,
                                         targetType,
-                                        scalarAngle)
+                                        scalarAngleScale)
       || !dae_write_anim_sampler_source(st,
                                         sampler,
                                         animIdx,
                                         samplerIdx,
                                         AK_INPUT_IN_TANGENT,
                                         targetType,
-                                        scalarAngle)
+                                        scalarAngleScale)
       || !dae_write_anim_sampler_source(st,
                                         sampler,
                                         animIdx,
                                         samplerIdx,
                                         AK_INPUT_OUT_TANGENT,
                                         targetType,
-                                        scalarAngle)
+                                        scalarAngleScale)
       || !dae_write_anim_interp_source(st, sampler, animIdx, samplerIdx)) {
     return false;
   }
@@ -1293,8 +1373,23 @@ dae_write_animation_channel_target_at(DAEExpState * __restrict st,
                                       uint32_t                 weightIdx) {
   DAEExpWriter *w;
   AkObject     *transformTarget;
+  AkLight      *spotLight;
+  const char   *spotSid;
 
   w = &st->w;
+
+  spotLight = dae_anim_channel_spot_outer_angle(st, channel, &spotSid);
+  if (spotLight) {
+    uint32_t lightIdx;
+
+    lightIdx = dae_map_index(st->lights, spotLight);
+    if (lightIdx == UINT32_MAX)
+      return false;
+    dae_w_id(w, DAE_EXP_NAME(light), lightIdx);
+    dae_w_ch(w, '/');
+    dae_w_xml(w, spotSid, true);
+    return true;
+  }
 
   if (channel->targetType == AK_TARGET_WEIGHTS
       && channel->resolvedTarget
