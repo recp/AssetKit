@@ -499,6 +499,7 @@ TEST_IMPL(gltf_export_punctual_light_glb) {
   AkNode      *root, *node;
   AkLight     *light;
   AkLightBase *base;
+  AkResolvedLight resolved;
   struct stat  stGlb;
   struct stat  stBin;
   uint32_t     length;
@@ -547,6 +548,16 @@ TEST_IMPL(gltf_export_punctual_light_glb) {
   ASSERT(roundTrip != NULL);
   ASSERT(roundTrip->scene != NULL);
   ASSERT(roundTrip->scene->node != NULL);
+  ASSERT(roundTrip->lib.lights.first != NULL);
+  light = roundTrip->lib.lights.first;
+  ASSERT(ak_lightResolve(roundTrip,
+                         light,
+                         AK_LIGHT_RESOLVE_RAW,
+                         &resolved));
+  ASSERT(fabsf(resolved.attenuation.constant) < 0.000001f);
+  ASSERT(fabsf(resolved.attenuation.linear) < 0.000001f);
+  ASSERT(fabsf(resolved.attenuation.quadratic - 1.0f) < 0.000001f);
+  ASSERT(fabsf(resolved.attenuationFalloffExponent - 2.0f) < 0.000001f);
 
   ak_free(roundTrip);
   ak_heap_destroy(heap);

@@ -61,6 +61,23 @@ gltf_ext_lights(AkGLTFState * __restrict gst,
     base->intensity = json_float(GLTF_JSON_GET(jlight, intensity), 1.0f);
     base->range     = json_float(GLTF_JSON_GET8(jlight, range),     0.0f);
 
+    /* KHR_lights_punctual is physically inverse-square.  ak_lightMake() uses
+       COLLADA-compatible constant attenuation defaults, so make the glTF
+       source semantics explicit before generic consumers resolve the light. */
+    if (base->type == AK_LIGHT_TYPE_POINT) {
+      AkPointLight *point;
+
+      point = (AkPointLight *)base;
+      point->attenuation.constant  = 0.0f;
+      point->attenuation.linear    = 0.0f;
+      point->attenuation.quadratic = 1.0f;
+    } else if (base->type == AK_LIGHT_TYPE_SPOT) {
+      spot = (AkSpotLight *)base;
+      spot->attenuation.constant  = 0.0f;
+      spot->attenuation.linear    = 0.0f;
+      spot->attenuation.quadratic = 1.0f;
+    }
+
     if (base->type == AK_LIGHT_TYPE_SPOT
         && (it = GLTF_JSON_GET8(jlight, spot))) {
       spot = (AkSpotLight *)base;
