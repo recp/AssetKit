@@ -299,11 +299,8 @@ dae_postscript(DAEState * __restrict dst) {
   dae_bugfix_ohana_inverse_bind_poses(dst);
 
   /* now set used coordSys */
-  if (coordCvtType != AK_COORD_CVT_DISABLED) {
+  if (coordCvtType != AK_COORD_CVT_DISABLED)
     dst->doc->coordSys = targetCoordSys;
-    if (dst->doc->inf)
-      dst->doc->inf->base.coordSys = targetCoordSys;
-  }
 
   dae_fix_textures(dst);
   dae_build_material_surfaces(dst);
@@ -317,6 +314,12 @@ dae_postscript(DAEState * __restrict dst) {
         ak_fixSceneCoordSys(vscn);
     }
   }
+
+  /* FIX_TRANSFORM resolves each scene root's authored coordinate system
+     through inherited asset metadata. Publish the target metadata only after
+     those source-to-target root transforms have been built. */
+  if (coordCvtType != AK_COORD_CVT_DISABLED && dst->doc && dst->doc->inf)
+    dst->doc->inf->base.coordSys = targetCoordSys;
 }
 
 static void

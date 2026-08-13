@@ -91,6 +91,43 @@ ak_test_dae_matrix_near(const float a[4][4], const float b[4][4]) {
 }
 
 static
+bool
+ak_test_write_dae_coord_modes(const char *path) {
+  FILE *file;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  fputs("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" "
+        "version=\"1.4.1\">\n"
+        "<asset><unit name=\"centimeter\" meter=\"0.01\"/>"
+        "<up_axis>Z_UP</up_axis></asset>\n"
+        "<library_geometries><geometry id=\"geom\"><mesh>"
+        "<source id=\"position\"><float_array id=\"position-array\" "
+        "count=\"9\">0 0 0 2 0 0 0 3 5</float_array>"
+        "<technique_common><accessor source=\"#position-array\" count=\"3\" "
+        "stride=\"3\"><param name=\"X\" type=\"float\"/>"
+        "<param name=\"Y\" type=\"float\"/>"
+        "<param name=\"Z\" type=\"float\"/></accessor>"
+        "</technique_common></source>"
+        "<vertices id=\"vertices\"><input semantic=\"POSITION\" "
+        "source=\"#position\"/></vertices>"
+        "<triangles count=\"1\"><input semantic=\"VERTEX\" "
+        "source=\"#vertices\"/><p>0 1 2</p></triangles>"
+        "</mesh></geometry></library_geometries>\n"
+        "<library_visual_scenes><visual_scene id=\"Scene\">"
+        "<node id=\"model\"><instance_geometry url=\"#geom\"/></node>"
+        "</visual_scene></library_visual_scenes>\n"
+        "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
+        "</COLLADA>\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
 AkChannel*
 ak_test_dae_find_channel(AkAnimation *animation, const char *target) {
   for (; animation; animation = animation->next) {
@@ -548,6 +585,128 @@ TEST_IMPL(dae_skin_multi_source_primitives_keep_weight_offsets) {
   ASSERT(weights1->weights[weights1->indexes[0]].weight == 1.0f);
 
   ak_free(doc);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(dae_coord_fix_transform_uses_authored_axis) {
+  AkDoc          *disabled, *fixed, *converted;
+  AkGeometry     *geometry;
+  AkMesh         *mesh;
+  const float    *position;
+  mat4            disabledRoot, fixedRoot, convertedRoot;
+  mat4            identity, expectedFixed;
+  vec3            authoredPosition;
+  vec3            effectivePosition;
+  char            dirTemplate[PATH_MAX];
+  char           *tmpdir;
+  char            daePath[PATH_MAX];
+  const char     *tmpBase;
+  uintptr_t       previousCoord, previousCoordCvtType;
+  AkResult        disabledResult, fixedResult, convertedResult;
+
+  disabled = fixed = converted = NULL;
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  ASSERT(ak_test_path_join(dirTemplate,
+                           sizeof(dirTemplate),
+                           tmpBase,
+                           "assetkit-dae-coord-modes-XXXXXX"));
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+  ASSERT(ak_test_path_join(daePath, sizeof(daePath), tmpdir, "z-up.dae"));
+  ASSERT(ak_test_write_dae_coord_modes(daePath));
+
+  previousCoord        = ak_opt_get(AK_OPT_COORD);
+  previousCoordCvtType = ak_opt_get(AK_OPT_COORD_CONVERT_TYPE);
+  ak_opt_set(AK_OPT_COORD, (uintptr_t)AK_YUP);
+
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, AK_COORD_CVT_DISABLED);
+  disabledResult = ak_load(&disabled, daePath, AK_FILE_TYPE_AUTO);
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, AK_COORD_CVT_FIX_TRANSFORM);
+  fixedResult = ak_load(&fixed, daePath, AK_FILE_TYPE_AUTO);
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, AK_COORD_CVT_ALL);
+  convertedResult = ak_load(&converted, daePath, AK_FILE_TYPE_AUTO);
+
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, previousCoordCvtType);
+  ak_opt_set(AK_OPT_COORD, previousCoord);
+
+  ASSERT(disabledResult == AK_OK && disabled);
+  ASSERT(fixedResult == AK_OK && fixed);
+  ASSERT(convertedResult == AK_OK && converted);
+
+  ASSERT(disabled->coordSys == AK_ZUP);
+  ASSERT(disabled->inf && disabled->inf->base.coordSys == AK_ZUP);
+  ASSERT(ak_getCoordSys(disabled) == AK_ZUP);
+  ASSERT(fixed->coordSys == AK_YUP);
+  ASSERT(fixed->inf && fixed->inf->base.coordSys == AK_YUP);
+  ASSERT(ak_getCoordSys(fixed) == AK_YUP);
+  ASSERT(converted->coordSys == AK_YUP);
+  ASSERT(converted->inf && converted->inf->base.coordSys == AK_YUP);
+  ASSERT(ak_getCoordSys(converted) == AK_YUP);
+
+  ASSERT(disabled->unit && fabs(disabled->unit->dist - 0.01) < 0.000001);
+  ASSERT(fixed->unit && fabs(fixed->unit->dist - 0.01) < 0.000001);
+  ASSERT(converted->unit && fabs(converted->unit->dist - 0.01) < 0.000001);
+
+  ASSERT(disabled->scene && disabled->scene->node);
+  ASSERT(fixed->scene && fixed->scene->node);
+  ASSERT(converted->scene && converted->scene->node);
+  ak_transformCombine(disabled->scene->node->transform, disabledRoot[0]);
+  ak_transformCombine(fixed->scene->node->transform, fixedRoot[0]);
+  ak_transformCombine(converted->scene->node->transform, convertedRoot[0]);
+
+  glm_mat4_identity(identity);
+  glm_mat4_identity(expectedFixed);
+  expectedFixed[1][1] =  0.0f;
+  expectedFixed[1][2] = -1.0f;
+  expectedFixed[2][1] =  1.0f;
+  expectedFixed[2][2] =  0.0f;
+  ASSERT(ak_test_dae_matrix_near(disabledRoot, identity));
+  ASSERT(ak_test_dae_matrix_near(fixedRoot, expectedFixed));
+  ASSERT(ak_test_dae_matrix_near(convertedRoot, identity));
+
+  geometry = ak_getObjectById(disabled, "geom");
+  ASSERT(geometry && geometry->gdata);
+  mesh = ak_objGet(geometry->gdata);
+  ASSERT(mesh && mesh->primitive && mesh->primitive->pos);
+  position = ak_test_dae_accessor_float_row(mesh->primitive->pos->accessor, 2);
+  ASSERT(position && ak_test_dae_float_near(position[0], 0.0f));
+  ASSERT(ak_test_dae_float_near(position[1], 3.0f));
+  ASSERT(ak_test_dae_float_near(position[2], 5.0f));
+
+  geometry = ak_getObjectById(fixed, "geom");
+  ASSERT(geometry && geometry->gdata);
+  mesh = ak_objGet(geometry->gdata);
+  ASSERT(mesh && mesh->primitive && mesh->primitive->pos);
+  position = ak_test_dae_accessor_float_row(mesh->primitive->pos->accessor, 2);
+  ASSERT(position && ak_test_dae_float_near(position[0], 0.0f));
+  ASSERT(ak_test_dae_float_near(position[1], 3.0f));
+  ASSERT(ak_test_dae_float_near(position[2], 5.0f));
+  authoredPosition[0] = position[0];
+  authoredPosition[1] = position[1];
+  authoredPosition[2] = position[2];
+  glm_mat4_mulv3(fixedRoot, authoredPosition, 1.0f, effectivePosition);
+  ASSERT(ak_test_dae_float_near(effectivePosition[0], 0.0f));
+  ASSERT(ak_test_dae_float_near(effectivePosition[1], 5.0f));
+  ASSERT(ak_test_dae_float_near(effectivePosition[2], -3.0f));
+
+  geometry = ak_getObjectById(converted, "geom");
+  ASSERT(geometry && geometry->gdata);
+  mesh = ak_objGet(geometry->gdata);
+  ASSERT(mesh && mesh->primitive && mesh->primitive->pos);
+  position = ak_test_dae_accessor_float_row(mesh->primitive->pos->accessor, 2);
+  ASSERT(position && ak_test_dae_float_near(position[0], 0.0f));
+  ASSERT(ak_test_dae_float_near(position[1], 5.0f));
+  ASSERT(ak_test_dae_float_near(position[2], -3.0f));
+
+  ak_free(disabled);
+  ak_free(fixed);
+  ak_free(converted);
   unlink(daePath);
   rmdir(tmpdir);
 
