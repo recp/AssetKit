@@ -842,9 +842,7 @@ dae_write_effect(DAEExpState * __restrict st,
     wroteSpecular = true;
   }
 
-  if (useSpecular && classic && isfinite(classic->shininess)
-      && ((classic->base.flags & AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS)
-          || classic->shininess > 0.0f)) {
+  if (useSpecular && classic && isfinite(classic->shininess)) {
     dae_write_material_float_tag(w, DAE_EXP_NAME(shininess), classic->shininess);
   } else if (wroteSpecular && dae_material_pbr_like(surface)) {
     dae_write_material_float_tag(w,

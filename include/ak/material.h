@@ -168,14 +168,6 @@ typedef struct AkMaterialFeature {
   uint32_t                  flags;
 } AkMaterialFeature;
 
-typedef enum AkMaterialClassicFlags {
-  AK_MATERIAL_CLASSIC_FLAG_NONE            = 0,
-  /* The source explicitly authored a classic specular exponent. This keeps
-     an authored zero distinct from an absent value without changing the
-     public feature layout. */
-  AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS   = 1u << 0
-} AkMaterialClassicFlags;
-
 typedef struct AkMaterialClearcoatFeature {
   AkMaterialFeature base;
   AkMaterialInput  *factor;
@@ -257,7 +249,7 @@ typedef struct AkMaterialClassicFeature {
   AkMaterialInput  *emission;
   AkMaterialInput  *reflective;
   AkMaterialInput  *transparency;
-  float             shininess;
+  float             shininess; /* canonical nonnegative specular exponent */
   float             reflectivity;
   float             ior;
   uint32_t          illum;

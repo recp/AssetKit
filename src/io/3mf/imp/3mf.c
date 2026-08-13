@@ -775,6 +775,9 @@ ak_3mf_parse_texture_resources(AK3MFImportState * __restrict st,
       AK_3MF_XMLA_LOCAL_LIT(xml, "tilestyleu"));
     sampler->wrapT = ak_3mf_texture_wrap(
       AK_3MF_XMLA_LOCAL_LIT(xml, "tilestylev"));
+    sampler->minfilter = AK_MINFILTER_UNSPECIFIED;
+    sampler->magfilter = AK_MAGFILTER_UNSPECIFIED;
+    sampler->mipfilter = AK_MIPFILTER_UNSPECIFIED;
     ak_setypeid(sampler, AKT_SAMPLER2D);
 
     texture->name    = part->name;

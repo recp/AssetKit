@@ -188,8 +188,13 @@ bind_texture:
 
       vendorSampler = ak_heap_calloc(heap, vendorTex, sizeof(*vendorSampler));
       if (vendorSampler) {
-        if (tex->sampler)
+        if (tex->sampler) {
           *vendorSampler = *tex->sampler;
+        } else {
+          vendorSampler->minfilter = AK_MINFILTER_UNSPECIFIED;
+          vendorSampler->magfilter = AK_MAGFILTER_UNSPECIFIED;
+          vendorSampler->mipfilter = AK_MIPFILTER_UNSPECIFIED;
+        }
         vendorSampler->next = NULL;
         ak_setypeid(vendorSampler, AKT_SAMPLER);
 

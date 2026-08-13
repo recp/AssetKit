@@ -32,35 +32,42 @@ typedef enum AkWrapMode {
 } AkWrapMode;
 
 typedef enum AkMinFilter {
-  AK_MINFILTER_UNSPECIFIED           = 0,
-  AK_MINFILTER_NONE                  = 1,
-  AK_MINFILTER_NEAREST               = 2,
-  AK_MINFILTER_LINEAR                = 3,
-  AK_MINFILTER_ANISOTROPIC           = 4,
-  AK_MINFILTER_NEAREST_MIPMAP_NEAREST = 5,
-  AK_MINFILTER_LINEAR_MIPMAP_NEAREST  = 6,
-  AK_MINFILTER_NEAREST_MIPMAP_LINEAR  = 7,
-  AK_MINFILTER_LINEAR_MIPMAP_LINEAR   = 8,
+  /* Published v0.7.0 ABI values. */
+  AK_MINFILTER_LINEAR       = 0,
+  AK_MINFILTER_NEAREST      = 1,
+  AK_MINFILTER_ANISOTROPIC  = 2,
 
-  /* Source compatibility for the original unprefixed spellings. */
-  AK_NEAREST_MIPMAP_NEAREST = AK_MINFILTER_NEAREST_MIPMAP_NEAREST,
-  AK_LINEAR_MIPMAP_NEAREST  = AK_MINFILTER_LINEAR_MIPMAP_NEAREST,
-  AK_NEAREST_MIPMAP_LINEAR  = AK_MINFILTER_NEAREST_MIPMAP_LINEAR,
-  AK_LINEAR_MIPMAP_LINEAR   = AK_MINFILTER_LINEAR_MIPMAP_LINEAR
+  AK_LINEAR_MIPMAP_NEAREST  = 2,
+  AK_LINEAR_MIPMAP_LINEAR   = 3,
+  AK_NEAREST_MIPMAP_NEAREST = 4,
+  AK_NEAREST_MIPMAP_LINEAR  = 5,
+
+  /* New states use values that were not part of the v0.7.0 ABI. */
+  AK_MINFILTER_UNSPECIFIED = 6,
+  AK_MINFILTER_NONE        = 7,
+
+  /* The v0.7.0 AK_LINEAR_MIPMAP_NEAREST spelling shares value 2 with
+     AK_MINFILTER_ANISOTROPIC and cannot represent an unambiguous choice.
+     Keep that legacy value for ABI compatibility and use the prefixed
+     spelling below when LINEAR_MIPMAP_NEAREST is intended. */
+  AK_MINFILTER_LINEAR_MIPMAP_NEAREST  = 8,
+  AK_MINFILTER_LINEAR_MIPMAP_LINEAR   = AK_LINEAR_MIPMAP_LINEAR,
+  AK_MINFILTER_NEAREST_MIPMAP_NEAREST = AK_NEAREST_MIPMAP_NEAREST,
+  AK_MINFILTER_NEAREST_MIPMAP_LINEAR  = AK_NEAREST_MIPMAP_LINEAR
 } AkMinFilter;
 
 typedef enum AkMagFilter {
-  AK_MAGFILTER_UNSPECIFIED = 0,
-  AK_MAGFILTER_NONE        = 1,
-  AK_MAGFILTER_NEAREST     = 2,
-  AK_MAGFILTER_LINEAR      = 3
+  AK_MAGFILTER_LINEAR      = 0,
+  AK_MAGFILTER_NEAREST     = 1,
+  AK_MAGFILTER_UNSPECIFIED = 2,
+  AK_MAGFILTER_NONE        = 3
 } AkMagFilter;
 
 typedef enum AkMipFilter {
-  AK_MIPFILTER_UNSPECIFIED = 0,
+  AK_MIPFILTER_LINEAR      = 0,
   AK_MIPFILTER_NONE        = 1,
   AK_MIPFILTER_NEAREST     = 2,
-  AK_MIPFILTER_LINEAR      = 3
+  AK_MIPFILTER_UNSPECIFIED = 3
 } AkMipFilter;
 
 typedef enum AkTextureColorSpace {
@@ -97,6 +104,9 @@ typedef struct AkSampler {
   AkWrapMode        wrapT;
   AkWrapMode        wrapP;
 
+  /* Zero is the published LINEAR value in each filter enum, not an omitted
+     value. Producers must set all three fields to their *_UNSPECIFIED values
+     explicitly when the source does not author filtering state. */
   AkMinFilter       minfilter;
   AkMagFilter       magfilter;
   AkMipFilter       mipfilter;

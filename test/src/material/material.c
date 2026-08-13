@@ -153,6 +153,24 @@ test_write_material_dae(const char *path) {
         "<specular><color>1 1 1 1</color></specular>"
         "<shininess><float>50</float></shininess>"
         "</phong></technique></profile_COMMON></effect>\n"
+        "<effect id=\"effect_shininess_normalized_phong\"><profile_COMMON>"
+        "<technique sid=\"common\"><phong>"
+        "<diffuse><color>1 1 1 1</color></diffuse>"
+        "<specular><color>1 1 1 1</color></specular>"
+        "<shininess><float>0.25</float></shininess>"
+        "</phong></technique></profile_COMMON></effect>\n"
+        "<effect id=\"effect_shininess_normalized_blinn\"><profile_COMMON>"
+        "<technique sid=\"common\"><blinn>"
+        "<diffuse><color>1 1 1 1</color></diffuse>"
+        "<specular><color>1 1 1 1</color></specular>"
+        "<shininess><float>0.5</float></shininess>"
+        "</blinn></technique></profile_COMMON></effect>\n"
+        "<effect id=\"effect_shininess_nonfinite\"><profile_COMMON>"
+        "<technique sid=\"common\"><phong>"
+        "<diffuse><color>1 1 1 1</color></diffuse>"
+        "<specular><color>1 1 1 1</color></specular>"
+        "<shininess><float>NaN</float></shininess>"
+        "</phong></technique></profile_COMMON></effect>\n"
         "</library_effects>\n"
         "<library_materials>"
         "<material id=\"mat_edge\" name=\"edge\"><instance_effect url=\"#effect_edge\"/></material>"
@@ -171,6 +189,9 @@ test_write_material_dae(const char *path) {
         "<material id=\"mat_shininess_absent\" name=\"shininess_absent\"><instance_effect url=\"#effect_shininess_absent\"/></material>"
         "<material id=\"mat_shininess_zero\" name=\"shininess_zero\"><instance_effect url=\"#effect_shininess_zero\"/></material>"
         "<material id=\"mat_shininess_fifty\" name=\"shininess_fifty\"><instance_effect url=\"#effect_shininess_fifty\"/></material>"
+        "<material id=\"mat_shininess_normalized_phong\" name=\"shininess_normalized_phong\"><instance_effect url=\"#effect_shininess_normalized_phong\"/></material>"
+        "<material id=\"mat_shininess_normalized_blinn\" name=\"shininess_normalized_blinn\"><instance_effect url=\"#effect_shininess_normalized_blinn\"/></material>"
+        "<material id=\"mat_shininess_nonfinite\" name=\"shininess_nonfinite\"><instance_effect url=\"#effect_shininess_nonfinite\"/></material>"
         "</library_materials>\n"
         "<library_visual_scenes><visual_scene id=\"Scene\"/></library_visual_scenes>\n"
         "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
@@ -223,6 +244,41 @@ test_write_obj_material_files(const char *objPath,
         "vt 0 1\n"
         "usemtl obj_opacity\n"
         "f 1/1 2/2 3/3\n",
+        file);
+
+  return fclose(file) == 0;
+}
+
+static
+bool
+test_write_obj_shininess_files(const char *objPath,
+                               const char *mtlPath) {
+  FILE *file;
+
+  file = fopen(mtlPath, "wb");
+  if (!file)
+    return false;
+
+  fputs("newmtl obj_ns_normalized_range\n"
+        "Kd 1 1 1\n"
+        "Ks 1 1 1\n"
+        "Ns 0.5\n"
+        "illum 2\n",
+        file);
+  if (fclose(file) != 0)
+    return false;
+
+  file = fopen(objPath, "wb");
+  if (!file)
+    return false;
+
+  fputs("mtllib material_shininess.mtl\n"
+        "o tri\n"
+        "v 0 0 0\n"
+        "v 1 0 0\n"
+        "v 0 1 0\n"
+        "usemtl obj_ns_normalized_range\n"
+        "f 1 2 3\n",
         file);
 
   return fclose(file) == 0;
@@ -694,6 +750,9 @@ TEST_IMPL(material_dae_adapter) {
   AkMaterial  *shininessAbsent;
   AkMaterial  *shininessZero;
   AkMaterial  *shininessFifty;
+  AkMaterial  *shininessNormalizedPhong;
+  AkMaterial  *shininessNormalizedBlinn;
+  AkMaterial  *shininessNonfinite;
   AkMaterialClassicFeature *classic;
   AkMaterialSpecularFeature *specularLevel;
   AkDoc       *noExtraDoc;
@@ -837,24 +896,41 @@ TEST_IMPL(material_dae_adapter) {
   shininessAbsent = test_material_by_name(doc, "shininess_absent");
   shininessZero   = test_material_by_name(doc, "shininess_zero");
   shininessFifty  = test_material_by_name(doc, "shininess_fifty");
+  shininessNormalizedPhong = test_material_by_name(
+    doc, "shininess_normalized_phong");
+  shininessNormalizedBlinn = test_material_by_name(
+    doc, "shininess_normalized_blinn");
+  shininessNonfinite = test_material_by_name(doc, "shininess_nonfinite");
   ASSERT(shininessAbsent && shininessAbsent->surface);
   ASSERT(shininessZero && shininessZero->surface);
   ASSERT(shininessFifty && shininessFifty->surface);
+  ASSERT(shininessNormalizedPhong && shininessNormalizedPhong->surface);
+  ASSERT(shininessNormalizedBlinn && shininessNormalizedBlinn->surface);
+  ASSERT(shininessNonfinite && shininessNonfinite->surface);
   classic = (AkMaterialClassicFeature *)ak_materialFeature(
               shininessAbsent->surface, AK_MATERIAL_FEATURE_CLASSIC);
   ASSERT(classic);
-  ASSERT(!(classic->base.flags & AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS));
-  ASSERT(classic->shininess == 0.0f);
+  ASSERT(classic->shininess == 20.0f);
   classic = (AkMaterialClassicFeature *)ak_materialFeature(
               shininessZero->surface, AK_MATERIAL_FEATURE_CLASSIC);
   ASSERT(classic);
-  ASSERT(classic->base.flags & AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS);
   ASSERT(classic->shininess == 0.0f);
   classic = (AkMaterialClassicFeature *)ak_materialFeature(
               shininessFifty->surface, AK_MATERIAL_FEATURE_CLASSIC);
   ASSERT(classic);
-  ASSERT(classic->base.flags & AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS);
   ASSERT(fabsf(classic->shininess - 50.0f) < 0.001f);
+  classic = (AkMaterialClassicFeature *)ak_materialFeature(
+              shininessNormalizedPhong->surface,
+              AK_MATERIAL_FEATURE_CLASSIC);
+  ASSERT(classic && fabsf(classic->shininess - 32.0f) < 0.001f);
+  classic = (AkMaterialClassicFeature *)ak_materialFeature(
+              shininessNormalizedBlinn->surface,
+              AK_MATERIAL_FEATURE_CLASSIC);
+  ASSERT(classic && fabsf(classic->shininess - 64.0f) < 0.001f);
+  classic = (AkMaterialClassicFeature *)ak_materialFeature(
+              shininessNonfinite->surface,
+              AK_MATERIAL_FEATURE_CLASSIC);
+  ASSERT(classic && classic->shininess == 20.0f);
   ASSERT(ak_extra(edge));
   ASSERT(test_tree_has_name(ak_extra(edge), "profile_COMMON"));
   ASSERT(test_tree_has_name(ak_extra(edge), "technique"));
@@ -1105,6 +1181,8 @@ TEST_IMPL(material_obj_adapter) {
   char          objPath[PATH_MAX];
   char          mtlPath[PATH_MAX];
   char          objAlphaPath[PATH_MAX];
+  char          objShininessPath[PATH_MAX];
+  char          mtlShininessPath[PATH_MAX];
   const char   *tmpBase;
 
   tmpBase = getenv("TMPDIR");
@@ -1128,6 +1206,7 @@ TEST_IMPL(material_obj_adapter) {
   ASSERT(mat != NULL);
   ASSERT(mat->name && strcmp(mat->name, "obj_opacity") == 0);
   ASSERT(mat->surface != NULL);
+  ASSERT(mat->surface->type == AK_MATERIAL_TYPE_PBR_METALLIC_ROUGHNESS);
   ASSERT(mat->surface->opacity != NULL);
   ASSERT(mat->surface->roughness != NULL);
   ASSERT(mat->surface->metallic != NULL);
@@ -1166,12 +1245,35 @@ TEST_IMPL(material_obj_adapter) {
   ASSERT(mat->surface->flags & AK_MATERIAL_FLAG_ALPHA_BLEND);
   classic = (void*)ak_materialFeature(mat->surface, AK_MATERIAL_FEATURE_CLASSIC);
   ASSERT(classic != NULL);
+  ASSERT(classic->shininess == 20.0f);
   ASSERT(classic->transparency != NULL);
   ASSERT(classic->transparency->channels == AK_TEXTURE_CHANNEL_RGB);
   ASSERT(classic->transparency->color.rgba.R > 0.199f);
   ASSERT(classic->transparency->color.rgba.G > 0.299f);
   ASSERT(classic->transparency->color.rgba.B > 0.399f);
 
+  ak_free(doc);
+
+  snprintf(objShininessPath,
+           sizeof(objShininessPath),
+           "%s/material_shininess.obj",
+           tmpdir);
+  snprintf(mtlShininessPath,
+           sizeof(mtlShininessPath),
+           "%s/material_shininess.mtl",
+           tmpdir);
+  ASSERT(test_write_obj_shininess_files(objShininessPath, mtlShininessPath));
+
+  doc = NULL;
+  ASSERT(ak_load(&doc, objShininessPath, AK_FILE_TYPE_AUTO) == AK_OK && doc);
+  mat = test_material_by_name(doc, "obj_ns_normalized_range");
+  if (!mat)
+    mat = test_first_primitive_material(doc);
+  ASSERT(mat && mat->surface);
+  ASSERT(mat->surface->type == AK_MATERIAL_TYPE_PHONG);
+  classic = (void *)ak_materialFeature(mat->surface,
+                                       AK_MATERIAL_FEATURE_CLASSIC);
+  ASSERT(classic && fabsf(classic->shininess - 0.5f) < 0.001f);
   ak_free(doc);
 
   snprintf(objAlphaPath, sizeof(objAlphaPath), "%s/vertex_alpha.obj", tmpdir);
@@ -1189,6 +1291,8 @@ TEST_IMPL(material_obj_adapter) {
   ak_free(doc);
   unlink(objPath);
   unlink(mtlPath);
+  unlink(objShininessPath);
+  unlink(mtlShininessPath);
   unlink(objAlphaPath);
   rmdir(tmpdir);
 

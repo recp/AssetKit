@@ -384,8 +384,9 @@ dae_techniqueFxCmn(DAEState * __restrict dst,
         techn->specular = specularProp;
       }
 
-      specularProp->strength = dae_float(dst, xml, specularProp, 
-                                         offsetof(AkMaterialSpecularProp, shininess), 1.0f);
+      specularProp->strength = dae_float(dst, xml, specularProp,
+                                         offsetof(AkMaterialSpecularProp, shininess),
+                                         NAN);
       specularProp->hasShininess = true;
     } else if (DAE_XML_TAG_EQ(xml, reflectivity)) {
       if (!techn->reflective)

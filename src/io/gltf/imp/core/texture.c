@@ -46,9 +46,12 @@ gltf_defaultSampler(AkGLTFState * __restrict gst) {
   if ((sampler = gst->defaultSampler))
     return sampler;
 
-  sampler        = ak_heap_calloc(gst->heap, gst->doc, sizeof(*sampler));
-  sampler->wrapS = AK_WRAP_MODE_WRAP;
-  sampler->wrapT = AK_WRAP_MODE_WRAP;
+  sampler            = ak_heap_calloc(gst->heap, gst->doc, sizeof(*sampler));
+  sampler->wrapS     = AK_WRAP_MODE_WRAP;
+  sampler->wrapT     = AK_WRAP_MODE_WRAP;
+  sampler->minfilter = AK_MINFILTER_UNSPECIFIED;
+  sampler->magfilter = AK_MAGFILTER_UNSPECIFIED;
+  sampler->mipfilter = AK_MIPFILTER_UNSPECIFIED;
   ak_setypeid(sampler, AKT_SAMPLER2D);
 
   return gst->defaultSampler = sampler;

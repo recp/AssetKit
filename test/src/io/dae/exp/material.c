@@ -423,11 +423,30 @@ TEST_IMPL(dae_export_material_sampler_none_roundtrip) {
 
   tmpBase = getenv("TMPDIR");
   ASSERT(AK_WRAP_MODE_UNSPECIFIED == 0);
-  ASSERT(AK_MINFILTER_UNSPECIFIED == 0);
-  ASSERT(AK_MAGFILTER_UNSPECIFIED == 0);
-  ASSERT(AK_MIPFILTER_UNSPECIFIED == 0);
-  ASSERT(AK_MINFILTER_NONE != AK_MINFILTER_LINEAR);
-  ASSERT(AK_MAGFILTER_NONE != AK_MAGFILTER_LINEAR);
+  ASSERT(AK_MINFILTER_LINEAR == 0);
+  ASSERT(AK_MINFILTER_NEAREST == 1);
+  ASSERT(AK_MINFILTER_ANISOTROPIC == 2);
+  ASSERT(AK_LINEAR_MIPMAP_NEAREST == 2);
+  ASSERT(AK_LINEAR_MIPMAP_LINEAR == 3);
+  ASSERT(AK_NEAREST_MIPMAP_NEAREST == 4);
+  ASSERT(AK_NEAREST_MIPMAP_LINEAR == 5);
+  ASSERT(AK_MINFILTER_UNSPECIFIED == 6);
+  ASSERT(AK_MINFILTER_NONE == 7);
+  ASSERT(AK_MINFILTER_LINEAR_MIPMAP_NEAREST == 8);
+  ASSERT(AK_MINFILTER_LINEAR_MIPMAP_LINEAR
+         == AK_LINEAR_MIPMAP_LINEAR);
+  ASSERT(AK_MINFILTER_NEAREST_MIPMAP_NEAREST
+         == AK_NEAREST_MIPMAP_NEAREST);
+  ASSERT(AK_MINFILTER_NEAREST_MIPMAP_LINEAR
+         == AK_NEAREST_MIPMAP_LINEAR);
+  ASSERT(AK_MAGFILTER_LINEAR == 0);
+  ASSERT(AK_MAGFILTER_NEAREST == 1);
+  ASSERT(AK_MAGFILTER_UNSPECIFIED == 2);
+  ASSERT(AK_MAGFILTER_NONE == 3);
+  ASSERT(AK_MIPFILTER_LINEAR == 0);
+  ASSERT(AK_MIPFILTER_NONE == 1);
+  ASSERT(AK_MIPFILTER_NEAREST == 2);
+  ASSERT(AK_MIPFILTER_UNSPECIFIED == 3);
   if (!tmpBase || !tmpBase[0])
     tmpBase = "/tmp";
 
@@ -786,6 +805,7 @@ TEST_IMPL(dae_export_material_technique_types) {
   AkMaterial        *matLegacyPhong;
   AkMaterial        *matAbsentPhong;
   AkMaterial        *roundTripConstant;
+  AkMaterial        *roundTripAbsentPhong;
   AkMaterialSurface *surfaceConstant;
   AkMaterialSurface *surfaceLambert;
   AkMaterialSurface *surfaceBlinn;
@@ -794,6 +814,7 @@ TEST_IMPL(dae_export_material_technique_types) {
   AkMaterialClassicFeature *classicBlinn;
   AkMaterialClassicFeature *classicLegacyPhong;
   AkMaterialClassicFeature *classicAbsentPhong;
+  AkMaterialClassicFeature *roundTripClassic;
   AkMaterialInput   *colorConstant;
   AkMaterialInput   *colorLambert;
   AkMaterialInput   *colorBlinn;
@@ -899,8 +920,8 @@ TEST_IMPL(dae_export_material_technique_types) {
   surfaceBlinn->type         = AK_MATERIAL_TYPE_BLINN;
   surfaceBlinn->baseColor    = colorBlinn;
   classicBlinn->base.type    = AK_MATERIAL_FEATURE_CLASSIC;
-  classicBlinn->base.flags   = AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS;
   classicBlinn->diffuse      = colorBlinn;
+  classicBlinn->specular     = colorBlinn;
   classicBlinn->shininess    = 0.0f;
   surfaceBlinn->features     = &classicBlinn->base;
   surfaceBlinn->featureMask  = 1u << AK_MATERIAL_FEATURE_CLASSIC;
@@ -908,6 +929,7 @@ TEST_IMPL(dae_export_material_technique_types) {
   surfaceLegacyPhong->baseColor = colorLegacyPhong;
   classicLegacyPhong->base.type = AK_MATERIAL_FEATURE_CLASSIC;
   classicLegacyPhong->diffuse   = colorLegacyPhong;
+  classicLegacyPhong->specular  = colorLegacyPhong;
   classicLegacyPhong->shininess = 25.0f;
   surfaceLegacyPhong->features  = &classicLegacyPhong->base;
   surfaceLegacyPhong->featureMask = 1u << AK_MATERIAL_FEATURE_CLASSIC;
@@ -915,7 +937,7 @@ TEST_IMPL(dae_export_material_technique_types) {
   surfaceAbsentPhong->baseColor = colorAbsentPhong;
   classicAbsentPhong->base.type = AK_MATERIAL_FEATURE_CLASSIC;
   classicAbsentPhong->diffuse   = colorAbsentPhong;
-  classicAbsentPhong->shininess = 0.0f;
+  classicAbsentPhong->shininess = 20.0f;
   surfaceAbsentPhong->features  = &classicAbsentPhong->base;
   surfaceAbsentPhong->featureMask = 1u << AK_MATERIAL_FEATURE_CLASSIC;
 
@@ -944,7 +966,9 @@ TEST_IMPL(dae_export_material_technique_types) {
                                "<shininess><float>0</float></shininess>"));
   ASSERT(ak_test_file_contains(daePath,
                                "<shininess><float>25</float></shininess>"));
-  ASSERT(ak_test_file_count(daePath, "<shininess>") == 2);
+  ASSERT(ak_test_file_contains(daePath,
+                               "<shininess><float>20</float></shininess>"));
+  ASSERT(ak_test_file_count(daePath, "<shininess>") == 3);
   ASSERT(!ak_test_file_contains(daePath, "<constant><diffuse>"));
 
   roundTrip = NULL;
@@ -961,6 +985,15 @@ TEST_IMPL(dae_export_material_technique_types) {
          == AK_MATERIAL_VALUE_COLOR);
   ASSERT(roundTripConstant->surface->baseColor->color.rgba.R == 1.0f);
   ASSERT(roundTripConstant->surface->emissive == NULL);
+  roundTripAbsentPhong = roundTrip->lib.materials.first;
+  while (roundTripAbsentPhong
+         && (!roundTripAbsentPhong->name
+             || strcmp(roundTripAbsentPhong->name, "absent_zero") != 0))
+    roundTripAbsentPhong = roundTripAbsentPhong->next;
+  ASSERT(roundTripAbsentPhong && roundTripAbsentPhong->surface);
+  roundTripClassic = (void *)ak_materialFeature(
+    roundTripAbsentPhong->surface, AK_MATERIAL_FEATURE_CLASSIC);
+  ASSERT(roundTripClassic && roundTripClassic->shininess == 20.0f);
   ak_free(roundTrip);
 
   ak_heap_destroy(heap);

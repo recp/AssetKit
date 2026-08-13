@@ -97,6 +97,9 @@ TEST_IMPL(gltf_export_texture_extras) {
   image->source  = source;
   texture->image = image;
   texture->sampler = sampler;
+  sampler->minfilter = AK_MINFILTER_UNSPECIFIED;
+  sampler->magfilter = AK_MAGFILTER_UNSPECIFIED;
+  sampler->mipfilter = AK_MIPFILTER_UNSPECIFIED;
   texref->texture  = texture;
   texref->slot     = 0;
 

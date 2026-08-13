@@ -20,6 +20,34 @@
 #include "internal.h"
 #include "../../include/ak/material.h"
 
+enum {
+  AK_MATERIAL_CLASSIC_DEFAULT_SHININESS = 20
+};
+
+static
+float
+ak__materialClassicShininess(AkMaterialSpecularProp * __restrict specular) {
+  float shininess;
+
+  if (!specular || !specular->hasShininess)
+    return (float)AK_MATERIAL_CLASSIC_DEFAULT_SHININESS;
+
+  shininess = specular->shininess;
+  if (!isfinite(shininess))
+    return (float)AK_MATERIAL_CLASSIC_DEFAULT_SHININESS;
+
+  if (shininess <= 0.0f)
+    return 0.0f;
+
+  /* Several legacy COLLADA exporters wrote a normalized 0..1 gloss value
+     into both Phong and Blinn shininess. Canonicalize that producer range to
+     the exponent representation exposed by AkMaterialClassicFeature. */
+  if (shininess <= 1.0f)
+    return shininess * 128.0f;
+
+  return shininess;
+}
+
 static bool
 ak__materialInputNameEq(const AkMaterialInput * __restrict input,
                         const char            * __restrict name) {
@@ -994,9 +1022,7 @@ ak_materialSurfaceFromTechniqueCommon(AkHeap              * __restrict heap,
       classic->transparency->flags |= AK_MATERIAL_INPUT_FLAG_INVERTED;
     }
 
-    classic->shininess    = common->specular ? common->specular->shininess : 0.0f;
-    if (common->specular && common->specular->hasShininess)
-      classic->base.flags |= AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS;
+    classic->shininess = ak__materialClassicShininess(common->specular);
     classic->reflectivity = common->reflective ? common->reflective->amount : 0.0f;
     classic->ior          = common->ior;
 

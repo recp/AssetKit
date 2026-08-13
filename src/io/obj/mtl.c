@@ -613,16 +613,16 @@ wobj_handleMaterial(WOState  * __restrict wst,
       case 1: /* Lambert */
         surface->type = AK_MATERIAL_TYPE_LAMBERT;
         break;
-      case 2: /* TODO: Currently all others are Blinn */
+      case 2: /* OBJ Ns is a Phong-style specular exponent. */
 //      case 3:
 //      case 4:
-        surface->type = AK_MATERIAL_TYPE_BLINN;
+        surface->type = AK_MATERIAL_TYPE_PHONG;
       default:
         break;
     }
 
     if (surface->type == AK_MATERIAL_TYPE_NONE)
-      surface->type = AK_MATERIAL_TYPE_BLINN;
+      surface->type = AK_MATERIAL_TYPE_PHONG;
   }
 
   surface->baseColor = wobj_colorInput(wst,
@@ -806,9 +806,10 @@ wobj_handleMaterial(WOState  * __restrict wst,
                                             AK_TEXTURE_COLORSPACE_SRGB,
                                             AK_TEXTURE_CHANNEL_RGB);
   }
-  classic->shininess = mtl->Ns;
-  if (mtl->has_Ns)
-    classic->base.flags |= AK_MATERIAL_CLASSIC_FLAG_HAS_SHININESS;
+  if (mtl->has_Ns && isfinite(mtl->Ns))
+    classic->shininess = glm_max(mtl->Ns, 0.0f);
+  else
+    classic->shininess = 20.0f;
   classic->ior = mtl->Ni;
   classic->illum = mtl->illum;
   wobj_featurePush(surface, &classic->base);
@@ -852,9 +853,12 @@ wobj_texref(WOState            * __restrict wst,
   AK_LIB_PREPEND(doc->lib.images, image, next);
 
   /* create sampler */
-  sampler        = ak_heap_calloc(heap, doc, sizeof(*sampler));
-  sampler->wrapS = AK_WRAP_MODE_WRAP;
-  sampler->wrapT = AK_WRAP_MODE_WRAP;
+  sampler            = ak_heap_calloc(heap, doc, sizeof(*sampler));
+  sampler->wrapS     = AK_WRAP_MODE_WRAP;
+  sampler->wrapT     = AK_WRAP_MODE_WRAP;
+  sampler->minfilter = AK_MINFILTER_UNSPECIFIED;
+  sampler->magfilter = AK_MAGFILTER_UNSPECIFIED;
+  sampler->mipfilter = AK_MIPFILTER_UNSPECIFIED;
   ak_setypeid(sampler, AKT_SAMPLER2D);
   AK_LIB_PREPEND(doc->lib.samplers, sampler, next);
   

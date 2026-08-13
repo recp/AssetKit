@@ -402,6 +402,7 @@ TEST_IMPL(gltf_export_material_texture_uri) {
   sampler->wrapT     = AK_WRAP_MODE_WRAP;
   sampler->minfilter = AK_MINFILTER_NEAREST;
   sampler->magfilter = AK_MAGFILTER_NEAREST;
+  sampler->mipfilter = AK_MIPFILTER_UNSPECIFIED;
 
   texture->image   = image;
   texture->sampler = sampler;
@@ -484,6 +485,17 @@ TEST_IMPL(gltf_export_material_texture_uri) {
   ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
   ASSERT(ak_test_file_contains(gltfPath, "\"minFilter\":9986"));
 
+  /* Preserve v0.7.0 behavior for the legacy value shared by
+     AK_LINEAR_MIPMAP_NEAREST and AK_MINFILTER_ANISOTROPIC. */
+  sampler->minfilter = AK_LINEAR_MIPMAP_NEAREST;
+  ASSERT(sampler->minfilter == (AkMinFilter)2);
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"minFilter\":9985"));
+
+  sampler->minfilter = AK_MINFILTER_LINEAR_MIPMAP_NEAREST;
+  ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_GLTF) == AK_OK);
+  ASSERT(ak_test_file_contains(gltfPath, "\"minFilter\":9985"));
+
   sampler->minfilter = AK_MINFILTER_UNSPECIFIED;
   sampler->mipfilter = AK_MIPFILTER_UNSPECIFIED;
   sampler->magfilter = AK_MAGFILTER_UNSPECIFIED;
@@ -498,6 +510,8 @@ TEST_IMPL(gltf_export_material_texture_uri) {
          == AK_MINFILTER_UNSPECIFIED);
   ASSERT(roundTrip->lib.samplers.first->magfilter
          == AK_MAGFILTER_UNSPECIFIED);
+  ASSERT(roundTrip->lib.samplers.first->mipfilter
+         == AK_MIPFILTER_UNSPECIFIED);
   ak_free(roundTrip);
 
   ASSERT(ak_export(doc, glbOutDir, AK_FILE_TYPE_GLB) == AK_OK);

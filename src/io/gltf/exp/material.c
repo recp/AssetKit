@@ -68,9 +68,12 @@ gltf_min_filter(AkMinFilter filter, AkMipFilter mipFilter) {
         case AK_MIPFILTER_UNSPECIFIED:
         default:                   return 9729;
       }
+    /* Value 2 is both the published v0.7.0 ANISOTROPIC value and the legacy
+       AK_LINEAR_MIPMAP_NEAREST value. v0.7.0 glTF export interpreted that
+       value as LINEAR_MIPMAP_NEAREST, so preserve that ABI behavior. */
+    case AK_MINFILTER_ANISOTROPIC: return 9985;
     case AK_MINFILTER_UNSPECIFIED:
-    case AK_MINFILTER_ANISOTROPIC:
-    default:                        return 0;
+    default:                       return 0;
   }
 }
 
