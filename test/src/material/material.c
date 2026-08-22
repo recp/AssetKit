@@ -328,6 +328,90 @@ test_write_transparency_bugfix_dae(const char *path,
 
 static
 bool
+test_write_missing_texture_alpha_dae(const char *path,
+                                     const char *authoringTool) {
+  FILE *file;
+  int   written;
+  bool  ok;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  written = fprintf(
+    file,
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+    "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
+    "<asset><contributor><authoring_tool>%s</authoring_tool></contributor>"
+    "<up_axis>Y_UP</up_axis></asset>\n"
+    "<library_images><image id=\"billboard-image\"><init_from>billboard.png</init_from>"
+    "</image></library_images>\n"
+    "<library_effects><effect id=\"effect\"><profile_COMMON>"
+    "<newparam sid=\"billboard-surface\"><surface type=\"2D\">"
+    "<init_from>billboard-image</init_from></surface></newparam>"
+    "<newparam sid=\"billboard-sampler\"><sampler2D>"
+    "<source>billboard-surface</source></sampler2D></newparam>"
+    "<technique sid=\"common\"><lambert><diffuse>"
+    "<texture texture=\"billboard-sampler\" texcoord=\"UVSET0\"/>"
+    "</diffuse></lambert></technique></profile_COMMON></effect></library_effects>\n"
+    "<library_materials><material id=\"material\" name=\"material\">"
+    "<instance_effect url=\"#effect\"/></material></library_materials>\n"
+    "<library_visual_scenes><visual_scene id=\"Scene\"/></library_visual_scenes>"
+    "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
+    "</COLLADA>\n",
+    authoringTool);
+
+  ok = written >= 0;
+  if (fclose(file) != 0)
+    ok = false;
+
+  return ok;
+}
+
+static
+bool
+test_write_one_pixel_png(const char *path, bool alpha) {
+  static const unsigned char rgba[] = {
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+    0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4,
+    0x89, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x44, 0x41,
+    0x54, 0x78, 0x9c, 0x63, 0xf8, 0xcf, 0xc0, 0xc0,
+    0x00, 0x00, 0x04, 0x01, 0x01, 0x00, 0x47, 0x06,
+    0xca, 0xde, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45,
+    0x4e, 0x44, 0xae, 0x42, 0x60, 0x82
+  };
+  static const unsigned char rgb[] = {
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+    0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
+    0xde, 0x00, 0x00, 0x00, 0x0c, 0x49, 0x44, 0x41,
+    0x54, 0x78, 0x9c, 0x63, 0xf8, 0xcf, 0xc0, 0x00,
+    0x00, 0x03, 0x01, 0x01, 0x00, 0xc9, 0xfe, 0x92,
+    0xef, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e,
+    0x44, 0xae, 0x42, 0x60, 0x82
+  };
+  const unsigned char *bytes;
+  size_t               length;
+  FILE                *file;
+  bool                 ok;
+
+  bytes  = alpha ? rgba : rgb;
+  length = alpha ? sizeof(rgba) : sizeof(rgb);
+  file   = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  ok = fwrite(bytes, 1u, length, file) == length;
+  if (fclose(file) != 0)
+    ok = false;
+  return ok;
+}
+
+static
+bool
 test_write_obj_vertex_alpha(const char *objPath) {
   FILE *file;
 
@@ -484,6 +568,42 @@ test_load_material_opacity(const char *path,
     *opacityOut = ak_materialOpacityFactor(mat->surface);
   if (ok && flagsOut)
     *flagsOut = mat->surface->flags;
+
+  ak_free(doc);
+  return ok;
+}
+
+static
+bool
+test_load_material_alpha_state(const char       *path,
+                               bool              bugfixes,
+                               bool             *hasOpacityOut,
+                               AkTextureChannels *channelsOut,
+                               uint32_t          *flagsOut) {
+  AkDoc           *doc;
+  AkMaterial      *mat;
+  AkMaterialInput *opacity;
+  uintptr_t        previousBugfixes;
+  AkResult         result;
+  bool             ok;
+
+  doc              = NULL;
+  previousBugfixes = ak_opt_get(AK_OPT_BUGFIXES);
+  ak_opt_set(AK_OPT_BUGFIXES, bugfixes);
+  result = ak_load(&doc, path, AK_FILE_TYPE_AUTO);
+  ak_opt_set(AK_OPT_BUGFIXES, previousBugfixes);
+
+  mat = result == AK_OK ? test_material_by_name(doc, "material") : NULL;
+  ok  = mat && mat->surface && mat->surface->baseColor;
+  if (ok) {
+    opacity = mat->surface->opacity;
+    if (hasOpacityOut)
+      *hasOpacityOut = opacity != NULL;
+    if (channelsOut)
+      *channelsOut = opacity ? opacity->channels : AK_TEXTURE_CHANNEL_NONE;
+    if (flagsOut)
+      *flagsOut = mat->surface->flags;
+  }
 
   ak_free(doc);
   return ok;
@@ -948,10 +1068,13 @@ TEST_IMPL(material_dae_adapter) {
 TEST_IMPL(material_dae_transparency_bugfixes) {
   char        dirTemplate[PATH_MAX];
   char        daePath[PATH_MAX];
+  char        pngPath[PATH_MAX];
   char       *tmpdir;
   const char *tmpBase;
   float       opacity;
+  AkTextureChannels channels;
   uint32_t    flags;
+  bool        hasOpacity;
 
   tmpBase = getenv("TMPDIR");
   if (!tmpBase || !tmpBase[0])
@@ -964,6 +1087,7 @@ TEST_IMPL(material_dae_transparency_bugfixes) {
   tmpdir = mkdtemp(dirTemplate);
   ASSERT(tmpdir != NULL);
   snprintf(daePath, sizeof(daePath), "%s/transparency.dae", tmpdir);
+  snprintf(pngPath, sizeof(pngPath), "%s/billboard.png", tmpdir);
 
   ASSERT(test_write_transparency_bugfix_dae(
     daePath,
@@ -1048,7 +1172,54 @@ TEST_IMPL(material_dae_transparency_bugfixes) {
   ASSERT(test_load_material_opacity(daePath, true, &opacity, &flags));
   ASSERT(fabsf(opacity - 0.25f) < 0.0001f);
 
+  /* SketchUp can omit <transparent> even though a billboard's diffuse PNG
+     carries coverage in its alpha channel. Infer only that narrow producer
+     case, and keep the inferred scalar input in the texture's alpha channel. */
+  ASSERT(test_write_one_pixel_png(pngPath, true));
+  ASSERT(test_write_missing_texture_alpha_dae(daePath, "SketchUp 20.0.0"));
+  ASSERT(test_load_material_alpha_state(daePath,
+                                        false,
+                                        &hasOpacity,
+                                        &channels,
+                                        &flags));
+  ASSERT(!hasOpacity);
+  ASSERT(!(flags & (AK_MATERIAL_FLAG_ALPHA_BLEND
+                    | AK_MATERIAL_FLAG_ALPHA_MASK)));
+  ASSERT(test_load_material_alpha_state(daePath,
+                                        true,
+                                        &hasOpacity,
+                                        &channels,
+                                        &flags));
+  ASSERT(hasOpacity);
+  ASSERT(channels == AK_TEXTURE_CHANNEL_A);
+  ASSERT(flags & AK_MATERIAL_FLAG_ALPHA_BLEND);
+  ASSERT(!(flags & AK_MATERIAL_FLAG_ALPHA_MASK));
+
+  /* A PNG without an alpha channel and unrelated exporters retain authored
+     opaque semantics. */
+  ASSERT(test_write_one_pixel_png(pngPath, false));
+  ASSERT(test_load_material_alpha_state(daePath,
+                                        true,
+                                        &hasOpacity,
+                                        &channels,
+                                        &flags));
+  ASSERT(!hasOpacity);
+  ASSERT(!(flags & (AK_MATERIAL_FLAG_ALPHA_BLEND
+                    | AK_MATERIAL_FLAG_ALPHA_MASK)));
+  ASSERT(test_write_one_pixel_png(pngPath, true));
+  ASSERT(test_write_missing_texture_alpha_dae(daePath,
+                                               "Generic DAE Exporter 1.0"));
+  ASSERT(test_load_material_alpha_state(daePath,
+                                        true,
+                                        &hasOpacity,
+                                        &channels,
+                                        &flags));
+  ASSERT(!hasOpacity);
+  ASSERT(!(flags & (AK_MATERIAL_FLAG_ALPHA_BLEND
+                    | AK_MATERIAL_FLAG_ALPHA_MASK)));
+
   unlink(daePath);
+  unlink(pngPath);
   rmdir(tmpdir);
 
   TEST_SUCCESS

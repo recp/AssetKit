@@ -31,6 +31,7 @@
 #include "fixup/channel.h"
 #include "bugfix/ohana.h"
 #include "bugfix/scenekit.h"
+#include "bugfix/transp.h"
 #include "../../coord/common.h"
 #include "../../mat/internal.h"
 #include "../../instance/list.h"
@@ -547,6 +548,8 @@ dae_build_material_surfaces(DAEState * __restrict dst) {
 
     if (!material->surface
         && (common = ak_getProfileTechniqueCommon(effect))) {
+      if (ak_opt_get(AK_OPT_BUGFIXES))
+        dae_bugfix_transp_infer_diffuse_alpha(dst, common);
       material->surface = ak_materialSurfaceFromTechniqueCommon(dst->heap,
                                                                  material,
                                                                  common,

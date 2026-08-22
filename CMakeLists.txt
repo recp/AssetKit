@@ -876,6 +876,12 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
     else()
       list(APPEND AK_KTX2_CMAKE_ARGS -DBASISU_SSE=ON)
     endif()
+    if(APPLE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
+      # Use a generic x86_64 slice instead of astcenc's x86_64h/AVX2
+      # default, so the universal archive has the architecture subtype Xcode
+      # and the App Store expect for Intel compatibility.
+      list(APPEND AK_KTX2_CMAKE_ARGS -DASTCENC_ISA_SSE41=ON)
+    endif()
     if(MSVC)
       list(APPEND AK_KTX2_CMAKE_ARGS
            -DCMAKE_SHARED_LINKER_FLAGS=/ignore:4006

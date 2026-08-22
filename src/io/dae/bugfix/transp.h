@@ -24,4 +24,9 @@ void
 dae_bugfix_transp(AkTransparent * __restrict transp,
                   bool                       opaqueSpecified);
 
+AK_HIDE
+bool
+dae_bugfix_transp_infer_diffuse_alpha(DAEState            * __restrict dst,
+                                      AkTechniqueFxCommon * __restrict techn);
+
 #endif /* dae_bugfix_transp_h */
