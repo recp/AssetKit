@@ -1,4 +1,6 @@
 set(AK_IMAGE_SOURCES
+    alpha.c
+    alpha.h
     export.h
     image.c)
 

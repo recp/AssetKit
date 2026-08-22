@@ -329,7 +329,8 @@ test_write_transparency_bugfix_dae(const char *path,
 static
 bool
 test_write_missing_texture_alpha_dae(const char *path,
-                                     const char *authoringTool) {
+                                     const char *authoringTool,
+                                     const char *imageName) {
   FILE *file;
   int   written;
   bool  ok;
@@ -344,7 +345,7 @@ test_write_missing_texture_alpha_dae(const char *path,
     "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
     "<asset><contributor><authoring_tool>%s</authoring_tool></contributor>"
     "<up_axis>Y_UP</up_axis></asset>\n"
-    "<library_images><image id=\"billboard-image\"><init_from>billboard.png</init_from>"
+    "<library_images><image id=\"billboard-image\"><init_from>%s</init_from>"
     "</image></library_images>\n"
     "<library_effects><effect id=\"effect\"><profile_COMMON>"
     "<newparam sid=\"billboard-surface\"><surface type=\"2D\">"
@@ -359,13 +360,169 @@ test_write_missing_texture_alpha_dae(const char *path,
     "<library_visual_scenes><visual_scene id=\"Scene\"/></library_visual_scenes>"
     "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
     "</COLLADA>\n",
-    authoringTool);
+    authoringTool,
+    imageName);
 
   ok = written >= 0;
   if (fclose(file) != 0)
     ok = false;
 
   return ok;
+}
+
+static
+bool
+test_write_bytes(const char          *path,
+                 const unsigned char *bytes,
+                 size_t               length) {
+  FILE *file;
+  bool  ok;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  ok = fwrite(bytes, 1u, length, file) == length;
+  if (fclose(file) != 0)
+    ok = false;
+  return ok;
+}
+
+static
+bool
+test_write_one_pixel_tga(const char *path, bool alpha) {
+  unsigned char bytes[22] = {0};
+
+  bytes[2]  = 2; /* uncompressed true-color */
+  bytes[12] = 1;
+  bytes[14] = 1;
+  bytes[16] = 32;
+  bytes[17] = alpha ? 8 : 0;
+  bytes[18] = 0xff;
+  bytes[19] = 0xff;
+  bytes[20] = 0xff;
+  bytes[21] = alpha ? 0x80 : 0xff;
+  return test_write_bytes(path, bytes, sizeof(bytes));
+}
+
+static
+bool
+test_write_webp_metadata(const char *path, bool alpha) {
+  unsigned char bytes[30] = {
+    'R', 'I', 'F', 'F', 22, 0, 0, 0, 'W', 'E', 'B', 'P',
+    'V', 'P', '8', 'X', 10, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  };
+
+  bytes[20] = alpha ? 0x10 : 0;
+  return test_write_bytes(path, bytes, sizeof(bytes));
+}
+
+static
+bool
+test_write_gif_metadata(const char *path, bool alpha) {
+  static const unsigned char transparent[] = {
+    'G', 'I', 'F', '8', '9', 'a',
+    1, 0, 1, 0, 0, 0, 0,
+    0x21, 0xf9, 4, 1, 0, 0, 0, 0,
+    0x2c
+  };
+  static const unsigned char opaque[] = {
+    'G', 'I', 'F', '8', '9', 'a',
+    1, 0, 1, 0, 0, 0, 0,
+    0x2c
+  };
+
+  return test_write_bytes(path,
+                          alpha ? transparent : opaque,
+                          alpha ? sizeof(transparent) : sizeof(opaque));
+}
+
+static
+bool
+test_write_tiff_metadata(const char *path, bool alpha) {
+  unsigned char bytes[26] = {
+    'I', 'I', 42, 0, 8, 0, 0, 0,
+    1, 0,
+    0x52, 0x01, /* ExtraSamples (338) */
+    3, 0,       /* SHORT */
+    1, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0
+  };
+
+  bytes[18] = alpha ? 2 : 0; /* unassociated alpha or unspecified data */
+  return test_write_bytes(path, bytes, sizeof(bytes));
+}
+
+static
+bool
+test_write_bmp_metadata(const char *path, bool alpha) {
+  unsigned char bytes[70] = {0};
+
+  bytes[0]  = 'B';
+  bytes[1]  = 'M';
+  bytes[2]  = sizeof(bytes);
+  bytes[10] = sizeof(bytes);
+  bytes[14] = 56; /* BITMAPV3INFOHEADER */
+  bytes[18] = 1;
+  bytes[22] = 1;
+  bytes[26] = 1;
+  bytes[28] = 32;
+  bytes[30] = 3; /* BI_BITFIELDS */
+  bytes[54] = 0xff;
+  bytes[59] = 0xff;
+  bytes[64] = 0xff;
+  if (alpha)
+    bytes[69] = 0xff;
+  return test_write_bytes(path, bytes, sizeof(bytes));
+}
+
+static
+bool
+test_write_dds_metadata(const char *path, bool alpha) {
+  unsigned char bytes[128] = {0};
+
+  memcpy(bytes, "DDS ", 4u);
+  bytes[4]  = 124;
+  bytes[76] = 32;
+  bytes[80] = alpha ? 1 : 0x40; /* DDPF_ALPHAPIXELS / DDPF_RGB */
+  bytes[88] = 32;
+  if (alpha)
+    bytes[107] = 0xff;
+  return test_write_bytes(path, bytes, sizeof(bytes));
+}
+
+static
+bool
+test_write_ktx1_metadata(const char *path, bool alpha) {
+  unsigned char bytes[36] = {
+    0xab, 'K', 'T', 'X', ' ', '1', '1', 0xbb, 0x0d, 0x0a, 0x1a, 0x0a,
+    1, 2, 3, 4
+  };
+  uint32_t baseFormat;
+
+  baseFormat = alpha ? 0x1908u : 0x1907u; /* GL_RGBA / GL_RGB */
+  bytes[32] = (unsigned char)baseFormat;
+  bytes[33] = (unsigned char)(baseFormat >> 8);
+  return test_write_bytes(path, bytes, sizeof(bytes));
+}
+
+static
+bool
+test_write_ktx2_metadata(const char *path, bool alpha) {
+  unsigned char bytes[124] = {
+    0xab, 'K', 'T', 'X', ' ', '2', '0', 0xbb, 0x0d, 0x0a, 0x1a, 0x0a
+  };
+
+  bytes[48] = 80; /* dfdByteOffset */
+  bytes[52] = 44; /* dfdByteLength */
+  bytes[80] = 44; /* dfdTotalSize */
+  bytes[88] = 2;  /* DFD version */
+  bytes[90] = 40; /* descriptorBlockSize */
+  bytes[92] = 1;  /* KHR_DF_MODEL_RGBSDA */
+  bytes[111] = alpha ? 0x0f : 0; /* first sample channel id */
+  return test_write_bytes(path, bytes, sizeof(bytes));
 }
 
 static
@@ -1068,7 +1225,7 @@ TEST_IMPL(material_dae_adapter) {
 TEST_IMPL(material_dae_transparency_bugfixes) {
   char        dirTemplate[PATH_MAX];
   char        daePath[PATH_MAX];
-  char        pngPath[PATH_MAX];
+  char        imagePath[PATH_MAX];
   char       *tmpdir;
   const char *tmpBase;
   float       opacity;
@@ -1087,7 +1244,7 @@ TEST_IMPL(material_dae_transparency_bugfixes) {
   tmpdir = mkdtemp(dirTemplate);
   ASSERT(tmpdir != NULL);
   snprintf(daePath, sizeof(daePath), "%s/transparency.dae", tmpdir);
-  snprintf(pngPath, sizeof(pngPath), "%s/billboard.png", tmpdir);
+  snprintf(imagePath, sizeof(imagePath), "%s/billboard.png", tmpdir);
 
   ASSERT(test_write_transparency_bugfix_dae(
     daePath,
@@ -1175,8 +1332,10 @@ TEST_IMPL(material_dae_transparency_bugfixes) {
   /* SketchUp can omit <transparent> even though a billboard's diffuse PNG
      carries coverage in its alpha channel. Infer only that narrow producer
      case, and keep the inferred scalar input in the texture's alpha channel. */
-  ASSERT(test_write_one_pixel_png(pngPath, true));
-  ASSERT(test_write_missing_texture_alpha_dae(daePath, "SketchUp 20.0.0"));
+  ASSERT(test_write_one_pixel_png(imagePath, true));
+  ASSERT(test_write_missing_texture_alpha_dae(daePath,
+                                               "SketchUp 20.0.0",
+                                               "billboard.png"));
   ASSERT(test_load_material_alpha_state(daePath,
                                         false,
                                         &hasOpacity,
@@ -1197,7 +1356,7 @@ TEST_IMPL(material_dae_transparency_bugfixes) {
 
   /* A PNG without an alpha channel and unrelated exporters retain authored
      opaque semantics. */
-  ASSERT(test_write_one_pixel_png(pngPath, false));
+  ASSERT(test_write_one_pixel_png(imagePath, false));
   ASSERT(test_load_material_alpha_state(daePath,
                                         true,
                                         &hasOpacity,
@@ -1206,9 +1365,10 @@ TEST_IMPL(material_dae_transparency_bugfixes) {
   ASSERT(!hasOpacity);
   ASSERT(!(flags & (AK_MATERIAL_FLAG_ALPHA_BLEND
                     | AK_MATERIAL_FLAG_ALPHA_MASK)));
-  ASSERT(test_write_one_pixel_png(pngPath, true));
+  ASSERT(test_write_one_pixel_png(imagePath, true));
   ASSERT(test_write_missing_texture_alpha_dae(daePath,
-                                               "Generic DAE Exporter 1.0"));
+                                               "Generic DAE Exporter 1.0",
+                                               "billboard.png"));
   ASSERT(test_load_material_alpha_state(daePath,
                                         true,
                                         &hasOpacity,
@@ -1218,8 +1378,48 @@ TEST_IMPL(material_dae_transparency_bugfixes) {
   ASSERT(!(flags & (AK_MATERIAL_FLAG_ALPHA_BLEND
                     | AK_MATERIAL_FLAG_ALPHA_MASK)));
 
+#define TEST_DAE_HEADER_ALPHA(ext, writer)                                  \
+  do {                                                                      \
+    unlink(imagePath);                                                       \
+    snprintf(imagePath, sizeof(imagePath), "%s/billboard.%s", tmpdir, ext); \
+    ASSERT(writer(imagePath, true));                                         \
+    ASSERT(test_write_missing_texture_alpha_dae(daePath,                     \
+                                                 "SketchUp 20.0.0",         \
+                                                 "billboard." ext));         \
+    ASSERT(test_load_material_alpha_state(daePath,                           \
+                                          true,                              \
+                                          &hasOpacity,                       \
+                                          &channels,                         \
+                                          &flags));                          \
+    ASSERT(hasOpacity);                                                      \
+    ASSERT(channels == AK_TEXTURE_CHANNEL_A);                                \
+    ASSERT(flags & AK_MATERIAL_FLAG_ALPHA_BLEND);                            \
+    ASSERT(writer(imagePath, false));                                        \
+    ASSERT(test_load_material_alpha_state(daePath,                           \
+                                          true,                              \
+                                          &hasOpacity,                       \
+                                          &channels,                         \
+                                          &flags));                          \
+    ASSERT(!hasOpacity);                                                     \
+    ASSERT(!(flags & (AK_MATERIAL_FLAG_ALPHA_BLEND                           \
+                      | AK_MATERIAL_FLAG_ALPHA_MASK)));                      \
+  } while (0)
+
+  /* Other encoded formats are inspected through container metadata only;
+     the importer must not invoke an image decoder for this inference. */
+  TEST_DAE_HEADER_ALPHA("tga", test_write_one_pixel_tga);
+  TEST_DAE_HEADER_ALPHA("webp", test_write_webp_metadata);
+  TEST_DAE_HEADER_ALPHA("gif", test_write_gif_metadata);
+  TEST_DAE_HEADER_ALPHA("tiff", test_write_tiff_metadata);
+  TEST_DAE_HEADER_ALPHA("bmp", test_write_bmp_metadata);
+  TEST_DAE_HEADER_ALPHA("dds", test_write_dds_metadata);
+  TEST_DAE_HEADER_ALPHA("ktx", test_write_ktx1_metadata);
+  TEST_DAE_HEADER_ALPHA("ktx2", test_write_ktx2_metadata);
+
+#undef TEST_DAE_HEADER_ALPHA
+
   unlink(daePath);
-  unlink(pngPath);
+  unlink(imagePath);
   rmdir(tmpdir);
 
   TEST_SUCCESS
