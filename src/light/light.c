@@ -19,7 +19,6 @@
 #include <cglm/cglm.h>
 
 #define AK_LIGHT_EPSILON                  1e-6f
-#define AK_DAE_PREVIEW_LIGHT_SCALE        1000.0f
 
 static
 float
@@ -121,10 +120,12 @@ ak_lightResolve(const AkDoc          * __restrict doc,
                 AkLightResolveMode                 mode,
                 AkResolvedLight      * __restrict out) {
   const AkLightBase *base;
-  bool               isCollada;
 
   if (!light || !light->data || !out)
     return false;
+
+  (void)doc;
+  (void)mode;
 
   base             = light->data;
   out->type        = base->type;
@@ -154,15 +155,6 @@ ak_lightResolve(const AkDoc          * __restrict doc,
     out->innerConeAngle      = ak_lightFinite(spot->innerConeAngle, 0.0f);
     out->outerConeAngle      = ak_lightFinite(spot->outerConeAngle, GLM_PI_4f);
     out->coneFalloffExponent = ak_lightFinite(spot->coneFalloffExponent, 1.0f);
-  }
-
-  if (mode != AK_LIGHT_RESOLVE_PREVIEW)
-    return true;
-
-  isCollada = doc && doc->inf && doc->inf->ftype == AK_FILE_TYPE_COLLADA;
-  if (isCollada && out->intensity > 0.0f && out->intensity <= 16.0f) {
-    /* DAE legacy unit-scale lights need display scaling in physical viewers. */
-    out->intensity *= AK_DAE_PREVIEW_LIGHT_SCALE;
   }
 
   return true;

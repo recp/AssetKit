@@ -120,12 +120,9 @@ ak_lightMake(AkDoc * __restrict doc,
  * @brief Resolve an authored light into values suitable for a consumer.
  *
  * RAW returns the imported/exportable authored values. PREVIEW keeps those
- * source values untouched but adapts legacy lighting profiles for modern
- * render backends. In particular, COLLADA commonly stores color/intensity in
- * unit-scale legacy terms and uses constant/linear/quadratic attenuation,
- * while SceneKit/Blender/glTF-style viewers tend to expect physically scaled
- * intensity plus one backend falloff shape. Consumers that only want to show
- * the asset should use PREVIEW instead of carrying per-format light hacks.
+ * source values untouched and supplies backend-neutral falloff hints. Light
+ * intensity is never scaled for a particular renderer: COLLADA intensity is
+ * unitless, so consumers must map it to their own engine's units.
  *
  * @return true when resolved, false when light/data/out is missing.
  */
