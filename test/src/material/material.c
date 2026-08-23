@@ -14,6 +14,9 @@
 #include <limits.h>
 #include <unistd.h>
 
+static AkMaterial *
+test_material_by_name(AkDoc *doc, const char *name);
+
 static
 bool
 test_write_material_dae(const char *path) {
@@ -323,6 +326,82 @@ test_write_transparency_bugfix_dae(const char *path,
   if (fclose(file) != 0)
     ok = false;
 
+  return ok;
+}
+
+static
+bool
+test_write_classic_profile_dae(const char *path,
+                               const char *authoringTool,
+                               const char *shader) {
+  FILE *file;
+  int   written;
+  bool  ok;
+
+  file = fopen(path, "wb");
+  if (!file)
+    return false;
+
+  written = fprintf(
+    file,
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+    "<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema\" version=\"1.4.1\">\n"
+    "<asset><contributor><authoring_tool>%s</authoring_tool></contributor>"
+    "<up_axis>Y_UP</up_axis></asset>\n"
+    "<library_effects><effect id=\"effect\"><profile_COMMON>"
+    "<technique sid=\"common\"><%s>"
+    "<diffuse><color>0.2 0.3 0.4 1</color></diffuse>"
+    "<specular><color>0.33 0.33 0.33 1</color></specular>"
+    "<shininess><float>20</float></shininess>"
+    "<reflectivity><float>0.1</float></reflectivity>"
+    "</%s></technique></profile_COMMON></effect></library_effects>\n"
+    "<library_materials><material id=\"material\" name=\"material\">"
+    "<instance_effect url=\"#effect\"/></material></library_materials>\n"
+    "<library_visual_scenes><visual_scene id=\"Scene\"/></library_visual_scenes>"
+    "<scene><instance_visual_scene url=\"#Scene\"/></scene>\n"
+    "</COLLADA>\n",
+    authoringTool,
+    shader,
+    shader);
+
+  ok = written >= 0;
+  if (fclose(file) != 0)
+    ok = false;
+
+  return ok;
+}
+
+static
+bool
+test_load_material_type(const char     *path,
+                        bool            bugfixes,
+                        AkMaterialType *typeOut,
+                        float          *shininessOut) {
+  AkMaterial               *mat;
+  AkMaterialClassicFeature *classic;
+  AkDoc                    *doc;
+  uintptr_t                 previousBugfixes;
+  AkResult                  result;
+  bool                      ok;
+
+  doc = NULL;
+  previousBugfixes = ak_opt_get(AK_OPT_BUGFIXES);
+  ak_opt_set(AK_OPT_BUGFIXES, bugfixes);
+  result = ak_load(&doc, path, AK_FILE_TYPE_AUTO);
+  ak_opt_set(AK_OPT_BUGFIXES, previousBugfixes);
+
+  mat = result == AK_OK ? test_material_by_name(doc, "material") : NULL;
+  classic = mat && mat->surface
+              ? (void *)ak_materialFeature(mat->surface,
+                                            AK_MATERIAL_FEATURE_CLASSIC)
+              : NULL;
+  ok = mat && mat->surface && classic;
+  if (ok && typeOut)
+    *typeOut = mat->surface->type;
+  if (ok && shininessOut)
+    *shininessOut = classic->shininess;
+
+  ak_free(doc);
   return ok;
 }
 
@@ -1216,6 +1295,54 @@ TEST_IMPL(material_dae_adapter) {
     ASSERT(ak_userData(mat) == NULL);
 
   ak_free(doc);
+  unlink(daePath);
+  rmdir(tmpdir);
+
+  TEST_SUCCESS
+}
+
+TEST_IMPL(material_dae_sketchup_material_profile) {
+  char           dirTemplate[PATH_MAX];
+  char           daePath[PATH_MAX];
+  char          *tmpdir;
+  const char    *tmpBase;
+  AkMaterialType type;
+  float          shininess;
+
+  tmpBase = getenv("TMPDIR");
+  if (!tmpBase || !tmpBase[0])
+    tmpBase = "/tmp";
+
+  snprintf(dirTemplate,
+           sizeof(dirTemplate),
+           "%s/assetkit-material-dae-sketchup-XXXXXX",
+           tmpBase);
+  tmpdir = mkdtemp(dirTemplate);
+  ASSERT(tmpdir != NULL);
+  snprintf(daePath, sizeof(daePath), "%s/material.dae", tmpdir);
+
+  ASSERT(test_write_classic_profile_dae(daePath,
+                                        "Google SketchUp 7.1.0",
+                                        "phong"));
+  ASSERT(test_load_material_type(daePath, false, &type, &shininess));
+  ASSERT(type == AK_MATERIAL_TYPE_PHONG);
+  ASSERT(fabsf(shininess - 20.0f) < 0.001f);
+  ASSERT(test_load_material_type(daePath, true, &type, &shininess));
+  ASSERT(type == AK_MATERIAL_TYPE_LAMBERT);
+  ASSERT(fabsf(shininess - 20.0f) < 0.001f);
+
+  ASSERT(test_write_classic_profile_dae(daePath,
+                                        "SketchUp 20.0.0",
+                                        "blinn"));
+  ASSERT(test_load_material_type(daePath, true, &type, NULL));
+  ASSERT(type == AK_MATERIAL_TYPE_LAMBERT);
+
+  ASSERT(test_write_classic_profile_dae(daePath,
+                                        "Generic DAE Exporter 1.0",
+                                        "phong"));
+  ASSERT(test_load_material_type(daePath, true, &type, NULL));
+  ASSERT(type == AK_MATERIAL_TYPE_PHONG);
+
   unlink(daePath);
   rmdir(tmpdir);
 
