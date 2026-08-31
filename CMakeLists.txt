@@ -876,7 +876,15 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
     else()
       list(APPEND AK_KTX2_CMAKE_ARGS -DBASISU_SSE=ON)
     endif()
-    if(APPLE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS"
+       AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
+      # KTX currently classifies every locked Apple OS build as armv8, even
+      # when an Intel simulator slice was explicitly requested. Its ASTC
+      # selection then forces NEON objects to -arch arm64 and mixes them into
+      # the otherwise x86_64 ktx archive. The scalar ASTC target avoids that
+      # upstream architecture override for Intel simulator builds.
+      list(APPEND AK_KTX2_CMAKE_ARGS -DASTCENC_ISA_NONE=ON)
+    elseif(APPLE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
       # Use a generic x86_64 slice instead of astcenc's x86_64h/AVX2
       # default, so the universal archive has the architecture subtype Xcode
       # and the App Store expect for Intel compatibility.
