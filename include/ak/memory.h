@@ -48,6 +48,13 @@ typedef struct AkObject {
 
 #define ak_allocator ak_mem_allocator()
 
+/*!
+ * @brief Allocation callbacks used by an AssetKit heap.
+ *
+ * Supply this table to ak_heap_new() when heap storage must use an
+ * application allocator. The callback set must remain valid for the lifetime
+ * of the heap.
+ */
 typedef struct AkHeapAllocator {
   void  *(*malloc)(size_t);
   void  *(*calloc)(size_t, size_t);
@@ -130,6 +137,17 @@ void
 ak_heap_getStats(AkHeap      * __restrict heap,
                  AkHeapStats * __restrict stats);
 
+/*!
+ * @brief Create an independent hierarchical heap.
+ *
+ * Passing NULL for allocator uses AssetKit's default allocator. Destroy the
+ * returned heap and all allocations owned by it with ak_heap_destroy().
+ *
+ * @param[in] allocator Nullable custom allocation callbacks.
+ * @param[in] cmp Nullable key comparator for heap ID lookup.
+ * @param[in] print Nullable key printer used by diagnostic output.
+ * @return A newly allocated heap.
+ */
 AK_EXPORT
 AkHeap *
 ak_heap_new(AkHeapAllocator *allocator,
@@ -371,14 +389,38 @@ ak_mem_getMemById(void * __restrict ctx,
                   void * __restrict memId,
                   void ** __restrict dest);
 
+/*!
+ * @brief Return an allocation's optional reference count.
+ *
+ * @param[in] mem An AssetKit heap allocation.
+ * @return The current count, or -1 when reference counting was not enabled for
+ *         this allocation.
+ */
 AK_EXPORT
 int
 ak_refc(void * __restrict mem);
 
+/*!
+ * @brief Retain one AssetKit heap allocation.
+ *
+ * This creates the allocation's reference counter on first use. Parent or
+ * document destruction still destroys the complete owned hierarchy.
+ *
+ * @param[in] mem A nullable AssetKit heap allocation.
+ * @return The new reference count, or 0 when mem is NULL.
+ */
 AK_EXPORT
 int
 ak_retain(void * __restrict mem);
 
+/*!
+ * @brief Release one AssetKit heap allocation.
+ *
+ * The allocation and its owned descendants are freed when the count reaches
+ * zero. An allocation that was never retained is freed immediately.
+ *
+ * @param[in] mem A nullable AssetKit heap allocation.
+ */
 AK_EXPORT
 void
 ak_release(void * __restrict mem);
@@ -393,10 +435,28 @@ ak_objAlloc(AkHeap * __restrict heap,
             AkEnum typeEnum,
             bool zeroed);
 
+/*!
+ * @brief Return the application pointer associated with an allocation.
+ *
+ * AssetKit does not own or free the pointed-to application data.
+ *
+ * @param[in] mem A nullable AssetKit heap allocation.
+ * @return The stored non-owning pointer, or NULL when none is set.
+ */
 AK_EXPORT
 void*
 ak_userData(void * __restrict mem);
 
+/*!
+ * @brief Associate a non-owning application pointer with an allocation.
+ *
+ * Replacing or freeing the AssetKit allocation does not free userData.
+ *
+ * @param[in] mem An AssetKit heap allocation.
+ * @param[in] userData The nullable application-owned pointer to store.
+ * @return Non-NULL on success, or NULL when mem is invalid or metadata could
+ *         not be allocated.
+ */
 AK_EXPORT
 void*
 ak_setUserData(void * __restrict mem, void * __restrict userData);

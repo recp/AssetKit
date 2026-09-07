@@ -61,8 +61,7 @@ typedef enum AkAltitudeMode {
 } AkAltitudeMode;
 
 typedef enum AkInputSemantic {
-  /* read semanticRaw */
-  AK_INPUT_OTHER           = 0,
+  AK_INPUT_OTHER           = 0, /* unknown/custom; inspect semanticRaw */
   AK_INPUT_BINORMAL        = 1,
   AK_INPUT_COLOR           = 2,
   AK_INPUT_CONTINUITY      = 3,
@@ -237,6 +236,8 @@ typedef struct AkInstanceBase {
 struct AkAccessor;
 
 typedef struct AkInput {
+  /* Preserved source spelling for unknown/custom semantics and export.
+     Prefer semantic for normal consumer lookup. */
   const char        *semanticRaw;
   struct AkInput    *next;
   struct AkAccessor *accessor;
@@ -408,6 +409,59 @@ typedef struct AkDoc {
 #include "print.h"
 #include "render.h"
 
+/*!
+ * @brief Return an object name suitable for display.
+ *
+ * @param[in] name A nullable AssetKit object name.
+ * @return The original name when non-empty, otherwise the static string
+ *         "(unnamed)".
+ */
+AK_INLINE
+const char *
+ak_nameOrUnnamed(const char *name) {
+  return name && *name ? name : "(unnamed)";
+}
+
+/*!
+ * @brief Return the active scene, or the first library scene when no active
+ *        scene is selected.
+ *
+ * @param[in] doc The document to inspect.
+ * @return A borrowed scene pointer, or NULL when doc has no scenes.
+ */
+AK_INLINE
+AkScene *
+ak_activeSceneOrFirst(const AkDoc *doc) {
+  return doc ? (doc->scene ? doc->scene : doc->lib.scenes.first) : NULL;
+}
+
+/*!
+ * @brief Return the authored root-node list of a scene.
+ *
+ * The scene's internal node is a synthetic entrypoint. This helper returns
+ * the first authored root; follow its next link to visit the remaining roots.
+ *
+ * @param[in] scene A nullable scene.
+ * @return The borrowed head of the authored root-node list, or NULL when the
+ *         scene is NULL or empty.
+ */
+AK_INLINE
+AkNode *
+ak_sceneRoots(const AkScene *scene) {
+  return scene && scene->node ? scene->node->chld : NULL;
+}
+
+/*!
+ * @brief Load an asset into a document-owned hierarchy.
+ *
+ * Pass an AkFileType after url, normally AK_FILE_TYPE_AUTO. On success the
+ * returned document owns its imported scenes, models, materials, animations,
+ * and other allocations; ak_free() on the document releases that hierarchy.
+ *
+ * @param[out] dest Receives the loaded document, or NULL on failure.
+ * @param[in] url The asset path or URL to load.
+ * @return AK_OK on success, otherwise an AkResult error.
+ */
 AK_EXPORT
 AkResult
 ak_load(AkDoc     ** __restrict dest,

@@ -26,6 +26,12 @@ struct AkGeometry;
 struct AkScene;
 struct AkMeshPrimitive;
 
+/*!
+ * @brief Axis-aligned bounds represented by minimum and maximum corners.
+ *
+ * The coordinate space depends on the owner: primitive, mesh, and geometry
+ * boxes are geometry-local; a scene box includes node world transforms.
+ */
 typedef struct AkBoundingBox {
   float min[3];
   float max[3];
@@ -33,57 +39,69 @@ typedef struct AkBoundingBox {
 } AkBoundingBox;
 
 /*!
- * @brief calc bbox for whole scene, this calc scene bbox with transformations
- *        of geom nodes
+ * @brief Recompute a scene's world-space bounding box.
  *
- * @param scene scene
+ * Geometry instances and instance-node references are traversed with their
+ * composed node transforms. The result is stored in scene->bbox.
+ * Skin/morph deformation and GPU-instancing rows are not evaluated.
+ *
+ * @param[in,out] scene A nullable scene to update.
  */
 void
 ak_bbox_scene(struct AkScene * __restrict scene);
 
 /*!
- * @brief calc bbox for whole geometry
- *        this will affect scene bbox
+ * @brief Recompute the local bounding box of a mesh geometry.
  *
- * @param geom  geometry
+ * The mesh, its primitives, and geom->bbox are refreshed together. Non-mesh
+ * geometry payloads are left unchanged.
+ *
+ * @param[in,out] geom A nullable geometry to update.
  */
 void
 ak_bbox_geom(struct AkGeometry * __restrict geom);
 
 /*!
- * @brief calc bbox for whole mesh
- *        this will affect geom bbox
+ * @brief Recompute a mesh and its owning geometry's local bounds.
  *
- * @param mesh  mesh
+ * Every primitive is recalculated and merged into mesh->bbox and the owning
+ * geometry's box. Mesh and primitive center fields are updated as well.
+ *
+ * @param[in,out] mesh A nullable mesh to update.
  */
 void
 ak_bbox_mesh(struct AkMesh * __restrict mesh);
 
 /*!
- * @brief calc bbox for mesh primitive
- *        this will affect geom bbox and mesh bbox
+ * @brief Compute one primitive's local bounds from referenced positions.
  *
- * @param prim  primitive
+ * POSITION data must contain float components. Convert preserved integer
+ * positions with ak_accessorMakeFloat() before calling this helper.
+ *
+ * The result is stored in prim->bbox and merged into its mesh and geometry
+ * boxes. Use ak_bbox_mesh() when previously computed parent bounds must be
+ * rebuilt after an edit.
+ *
+ * @param[in,out] prim A nullable primitive to update.
  */
 void
 ak_bbox_mesh_prim(struct AkMeshPrimitive * __restrict prim);
 
 /*!
- * @brief get center of bbox
+ * @brief Return the midpoint of a bounding box.
  *
- * @param[in]  bbox   bbox
- * @param[out] center center of bbox
+ * @param[in] bbox The bounding box to read.
+ * @param[out] center Receives the midpoint of min and max.
  */
 void
 ak_bbox_center(AkBoundingBox * __restrict bbox,
                float center[3]);
 
 /*!
- * @brief returns radius of sphere which is surround bbox square
+ * @brief Return the radius of a sphere enclosing a bounding box.
  *
- * @param bbox bbox
- *
- * @return radius (r) of outer sphere
+ * @param[in] bbox The bounding box to read.
+ * @return Half the distance from min to max.
  */
 float
 ak_bbox_radius(AkBoundingBox * __restrict bbox);

@@ -110,7 +110,7 @@ typedef struct AkAnimation {
 
 /* One ordered <instance_animation> entry from a COLLADA animation clip.
  * `animation` is populated after all libraries have been parsed.  Keeping the
- * original URL as well as the resolved pointer preserves round-trip and
+ * original URL as well as the resolved pointer preserves source and
  * external-reference information for consumers that need it. */
 typedef struct AkAnimationClipMember {
   struct AkAnimationClipMember *next;
@@ -249,7 +249,7 @@ ak_channelResolvedTargets(AkContext       * __restrict ctx,
 #define ak_inputEnd(INP, T)   (*(T*)((char*)INP->data + INP->len - sizeof(T)))
 
 /*!
- * @brief Test whether two animations would write to any of the same
+ * @brief Report whether two animations would write to any of the same
  *        animatable slot. Two channels conflict iff they resolve (via
  *        ak_channelTarget) to the same target pointer AND either at least
  *        one is a whole-target write, or they share the same partial slot
@@ -273,7 +273,7 @@ ak_animationsConflict(AkContext   * __restrict ctx,
  * @brief Build the maximal conflict-free set anchored at `primary`.
  *
  *        `primary` is always selected (it's the animation the caller wants
- *        to activate). Then each candidate is tested against everything
+ *        to activate). Then each candidate is compared with everything
  *        already selected — added if it doesn't conflict with any of them.
  *
  *        First-fit greedy: candidate iteration order decides which side

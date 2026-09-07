@@ -112,7 +112,7 @@ typedef struct AkBufferEditState {
 
 /* Dequantize an accessor's source data into a caller-supplied float buffer.
    Always writes (count * componentCount) floats; outCapacity must be at
-   least that many. Uses originalComponentType / originallyNormalized to
+   least that many. Uses componentType / normalized to
    drive integer-to-float conversion (normalized integers divide by the
    type max, non-normalized integers cast to float). Accessors that
    already store floats are copied through unchanged.
@@ -130,7 +130,7 @@ ak_accessorAsFloat(AkAccessor * __restrict acc,
 
 /* In-place dequantize: replaces the accessor's buffer with a tightly-packed
    float buffer, updates componentType / byteStride / fillByteSize /
-   normalized, and registers the new buffer on the owning doc. Idempotent —
+   normalized. The new buffer is owned by the accessor. Idempotent —
    accessors that are already AKT_FLOAT are left untouched.
 
    originalComponentType / originallyNormalized are preserved so callers

@@ -34,10 +34,15 @@ struct FListItem;
 struct AkMaterial;
 struct AkMaterialBinding;
 
+/*!
+ * @brief Concrete payload type stored in AkGeometry.gdata.
+ *
+ * Inspect AkObject.type before reading the payload with ak_objGet().
+ */
 typedef enum AkGeometryType {
-  AK_GEOMETRY_MESH   = 1,
-  AK_GEOMETRY_SPLINE = 2,
-  AK_GEOMETRY_BREP   = 3
+  AK_GEOMETRY_MESH   = 1, /* AkMesh payload       */
+  AK_GEOMETRY_SPLINE = 2, /* AkSpline payload     */
+  AK_GEOMETRY_BREP   = 3  /* AkBoundryRep payload */
 } AkGeometryType;
 
 typedef enum AkGeometryEditFlags {
@@ -93,6 +98,9 @@ typedef struct AkJointDesc {
   uint32_t  allCount;
 } AkJointDesc;
 
+/*!
+ * @brief One mesh draw topology with inputs, indices, and material bindings.
+ */
 typedef struct AkMeshPrimitive {
   struct AkMeshPrimitive *next;
   struct AkMesh          *mesh;
@@ -179,6 +187,9 @@ typedef struct AkMeshEditHelper {
   bool                skipFixIndices;
 } AkMeshEditHelper;
 
+/*!
+ * @brief Mesh payload containing a linked list of drawing primitives.
+ */
 typedef struct AkMesh {
   struct AkGeometry *geom;
   const char        *convexHullOf;
@@ -195,10 +206,13 @@ typedef struct AkMesh {
   /* Optional mesh-wide vertex-domain inputs.  A valid source-only geometry
      may have no indexed primitive, especially when used as a morph target.
      Keeping this group independent of primitive expansion preserves that
-     data for morph inspection, coordinate conversion, and round-trip export. */
+     data for morph inspection, coordinate conversion, and export. */
   AkVertices        *vertices;
 } AkMesh;
 
+/*!
+ * @brief Spline payload with control vertices and an open or closed shape.
+ */
 typedef struct AkSpline {
   struct AkGeometry *geom;
   AkVertices        *cverts;
@@ -375,6 +389,9 @@ typedef struct AkSolids {
 } AkSolids;
 
 /* Boundary-representation geometry payload. */
+/*!
+ * @brief Boundary-representation payload composed from topological elements.
+ */
 typedef struct AkBoundryRep {
   struct AkGeometry *geom;
   AkCurves          *curves;
@@ -390,6 +407,12 @@ typedef struct AkBoundryRep {
   AkTree            *extra;
 } AkBoundryRep;
 
+/*!
+ * @brief Shared geometry definition containing a tagged concrete payload.
+ *
+ * gdata is an AkObject. Its type is an AkGeometryType and its payload is read
+ * with ak_objGet(); the geometry and payload are owned by the containing heap.
+ */
 typedef struct AkGeometry {
   /* const char * id; */
   struct AkGeometry *next;
@@ -399,6 +422,22 @@ typedef struct AkGeometry {
   AkMap             *materialMap;
   AkBoundingBox     *bbox;
 } AkGeometry;
+
+/*!
+ * @brief Return the mesh payload of a mesh geometry.
+ *
+ * @param[in] geometry A nullable geometry.
+ * @return A borrowed mesh payload, or NULL when geometry is NULL or does not
+ *         contain an AK_GEOMETRY_MESH payload.
+ */
+AK_INLINE
+AkMesh *
+ak_meshFromGeometry(AkGeometry *geometry) {
+  if (!geometry || !geometry->gdata || geometry->gdata->type != AK_GEOMETRY_MESH)
+    return NULL;
+
+  return (AkMesh *)ak_objGet(geometry->gdata);
+}
 
 typedef enum AkMeshIsolateType {
   AK_MESH_ISOLATE_NONE      = 0 << 0,
@@ -576,14 +615,36 @@ AK_EXPORT
 bool
 ak_meshPrimitiveIsSingleIndexed(const AkMeshPrimitive * __restrict prim);
 
+/*!
+ * @brief Convert tuple indices to one shared vertex index for all inputs.
+ *
+ * Already single-indexed and non-indexed primitives are left unchanged.
+ * Conversion can replace attribute accessors and buffers; fetch them again
+ * after this call and prepare the layout before caching GPU buffers.
+ *
+ * @return AK_OK on success, or an error if conversion cannot be completed.
+ */
 AK_EXPORT
 AkResult
 ak_meshPrimitiveEnsureSingleIndex(AkMeshPrimitive * __restrict prim);
 
+/*!
+ * @brief Ensure single indexing and return a borrowed index accessor.
+ *
+ * Has the same mutation behavior as ak_meshPrimitiveEnsureSingleIndex().
+ * Returns NULL for non-indexed primitives or on failure.
+ */
 AK_EXPORT
 struct AkAccessor*
 ak_meshPrimitiveSingleIndexAccessor(AkMeshPrimitive * __restrict prim);
 
+/*!
+ * @brief Return a borrowed accessor view of the existing index storage.
+ *
+ * Uses the existing indexAccessor or wraps AkIndexArray storage without copying
+ * its index values. This does not convert tuple indices to single indices.
+ * Returns NULL for non-indexed primitives or if a view cannot be created.
+ */
 AK_EXPORT
 struct AkAccessor*
 ak_meshPrimitiveIndexAccessor(AkMeshPrimitive * __restrict prim);
@@ -664,6 +725,21 @@ void
 ak_inputNameBySet(AkInput * __restrict input,
                   char    * __restrict buf);
 
+/*!
+ * @brief Find a primitive input by exact raw semantic name and set.
+ *
+ * This compares AkInput.semanticRaw, not the AkInputSemantic enum. Known
+ * semantics should normally be read through AkInput.semantic; prim->pos is the
+ * cached AK_INPUT_POSITION input.
+ *
+ * @note This is a source-name lookup for compatibility and custom semantics,
+ *       not the preferred render-path lookup for known attributes.
+ *
+ * @param[in] prim The primitive to search.
+ * @param[in] inputSemantic Exact semanticRaw string to match.
+ * @param[in] set Input set to match.
+ * @return The borrowed matching input, or NULL when no input matches.
+ */
 AK_EXPORT
 AkInput*
 ak_meshInputGet(AkMeshPrimitive *prim,
@@ -686,10 +762,20 @@ AK_EXPORT
 bool
 ak_meshIsPrimIsolated(AkMeshPrimitive *prim);
 
+/*!
+ * @brief Currently leaves mesh accessors and buffers unchanged.
+ *
+ * Buffer isolation is not implemented; this call does not detach shared data.
+ */
 AK_EXPORT
 void
 ak_meshIsolate(AkMesh *mesh);
 
+/*!
+ * @brief Currently leaves primitive accessors and buffers unchanged.
+ *
+ * Buffer isolation is not implemented; this call does not detach shared data.
+ */
 AK_EXPORT
 void
 ak_meshIsolatePrim(AkMeshPrimitive *prim);
