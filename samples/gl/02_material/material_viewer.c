@@ -36,21 +36,21 @@ main(int argc, char **argv) {
     return 1;
 
   memset(&mesh, 0, sizeof(mesh));
-  scene = doc->scene ? doc->scene : doc->lib.scenes.first;
-  if (!scene || !sample_gl_find_first_mesh(scene->node ? scene->node->chld : NULL,
-                                           identity,
-                                           0u,
-                                           &mesh,
-                                           &node_name,
-                                           &geom_name)) {
+  if (!(scene = ak_activeSceneOrFirst(doc))
+      || !sample_gl_find_first_mesh(ak_sceneRoots(scene),
+                                    identity,
+                                    0u,
+                                    &mesh,
+                                    &node_name,
+                                    &geom_name)) {
     fprintf(stderr, "no triangle primitive found in active scene\n");
     ak_free(doc);
     return 1;
   }
 
   printf("mesh: node=%s geometry=%s vertices=%zu indices=%zu material_rgba=(%.3g %.3g %.3g %.3g)\n",
-         sample_or_unnamed(node_name),
-         sample_or_unnamed(geom_name),
+         ak_nameOrUnnamed(node_name),
+         ak_nameOrUnnamed(geom_name),
          mesh.vertex_count,
          mesh.index_count,
          mesh.base_color[0],

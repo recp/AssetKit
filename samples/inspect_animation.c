@@ -84,7 +84,7 @@ sample_print_animation(AkAnimation *anim, unsigned depth, uint64_t *index) {
     sample_print_indent(depth);
     printf("animation %" PRIu64 ": name=%s channels=%u samplers=%u nested=%s\n",
            (*index)++,
-           sample_or_unnamed(anim->name),
+           ak_nameOrUnnamed(anim->name),
            sample_count_channels(anim),
            sample_count_samplers(anim),
            anim->animation ? "yes" : "no");
@@ -140,10 +140,10 @@ sample_print_compatible_set(AkDoc *doc, AkAnimation **items, size_t count) {
   compatibleCount = ak_animationsCompatibleSetFromDoc(&ctx, doc, items[0], compatible);
 
   printf("compatible_set primary=%s count=%zu:",
-         sample_or_unnamed(items[0]->name),
+         ak_nameOrUnnamed(items[0]->name),
          compatibleCount);
   for (i = 0; i < compatibleCount; i++)
-    printf(" %s", sample_or_unnamed(compatible[i]->name));
+    printf(" %s", ak_nameOrUnnamed(compatible[i]->name));
   printf("\n");
 
   free(compatible);
@@ -160,8 +160,7 @@ sample_find_baked_node(AkDoc *doc, AkNode *node, const char **nodeName, unsigned
   for (; node; node = node->next) {
     AkBakedAnimation *baked;
 
-    baked = ak_nodeBakeAnimation(doc, node);
-    if (baked && baked->count > 0) {
+    if ((baked = ak_nodeBakeAnimation(doc, node)) && baked->count > 0) {
       *nodeName = node->name;
       return baked;
     }
@@ -177,8 +176,7 @@ sample_find_baked_node(AkDoc *doc, AkNode *node, const char **nodeName, unsigned
     for (nodeRef = node->node; nodeRef; nodeRef = nodeRef->next) {
       AkNode *target;
 
-      target = ak_instanceNodeTarget(nodeRef);
-      if (!target)
+      if (!(target = ak_instanceNodeTarget(nodeRef)))
         continue;
 
       baked = sample_find_baked_node(doc, target, nodeName, depth + 1u);
@@ -201,13 +199,13 @@ sample_print_baked_preview(AkDoc *doc) {
     uint32_t previewCount;
 
     nodeName = NULL;
-    baked = sample_find_baked_node(doc, scene->node ? scene->node->chld : NULL, &nodeName, 0u);
+    baked = sample_find_baked_node(doc, ak_sceneRoots(scene), &nodeName, 0u);
     if (!baked)
       continue;
 
     printf("baked_node: scene=%s node=%s frames=%u\n",
-           sample_or_unnamed(scene->name),
-           sample_or_unnamed(nodeName),
+           ak_nameOrUnnamed(scene->name),
+           ak_nameOrUnnamed(nodeName),
            baked->count);
 
     previewCount = baked->count < 3u ? baked->count : 3u;

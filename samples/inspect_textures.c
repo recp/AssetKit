@@ -132,10 +132,10 @@ sample_print_texture_usage(const AkMaterial *material,
 
   printf("texture_usage %" PRIu64 ": material=%s input=%s texture=%s image=%s",
          *usage_count,
-         sample_or_unnamed(material ? material->name : NULL),
+         ak_nameOrUnnamed(material ? material->name : NULL),
          label,
-         sample_or_unnamed(texture->name),
-         image ? sample_or_unnamed(image->name) : "(none)");
+         ak_nameOrUnnamed(texture->name),
+         image ? ak_nameOrUnnamed(image->name) : "(none)");
   printf(" channels=%s color_space=%s texcoord=%s slot=%d",
          sample_texture_channels_name(texref->channels),
          sample_texture_color_space_name(texref->colorSpace),
@@ -276,9 +276,9 @@ sample_print_texture_library(AkDoc *doc, const SamplePtrSet *used_textures) {
     image = texture->image;
     printf("texture %" PRIu64 ": name=%s image=%s sampler=%s used=%s\n",
            index,
-           sample_or_unnamed(texture->name),
-           image ? sample_or_unnamed(image->name) : "(none)",
-           texture->sampler ? sample_or_unnamed(texture->sampler->name) : "(none)",
+           ak_nameOrUnnamed(texture->name),
+           image ? ak_nameOrUnnamed(image->name) : "(none)",
+           texture->sampler ? ak_nameOrUnnamed(texture->sampler->name) : "(none)",
            sample_ptr_set_contains(used_textures, texture) ? "yes" : "no");
   }
 }
@@ -297,7 +297,7 @@ sample_print_image_library(AkDoc *doc, const SamplePtrSet *used_images) {
     type = image->image ? image->image->type : AK_IMAGE_TYPE_2D;
     printf("image %" PRIu64 ": name=%s type=%s source=%s storage=%s used=%s location=%s",
            index,
-           sample_or_unnamed(image->name),
+           ak_nameOrUnnamed(image->name),
            sample_image_type_name(type),
            sample_image_source_type_name(source ? source->type : AK_IMAGE_SOURCE_NONE),
            sample_image_storage_name(source),

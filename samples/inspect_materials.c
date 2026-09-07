@@ -27,8 +27,8 @@ sample_print_texture_ref(const AkTextureRef *texref) {
   source  = image ? image->source : NULL;
 
   printf(" texture=yes");
-  printf(" texture_name=%s", sample_or_unnamed(texture->name));
-  printf(" image=%s", image ? sample_or_unnamed(image->name) : "(none)");
+  printf(" texture_name=%s", ak_nameOrUnnamed(texture->name));
+  printf(" image=%s", image ? ak_nameOrUnnamed(image->name) : "(none)");
   printf(" slot=%d", texref->slot);
   printf(" texcoord=%s",
          texref->coordInputName ? texref->coordInputName
@@ -248,7 +248,7 @@ sample_print_materials(AkDoc *doc) {
 
   index = 0;
   for (variant = doc->materialVariants; variant; variant = variant->next, index++)
-    printf("variant %" PRIu64 ": %s\n", index, sample_or_unnamed(variant->name));
+    printf("variant %" PRIu64 ": %s\n", index, ak_nameOrUnnamed(variant->name));
 
   index = 0;
   for (set = doc->materialProperties.sets; set; set = set->next, index++) {
@@ -257,7 +257,7 @@ sample_print_materials(AkDoc *doc) {
     printf("property_set %" PRIu64 ": id=%u name=%s type=%s count=%u\n",
            index,
            set->id,
-           sample_or_unnamed(set->name),
+           ak_nameOrUnnamed(set->name),
            sample_material_property_set_type_name(set->type),
            set->count);
     if (!set->properties)
@@ -268,7 +268,7 @@ sample_print_materials(AkDoc *doc) {
 
       printf("  property %u: name=%s material_index=%u flags=0x%x display=(%.6g, %.6g, %.6g, %.6g)\n",
              i,
-             sample_or_unnamed(prop->name),
+             ak_nameOrUnnamed(prop->name),
              prop->materialIndex,
              (unsigned)prop->flags,
              prop->displayColor.rgba.R,
@@ -285,7 +285,7 @@ sample_print_materials(AkDoc *doc) {
   for (mat = doc->lib.materials.first; mat; mat = mat->next, index++) {
     printf("material %" PRIu64 ": name=%s flags=0x%x\n",
            index,
-           sample_or_unnamed(mat->name),
+           ak_nameOrUnnamed(mat->name),
            (unsigned)mat->flags);
     sample_print_surface(mat->surface);
   }

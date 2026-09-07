@@ -132,7 +132,7 @@ sample_print_skin(AkSkin *skin,
          skin->nJoints,
          skin->nPrims,
          skin->nMaxJoints,
-         skin->skeleton ? sample_or_unnamed(skin->skeleton->name) : "(none)");
+         skin->skeleton ? ak_nameOrUnnamed(skin->skeleton->name) : "(none)");
 
   if (skin->joints && skin->nJoints) {
     size_t i;
@@ -142,7 +142,7 @@ sample_print_skin(AkSkin *skin,
     sample_print_indent(depth + 1u);
     printf("joints:");
     for (i = 0; i < previewCount; i++)
-      printf(" %s", skin->joints[i] ? sample_or_unnamed(skin->joints[i]->name) : "(none)");
+      printf(" %s", skin->joints[i] ? ak_nameOrUnnamed(skin->joints[i]->name) : "(none)");
     if (previewCount < skin->nJoints)
       printf(" ...");
     printf("\n");
@@ -193,7 +193,7 @@ sample_print_morph(AkGeometry *baseGeometry,
     sample_print_indent(depth + 1u);
     printf("targets:");
     for (i = 0; i < previewCount; i++)
-      printf(" %s", sample_or_unnamed(morph->targetNames[i]));
+      printf(" %s", ak_nameOrUnnamed(morph->targetNames[i]));
     if (previewCount < morph->targetCount)
       printf(" ...");
     printf("\n");
@@ -206,7 +206,7 @@ sample_print_morph(AkGeometry *baseGeometry,
 
     preset = &morph->presets[i];
     sample_print_indent(depth + 1u);
-    printf("preset %u: %s", i, sample_or_unnamed(preset->name));
+    printf("preset %u: %s", i, ak_nameOrUnnamed(preset->name));
     if (preset->weights && preset->weights->count) {
       uint32_t j;
       uint32_t previewCount;
@@ -281,7 +281,7 @@ sample_print_deformer_instance(AkNode *node,
   AkMorph *morph;
 
   geom = ak_instanceObject(&inst->base);
-  mesh = sample_mesh_from_geometry(geom);
+  mesh = ak_meshFromGeometry(geom);
   skin = inst->skinner ? inst->skinner->skin : NULL;
   morph = inst->morpher ? inst->morpher->morph : NULL;
 
@@ -291,9 +291,9 @@ sample_print_deformer_instance(AkNode *node,
   (*instanceCount)++;
   sample_print_indent(depth);
   printf("deformer_instance: node=%s geometry=%s mesh=%s skin=%s morph=%s\n",
-         sample_or_unnamed(node->name),
-         geom ? sample_or_unnamed(geom->name) : "(none)",
-         mesh ? sample_or_unnamed(mesh->name) : "(none)",
+         ak_nameOrUnnamed(node->name),
+         geom ? ak_nameOrUnnamed(geom->name) : "(none)",
+         mesh ? ak_nameOrUnnamed(mesh->name) : "(none)",
          skin ? "yes" : "no",
          morph ? "yes" : "no");
 
@@ -325,8 +325,7 @@ sample_walk_nodes(AkNode *node,
     for (nodeRef = node->node; nodeRef; nodeRef = nodeRef->next) {
       AkNode *target;
 
-      target = ak_instanceNodeTarget(nodeRef);
-      if (target)
+      if ((target = ak_instanceNodeTarget(nodeRef)))
         sample_walk_nodes(target, depth + 1u, instanceCount);
     }
   }
@@ -353,9 +352,9 @@ main(int argc, char **argv) {
   instanceCount = 0;
   for (scene = doc->lib.scenes.first; scene; scene = scene->next) {
     printf("scene: %s active=%s\n",
-           sample_or_unnamed(scene->name),
+           ak_nameOrUnnamed(scene->name),
            scene == doc->scene ? "yes" : "no");
-    sample_walk_nodes(scene->node ? scene->node->chld : NULL, 1u, &instanceCount);
+    sample_walk_nodes(ak_sceneRoots(scene), 1u, &instanceCount);
   }
 
   printf("deformer_instances=%" PRIu64 "\n", instanceCount);

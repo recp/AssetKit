@@ -138,8 +138,7 @@ sample_print_index_preview(AkMeshPrimitive *prim, unsigned depth) {
          indexCount,
          prim && prim->indexStride ? prim->indexStride : 1u);
 
-  idx = ak_meshPrimitiveIndexAccessor(prim);
-  if (!idx || indexCount == 0) {
+  if (!(idx = ak_meshPrimitiveIndexAccessor(prim)) || indexCount == 0) {
     sample_print_indent(depth);
     printf("indices: non-indexed primitive\n");
     return;
@@ -239,7 +238,7 @@ sample_print_mesh_details(AkMesh *mesh, unsigned depth, uint64_t *primitiveCount
            primIndex,
            sample_primitive_type_name(prim->type),
            prim->nPolygons,
-           prim->material ? sample_or_unnamed(prim->material->name) : "(none)");
+           prim->material ? ak_nameOrUnnamed(prim->material->name) : "(none)");
     sample_print_input_summary(prim, depth + 1u);
     sample_print_index_preview(prim, depth + 1u);
     sample_print_position_preview(prim, depth + 1u);
@@ -273,15 +272,15 @@ sample_print_scene_node_meshes(const AkNode *node,
 
       inst = (AkInstanceGeometry *)base;
       geom = ak_instanceObject(&inst->base);
-      mesh = sample_mesh_from_geometry(geom);
+      mesh = ak_meshFromGeometry(geom);
 
       (*instanceCount)++;
       sample_print_indent(depth);
       printf("geometry_instance: node=%s instance=%s geometry=%s mesh=%s primitives=%u bindings=%s morph=%s skin=%s\n",
-             sample_or_unnamed(node->name),
-             sample_or_unnamed(inst->base.name),
-             geom ? sample_or_unnamed(geom->name) : "(none)",
-             mesh ? sample_or_unnamed(mesh->name) : "(none)",
+             ak_nameOrUnnamed(node->name),
+             ak_nameOrUnnamed(inst->base.name),
+             geom ? ak_nameOrUnnamed(geom->name) : "(none)",
+             mesh ? ak_nameOrUnnamed(mesh->name) : "(none)",
              mesh ? mesh->primitiveCount : 0u,
              inst->objectBindings ? "yes" : "no",
              inst->morpher ? "yes" : "no",
@@ -297,8 +296,7 @@ sample_print_scene_node_meshes(const AkNode *node,
     for (nodeRef = node->node; nodeRef; nodeRef = nodeRef->next) {
       AkNode *target;
 
-      target = ak_instanceNodeTarget((AkInstanceNode *)nodeRef);
-      if (target)
+      if ((target = ak_instanceNodeTarget((AkInstanceNode *)nodeRef)))
         sample_print_scene_node_meshes(target, depth + 1u, instanceCount, primitiveCount);
     }
   }
@@ -324,9 +322,9 @@ sample_print_scene_meshes(AkDoc *doc) {
 
     printf("scene %" PRIu64 ": name=%s active=%s\n",
            sceneIndex,
-           sample_or_unnamed(scene->name),
+           ak_nameOrUnnamed(scene->name),
            scene == doc->scene ? "yes" : "no");
-    sample_print_scene_node_meshes(scene->node ? scene->node->chld : NULL,
+    sample_print_scene_node_meshes(ak_sceneRoots(scene),
                                    1u,
                                    &sceneInstances,
                                    &scenePrimitives);
@@ -356,8 +354,7 @@ sample_print_library_mesh_summary(AkDoc *doc) {
   for (geom = doc ? doc->lib.geometries.first : NULL; geom; geom = geom->next) {
     AkMesh *mesh;
 
-    mesh = sample_mesh_from_geometry(geom);
-    if (!mesh)
+    if (!(mesh = ak_meshFromGeometry(geom)))
       continue;
 
     meshCount++;

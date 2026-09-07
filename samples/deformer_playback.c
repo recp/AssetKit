@@ -66,7 +66,7 @@ sample_preview_skin(AkInstanceGeometry *inst, AkMesh *mesh) {
     memcpy(inv_bind, skin->invBindPoses[0], sizeof(inv_bind));
     glm_mat4_mulv(inv_bind, origin, bind_origin);
     printf("skin_matrix_preview: joint0=%s inv_bind_origin=(%.3g %.3g %.3g)\n",
-           skin->joints && skin->joints[0] ? sample_or_unnamed(skin->joints[0]->name) : "(none)",
+           skin->joints && skin->joints[0] ? ak_nameOrUnnamed(skin->joints[0]->name) : "(none)",
            bind_origin[0],
            bind_origin[1],
            bind_origin[2]);
@@ -127,16 +127,18 @@ sample_preview_deformers(AkNode *node, unsigned depth) {
 
   for (; node; node = node->next) {
     for (inst = node->geometry; inst; inst = (AkInstanceGeometry *)inst->base.next) {
-      AkGeometry *geom = ak_instanceObject(&inst->base);
-      AkMesh *mesh = sample_mesh_from_geometry(geom);
+      AkGeometry *geom;
+      AkMesh     *mesh;
 
-      if (!mesh || (!inst->skinner && !inst->morpher))
+      if (!(geom = ak_instanceObject(&inst->base))
+          || !(mesh = ak_meshFromGeometry(geom))
+          || (!inst->skinner && !inst->morpher))
         continue;
 
       printf("deformer_node: %s geometry=%s mesh=%s\n",
-             sample_or_unnamed(node->name),
-             geom ? sample_or_unnamed(geom->name) : "(none)",
-             sample_or_unnamed(mesh->name));
+             ak_nameOrUnnamed(node->name),
+             geom ? ak_nameOrUnnamed(geom->name) : "(none)",
+             ak_nameOrUnnamed(mesh->name));
       sample_preview_skin(inst, mesh);
       sample_preview_morph(geom, inst, mesh);
       return 1;
@@ -177,7 +179,7 @@ sample_preview_animation_node(AkDoc *doc, AkNode *node, unsigned depth) {
       memcpy(m, baked->matrices + (size_t)mid * 16u, sizeof(m));
       glm_mat4_mulv(m, origin, p);
       printf("animation_playback: node=%s frames=%u sample_time=%.3g origin=(%.3g %.3g %.3g)\n",
-             sample_or_unnamed(node->name),
+             ak_nameOrUnnamed(node->name),
              baked->count,
              baked->times[mid],
              p[0],
@@ -218,18 +220,17 @@ main(int argc, char **argv) {
   if (!sample_load_doc(&doc, argv[1]))
     return 1;
 
-  scene = doc->scene ? doc->scene : doc->lib.scenes.first;
   printf("libraries: animations=%zu skins=%u morphs=%u\n",
          ak_animationsCount(doc),
          doc->lib.skins.count,
          doc->lib.morphs.count);
 
-  if (!scene || !scene->node) {
+  if (!(scene = ak_activeSceneOrFirst(doc))) {
     printf("scene: none\n");
   } else {
-    if (!sample_preview_deformers(scene->node->chld, 0u))
+    if (!sample_preview_deformers(ak_sceneRoots(scene), 0u))
       printf("deformer_node: none\n");
-    if (!sample_preview_animation_node(doc, scene->node->chld, 0u))
+    if (!sample_preview_animation_node(doc, ak_sceneRoots(scene), 0u))
       printf("animation_playback: none\n");
   }
 

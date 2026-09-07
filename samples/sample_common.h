@@ -11,19 +11,6 @@
 #include <stdio.h>
 
 static inline const char *
-sample_or_unnamed(const char *name) {
-  return name && *name ? name : "(unnamed)";
-}
-
-static inline AkMesh *
-sample_mesh_from_geometry(AkGeometry *geom) {
-  if (!geom || !geom->gdata || geom->gdata->type != AK_GEOMETRY_MESH)
-    return NULL;
-
-  return ak_objGet(geom->gdata);
-}
-
-static inline const char *
 sample_component_type_name(AkTypeId type) {
   switch (type) {
     case AKT_BYTE:

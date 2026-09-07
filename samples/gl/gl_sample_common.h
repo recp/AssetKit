@@ -416,8 +416,7 @@ sample_gl_resolve_material(AkMeshPrimitive *prim,
     surface = resolved.material->surface;
 
   input = surface ? surface->baseColor : NULL;
-  property = ak_resolvedMaterialProperty(&resolved);
-  if (property && property->baseColor)
+  if ((property = ak_resolvedMaterialProperty(&resolved)) && property->baseColor)
     input = property->baseColor;
   if (!input)
     input = sample_gl_classic_diffuse(surface);
@@ -665,9 +664,11 @@ sample_gl_find_first_mesh(AkNode *node,
       AkMesh *mesh;
       AkMeshPrimitive *prim;
 
-      geom = ak_instanceObject(&inst->base);
-      mesh = sample_mesh_from_geometry(geom);
-      for (prim = mesh ? mesh->primitive : NULL; prim; prim = prim->next) {
+      if (!(geom = ak_instanceObject(&inst->base))
+          || !(mesh = ak_meshFromGeometry(geom)))
+        continue;
+
+      for (prim = mesh->primitive; prim; prim = prim->next) {
         if (sample_gl_copy_primitive(prim, inst, world, out)) {
           if (out_node_name)
             *out_node_name = node->name;
@@ -842,14 +843,12 @@ sample_gl_png_finish(AkImage *image, png_image *png, bool flip_vertically) {
   stride = PNG_IMAGE_ROW_STRIDE(*png);
   bytes = PNG_IMAGE_SIZE(*png);
 
-  out = ak_calloc(image, sizeof(*out));
-  if (!out) {
+  if (!(out = ak_calloc(image, sizeof(*out)))) {
     png_image_free(png);
     return NULL;
   }
 
-  pixels = ak_malloc(out, bytes);
-  if (!pixels) {
+  if (!(pixels = ak_malloc(out, bytes))) {
     png_image_free(png);
     ak_free(out);
     return NULL;

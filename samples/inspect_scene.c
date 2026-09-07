@@ -58,7 +58,7 @@ sample_print_node_tree(AkNode *node, unsigned depth) {
 
     sample_print_indent(depth);
     printf("node: %s visible=%s geometries=%u cameras=%u lights=%u node_refs=%u",
-           sample_or_unnamed(node->name),
+           ak_nameOrUnnamed(node->name),
            node->visible ? "yes" : "no",
            geometryCount,
            sample_count_instances(node->camera),
@@ -73,13 +73,13 @@ sample_print_node_tree(AkNode *node, unsigned depth) {
       AkMesh *mesh;
 
       targetGeom = ak_instanceObject(&geom->base);
-      mesh       = sample_mesh_from_geometry(targetGeom);
+      mesh       = ak_meshFromGeometry(targetGeom);
 
       sample_print_indent(depth + 1u);
       printf("geometry_instance: name=%s geometry=%s mesh=%s primitives=%u bindings=%s morph=%s skin=%s\n",
-             sample_or_unnamed(geom->base.name),
-             targetGeom ? sample_or_unnamed(targetGeom->name) : "(none)",
-             mesh ? sample_or_unnamed(mesh->name) : "(none)",
+             ak_nameOrUnnamed(geom->base.name),
+             targetGeom ? ak_nameOrUnnamed(targetGeom->name) : "(none)",
+             mesh ? ak_nameOrUnnamed(mesh->name) : "(none)",
              mesh ? mesh->primitiveCount : 0u,
              geom->objectBindings ? "yes" : "no",
              geom->morpher ? "yes" : "no",
@@ -94,8 +94,8 @@ sample_print_node_tree(AkNode *node, unsigned depth) {
       proj   = camera && camera->optics ? camera->optics->proj : NULL;
       sample_print_indent(depth + 1u);
       printf("camera_instance: name=%s camera=%s projection=%s\n",
-             sample_or_unnamed(base->name),
-             camera ? sample_or_unnamed(camera->name) : "(none)",
+             ak_nameOrUnnamed(base->name),
+             camera ? ak_nameOrUnnamed(camera->name) : "(none)",
              proj ? sample_projection_type_name(proj->type) : "none");
     }
 
@@ -107,8 +107,8 @@ sample_print_node_tree(AkNode *node, unsigned depth) {
       lightData = light ? light->data : NULL;
       sample_print_indent(depth + 1u);
       printf("light_instance: name=%s light=%s type=%s\n",
-             sample_or_unnamed(base->name),
-             light ? sample_or_unnamed(light->name) : "(none)",
+             ak_nameOrUnnamed(base->name),
+             light ? ak_nameOrUnnamed(light->name) : "(none)",
              lightData ? sample_light_type_name(lightData->type) : "none");
     }
 
@@ -121,8 +121,8 @@ sample_print_node_tree(AkNode *node, unsigned depth) {
       target = ak_instanceNodeTarget(nodeRef);
       sample_print_indent(depth + 1u);
       printf("node_instance: name=%s target=%s\n",
-             sample_or_unnamed(nodeRef->name),
-             target ? sample_or_unnamed(target->name) : "(none)");
+             ak_nameOrUnnamed(nodeRef->name),
+             target ? ak_nameOrUnnamed(target->name) : "(none)");
       if (target)
         sample_print_node_tree(target, depth + 1u);
     }
@@ -141,7 +141,7 @@ sample_print_cameras(AkDoc *doc) {
     proj = cam->optics ? cam->optics->proj : NULL;
     printf("camera %" PRIu64 ": name=%s projection=%s\n",
            index,
-           sample_or_unnamed(cam->name),
+           ak_nameOrUnnamed(cam->name),
            proj ? sample_projection_type_name(proj->type) : "none");
     if (!proj)
       continue;
@@ -178,7 +178,7 @@ sample_print_lights(AkDoc *doc) {
     base = light->data;
     printf("light %" PRIu64 ": name=%s type=%s\n",
            index,
-           sample_or_unnamed(light->name),
+           ak_nameOrUnnamed(light->name),
            base ? sample_light_type_name(base->type) : "none");
     if (!base)
       continue;
@@ -231,7 +231,7 @@ sample_print_animation(AkAnimation *anim, unsigned depth, uint64_t *index) {
     sample_print_indent(depth);
     printf("animation %" PRIu64 ": name=%s channels=%u samplers=%u\n",
            (*index)++,
-           sample_or_unnamed(anim->name),
+           ak_nameOrUnnamed(anim->name),
            channelCount,
            samplerCount);
 
@@ -271,7 +271,7 @@ sample_print_scenes(AkDoc *doc) {
 
     printf("scene %" PRIu64 ": name=%s active=%s unique_cameras=%u camera_uses=%u unique_lights=%u light_uses=%u\n",
            index,
-           sample_or_unnamed(scene->name),
+           ak_nameOrUnnamed(scene->name),
            scene == doc->scene ? "yes" : "no",
            scene->cameras.count,
            scene->cameras.useCount,
@@ -280,19 +280,19 @@ sample_print_scenes(AkDoc *doc) {
 
     for (sceneCamera = scene->cameras.first; sceneCamera; sceneCamera = sceneCamera->next) {
       printf("  scene_camera: %s uses=%u first_instance=%s\n",
-             sceneCamera->camera ? sample_or_unnamed(sceneCamera->camera->name) : "(none)",
+             sceneCamera->camera ? ak_nameOrUnnamed(sceneCamera->camera->name) : "(none)",
              sceneCamera->useCount,
-             sceneCamera->firstInstance ? sample_or_unnamed(sceneCamera->firstInstance->name) : "(none)");
+             sceneCamera->firstInstance ? ak_nameOrUnnamed(sceneCamera->firstInstance->name) : "(none)");
     }
 
     for (sceneLight = scene->lights.first; sceneLight; sceneLight = sceneLight->next) {
       printf("  scene_light: %s uses=%u first_instance=%s\n",
-             sceneLight->light ? sample_or_unnamed(sceneLight->light->name) : "(none)",
+             sceneLight->light ? ak_nameOrUnnamed(sceneLight->light->name) : "(none)",
              sceneLight->useCount,
-             sceneLight->firstInstance ? sample_or_unnamed(sceneLight->firstInstance->name) : "(none)");
+             sceneLight->firstInstance ? ak_nameOrUnnamed(sceneLight->firstInstance->name) : "(none)");
     }
 
-    sample_print_node_tree(scene->node ? scene->node->chld : NULL, 1u);
+    sample_print_node_tree(ak_sceneRoots(scene), 1u);
   }
 }
 
