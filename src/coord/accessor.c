@@ -19,6 +19,49 @@
 
 AK_HIDE
 bool
+ak_coordBufferWritable(AkBuffer *buffer) {
+  AkMemoryMapNode **maps, *map;
+  AkHeapNode      *node;
+  AkHeap          *heap;
+  void            *parent, *copy;
+  uintptr_t        address, start;
+
+  if (!buffer || !buffer->data)
+    return false;
+
+  address = (uintptr_t)buffer->data;
+
+  /* External glTF buffers attach their mapping to the buffer; a GLB attaches
+     it to the document. Keep the mapping alive for other borrowed views. */
+  for (parent = buffer; parent; parent = ak_mem_parent(parent)) {
+    node = ak__alignof(parent);
+    maps = ak_heap_ext_get(node, AK_HEAP_NODE_FLAGS_MMAP);
+
+    if (!maps)
+      continue;
+
+    for (map = *maps; map; map = map->next) {
+      start = (uintptr_t)map->mapped;
+
+      if (address < start || address - start >= map->sized)
+        continue;
+
+      if (buffer->length > map->sized - (address - start)
+          || !(heap = ak_heap_getheap(buffer))
+          || !(copy = ak_heap_alloc(heap, buffer, buffer->length)))
+        return false;
+
+      memcpy(copy, buffer->data, buffer->length);
+      buffer->data = copy;
+      return true;
+    }
+  }
+
+  return true;
+}
+
+AK_HIDE
+bool
 ak_coordCvtAccessorVec3(AkAccessor * __restrict acc,
                         AkCoordSys * __restrict oldCoordSys,
                         AkCoordSys * __restrict newCoordSys,
@@ -59,6 +102,9 @@ ak_coordCvtAccessorVec3(AkAccessor * __restrict acc,
   last = acc->byteOffset + (size_t)(acc->count - 1u) * stride;
   if (last > acc->buffer->length
       || sizeof(float) * 3u > acc->buffer->length - last)
+    return false;
+
+  if (!ak_coordBufferWritable(acc->buffer))
     return false;
 
   data = (unsigned char *)acc->buffer->data + acc->byteOffset;

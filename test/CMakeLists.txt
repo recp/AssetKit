@@ -3,6 +3,7 @@ add_executable(assetkit_tests
   src/core/animation.c
   src/core/memory.c
   src/core/coord.c
+  src/core/gsplat.c
   src/core/format_edge.c
   src/core/render.c
   src/io/common/package.c

@@ -22,6 +22,7 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <chrono>
 #include <vector>
 
@@ -62,6 +63,46 @@ value(AkMeshPrimitive *prim, AkInputSemantic semantic, unsigned set, unsigned ro
   std::memcpy(&result, (char *)acc->buffer->data + acc->byteOffset
                        + row * acc->byteStride + c * sizeof(float), sizeof(result));
   return result;
+}
+
+static void
+check_coord_load(const std::filesystem::path &path) {
+  AkDoc           *source, *baked;
+  AkMeshPrimitive *expected, *actual;
+  AkInput         *input;
+  uintptr_t        savedCoord, savedType;
+  uint32_t         row, c;
+
+  savedCoord = ak_opt_get(AK_OPT_COORD);
+  savedType  = ak_opt_get(AK_OPT_COORD_CONVERT_TYPE);
+  source     = nullptr;
+  baked      = nullptr;
+
+  ak_opt_set(AK_OPT_COORD, (uintptr_t)AK_YUP);
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, AK_COORD_CVT_DISABLED);
+  CHECK(ak_load(&source, path.c_str(), AK_FILE_TYPE_AUTO) == AK_OK);
+  ak_changeCoordSys(source, AK_ZUP);
+
+  ak_opt_set(AK_OPT_COORD, (uintptr_t)AK_ZUP);
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, AK_COORD_CVT_ALL);
+  CHECK(ak_load(&baked, path.c_str(), AK_FILE_TYPE_AUTO) == AK_OK);
+  CHECK(baked->coordSys == AK_ZUP);
+
+  expected = primitive(source);
+  actual   = primitive(baked);
+
+  for (input = expected->input; input; input = input->next) {
+    for (row = 0; row < input->accessor->count; row++) {
+      for (c = 0; c < input->accessor->componentCount; c++)
+        CHECK(std::fabs(value(expected, input->semantic, input->set, row, c)
+                        - value(actual, input->semantic, input->set, row, c)) < 0.00001f);
+    }
+  }
+
+  ak_free(source);
+  ak_free(baked);
+  ak_opt_set(AK_OPT_COORD, savedCoord);
+  ak_opt_set(AK_OPT_COORD_CONVERT_TYPE, savedType);
 }
 
 static void
@@ -148,6 +189,7 @@ int main(int argc, char **argv) {
           CHECK(std::fabs(value(prim, AK_INPUT_SH, i, 1, c) -
                 cloud.sh[(size_t)degree * (degree + 2) * 3 + (i - 1) * 3 + c]) < 0.15f);
       ak_free(doc);
+      check_coord_load(path);
     }
   }
   for (int binary = 0; binary < 3; binary++) {
@@ -170,6 +212,7 @@ int main(int argc, char **argv) {
         CHECK(value(prim, AK_INPUT_SH, 1, 0, 1) == -(float)(degree * (degree + 2) + 1));
       }
       ak_free(doc);
+      check_coord_load(path);
       std::filesystem::resize_file(path, std::filesystem::file_size(path) - (binary ? 2 : 8));
       CHECK(ak_load(&doc, path.c_str(), AK_FILE_TYPE_AUTO) != AK_OK && !doc);
     }
@@ -194,6 +237,7 @@ int main(int argc, char **argv) {
   CHECK(prim->inputCount == 8 && prim->gsplat->shDegree == 1);
   CHECK(value(prim, AK_INPUT_POSITION, 0, 0, 0) == 1);
   ak_free(doc);
+  check_coord_load(path);
 
   /* Uncompressed namespaced inputs, including the SH band/index mapping. */
   {
@@ -221,6 +265,49 @@ int main(int argc, char **argv) {
   CHECK(value(prim, AK_INPUT_SH, 3, 0, 1) == 4);
   CHECK(value(prim, AK_INPUT_OPACITY, 0, 0, 0) == 0.5f);
   ak_free(doc);
+  check_coord_load(path);
+
+  /* The GLB mapping belongs to the document, not the individual buffer. */
+  {
+    std::ifstream jsonFile(path);
+    std::ifstream binFile(dir / "plain.bin", std::ios::binary);
+    std::string json((std::istreambuf_iterator<char>(jsonFile)), {});
+    std::string bin((std::istreambuf_iterator<char>(binFile)), {});
+    std::ofstream out(dir / "plain.glb", std::ios::binary);
+    const std::string uri = "\"uri\":\"plain.bin\",";
+    size_t offset = json.find(uri);
+    uint32_t header[5], binHeader[2];
+
+    CHECK(offset != std::string::npos);
+    json.erase(offset, uri.size());
+
+    while (json.size() % 4)
+      json.push_back(' ');
+
+    header[0]    = 0x46546c67;
+    header[1]    = 2;
+    header[2]    = (uint32_t)(28 + json.size() + bin.size());
+    header[3]    = (uint32_t)json.size();
+    header[4]    = 0x4e4f534a;
+    binHeader[0] = (uint32_t)bin.size();
+    binHeader[1] = 0x004e4942;
+
+    for (uint32_t word : header) {
+      for (unsigned i = 0; i < 4; i++)
+        out.put((char)(word >> (i * 8)));
+    }
+
+    out.write(json.data(), json.size());
+
+    for (uint32_t word : binHeader) {
+      for (unsigned i = 0; i < 4; i++)
+        out.put((char)(word >> (i * 8)));
+    }
+
+    out.write(bin.data(), bin.size());
+  }
+
+  check_coord_load(dir / "plain.glb");
   path = dir / "mesh.ply";
   write_ply(path, 0, 0, true);
   CHECK(ak_load(&doc, path.c_str(), AK_FILE_TYPE_AUTO) == AK_OK);
@@ -242,6 +329,7 @@ int main(int argc, char **argv) {
     prim = primitive(doc);
     std::printf("sample: %u splats, SH degree %u\n", prim->gsplat->decodedCount, prim->gsplat->shDegree);
     ak_free(doc);
+    check_coord_load(argv[2]);
   }
   std::filesystem::remove_all(dir);
   std::puts("SPZ v2/v3/v4 and Gaussian PLY ASCII/LE/BE passed");

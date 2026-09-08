@@ -19,6 +19,32 @@
 
 #include "../common.h"
 
+typedef struct AkSHBasisChange {
+  float   weight[25][9];
+  uint8_t column[25][9];
+  uint8_t count[25];
+} AkSHBasisChange;
+
+AK_HIDE
+bool
+ak_coordBufferWritable(AkBuffer *buffer);
+
+AK_HIDE
+void
+ak_coordSHBasis(AkSHBasisChange *change, AkCoordSys *oldCoordSys, AkCoordSys *newCoordSys);
+
+AK_HIDE
+bool
+ak_coordSHBand(AkAccessor **accessors, uint32_t degree, const AkSHBasisChange *change);
+
+AK_HIDE
+void
+ak_coordCvtMesh(AkMesh *mesh, AkCoordSys *oldCoordSys, AkCoordSys *newCoordSys);
+
+AK_HIDE
+void
+ak_coordCvtGeometriesTo(AkDoc *doc, AkCoordSys *oldCoordSys, AkCoordSys *newCoordSys);
+
 #define AK__Z_RH {AK_AXIS_POSITIVE_X, AK_AXIS_POSITIVE_Z, AK_AXIS_POSITIVE_Y}
 #define AK__Y_RH {AK_AXIS_POSITIVE_X, AK_AXIS_POSITIVE_Y, AK_AXIS_NEGATIVE_Z}
 #define AK__X_RH {AK_AXIS_NEGATIVE_Y, AK_AXIS_POSITIVE_X, AK_AXIS_NEGATIVE_Z}

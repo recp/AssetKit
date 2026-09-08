@@ -6,6 +6,7 @@ target_sources(${PROJECT_NAME}
   common.c
   doc.c
   geom.c
+  gsplat.c
   mesh.c
   node.c
   scene.c

@@ -17,6 +17,7 @@
 #include "mesh_fixup.h"
 #include "../../../mesh/index.h"
 #include "../../../topo/topo.h"
+#include "../../../coord/common.h"
 
 AK_HIDE
 void
@@ -25,6 +26,10 @@ gltf_mesh_fixup(AkGLTFState * __restrict gst) {
   AkGeometry *geom;
 
   doc = gst->doc;
+
+  /* Convert shared accessors once, before topology fixups duplicate vertices. */
+  if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) == AK_COORD_CVT_ALL)
+    ak_coordCvtGeometriesTo(doc, doc->coordSys, (void *)ak_opt_get(AK_OPT_COORD));
 
   for (geom = doc->lib.geometries.first; geom; geom = geom->next) {
       AkObject *primitive;
@@ -36,12 +41,6 @@ gltf_mesh_fixup(AkGLTFState * __restrict gst) {
           mesh = ak_objGet(primitive);
 
           topofix(mesh);
-
-          /* first fixup coord system because verts will be duplicated,
-             reduce extra process */
-          if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) == AK_COORD_CVT_ALL
-              && (void *)ak_opt_get(AK_OPT_COORD) != doc->coordSys)
-            ak_changeCoordSysMesh(mesh, (void *)ak_opt_get(AK_OPT_COORD));
 
           if (ak_opt_get(AK_OPT_COMPUTE_BBOX))
             ak_bbox_mesh(mesh);

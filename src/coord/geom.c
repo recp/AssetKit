@@ -22,7 +22,9 @@ ak_changeCoordSysGeom(AkGeometry * __restrict geom,
                       AkCoordSys * newCoordSys) {
   AkObject *primitive;
 
-  primitive = geom->gdata;
+  if (!geom || !newCoordSys || !(primitive = geom->gdata))
+    return;
+
   switch ((AkGeometryType)primitive->type) {
     case AK_GEOMETRY_MESH:
       ak_changeCoordSysMesh(ak_objGet(primitive), newCoordSys);

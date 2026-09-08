@@ -17,72 +17,15 @@
 #include "../common.h"
 #include "common.h"
 
-/* TODO: use mutex */
-
 AK_EXPORT
 void
-ak_changeCoordSysMesh(AkMesh * __restrict mesh,
-                      AkCoordSys * newCoordSys) {
-  AkMeshPrimitive *primi;
-  AkDoc           *doc;
-  AkHeap          *heap;
-  AkInput         *input;
-  AkMap           *map;
-  AkMapItem       *mapi;
+ak_changeCoordSysMesh(AkMesh * __restrict mesh, AkCoordSys *newCoordSys) {
+  AkHeap *heap;
+  AkDoc  *doc;
 
-  heap = ak_heap_getheap(mesh->geom);
-  doc  = heap->data;
-  map  = ak_map_new(NULL);
+  if (!mesh || !newCoordSys || !mesh->geom
+      || !(heap = ak_heap_getheap(mesh->geom)) || !(doc = heap->data))
+    return;
 
-  /* find sources to update */
-  if (mesh->vertices) {
-    input = mesh->vertices->input;
-    while (input) {
-      /* TODO: other semantics which are depend on coord sys */
-      if (input->semantic == AK_INPUT_POSITION
-          || input->semantic == AK_INPUT_NORMAL) {
-        if (input->accessor)
-          ak_map_addptr(map, input->accessor);
-      }
-      input = input->next;
-    }
-  }
-
-  primi = mesh->primitive;
-  while (primi) {
-    input = primi->input;
-    while (input) {
-      /* TODO: other semantics which are depend on coord sys */
-      if (input->semantic == AK_INPUT_POSITION
-          || input->semantic == AK_INPUT_NORMAL) {
-        if (!input->accessor) {
-          input = input->next;
-          continue;
-        }
-        
-        ak_map_addptr(map, input->accessor);
-      }
-      input = input->next;
-    }
-    primi = primi->next;
-  }
-
-  mapi = map->root;
-  while (mapi) {
-    AkAccessor *acci;
-    AkBuffer   *buffi;
-
-    acci  = ak_getId(mapi);
-    buffi = acci->buffer;
-    if (!buffi) {
-      mapi = mapi->next;
-      continue;
-    }
-
-    /* TODO: INT, DOUBLE.. */
-    ak_coordCvtAccessorVec3(acci, doc->coordSys, newCoordSys, false);
-    mapi = mapi->next;
-  }
-
-  ak_map_destroy(map);
+  ak_coordCvtMesh(mesh, doc->coordSys ? doc->coordSys : AK_YUP, newCoordSys);
 }

@@ -26,12 +26,15 @@ typedef struct AkCoordPtrSet {
 } AkCoordPtrSet;
 
 typedef struct AkCoordDocCvt {
-  AkDoc        *doc;
-  AkCoordSys   *oldCoordSys;
-  AkCoordSys   *newCoordSys;
-  AkCoordPtrSet nodes;
-  AkCoordPtrSet geoms;
-  AkCoordPtrSet accessors;
+  AkDoc          *doc;
+  AkCoordSys     *oldCoordSys;
+  AkCoordSys     *newCoordSys;
+  AkMap          *shOwners;
+  AkCoordPtrSet   nodes;
+  AkCoordPtrSet   geoms;
+  AkCoordPtrSet   accessors;
+  AkSHBasisChange shBasis;
+  bool           shBasisReady;
 } AkCoordDocCvt;
 
 static
@@ -194,6 +197,9 @@ ak_coord_cvt_accessor_quat(AkAccessor * __restrict acc,
       || sizeof(float) * 4u > acc->buffer->length - last)
     return false;
 
+  if (!ak_coordBufferWritable(acc->buffer))
+    return false;
+
   data = (unsigned char *)acc->buffer->data + acc->byteOffset;
 
   for (i = 0; i < acc->count; i++) {
@@ -247,6 +253,9 @@ ak_coord_cvt_accessor_mat4(AkAccessor * __restrict acc,
   last = acc->byteOffset + (size_t)(acc->count - 1u) * stride;
   if (last > acc->buffer->length
       || sizeof(float) * 16u > acc->buffer->length - last)
+    return false;
+
+  if (!ak_coordBufferWritable(acc->buffer))
     return false;
 
   data = (unsigned char *)acc->buffer->data + acc->byteOffset;
@@ -305,6 +314,9 @@ ak_coord_cvt_accessor_scalar(AkAccessor * __restrict acc,
       || componentBytes > acc->buffer->length - last)
     return false;
 
+  if (!ak_coordBufferWritable(acc->buffer))
+    return false;
+
   data = (unsigned char *)acc->buffer->data + acc->byteOffset;
   for (i = 0; i < acc->count; i++) {
     unsigned char *row;
@@ -359,6 +371,9 @@ ak_coord_cvt_accessor_vec3_paired(AkAccessor * __restrict acc,
     return false;
   last = acc->byteOffset + (size_t)(acc->count - 1u) * stride;
   if (last > acc->buffer->length || rowBytes > acc->buffer->length - last)
+    return false;
+
+  if (!ak_coordBufferWritable(acc->buffer))
     return false;
 
   data = (unsigned char *)acc->buffer->data + acc->byteOffset;
@@ -704,10 +719,185 @@ ak_coord_doc_cvt_input(AkCoordDocCvt * __restrict st,
       case AK_INPUT_TEXTANGENT:
         ak_coord_doc_cvt_vec3(st, input->accessor, false);
         break;
+      case AK_INPUT_SCALE:
+        ak_coord_doc_cvt_vec3(st, input->accessor, true);
+        break;
+      case AK_INPUT_ROTATION:
+        ak_coord_doc_cvt_quat(st, input->accessor);
+        break;
       default:
         break;
     }
   }
+}
+
+/* SH coefficients in a band mix with one another. Give aliased inputs their
+   own compact storage before any geometry is changed; unique inputs stay
+   in place, including interleaved SPZ/PLY buffers. */
+static
+bool
+ak_coord_doc_prepare_sh(AkCoordDocCvt *st, AkMesh *mesh) {
+  AkMeshPrimitive *prim;
+  AkInput         *input, *owner;
+  AkAccessor      *source, *copy;
+  AkBuffer        *buffer;
+  AkHeap          *heap;
+  size_t           count;
+
+  for (prim = mesh->primitive; prim; prim = prim->next) {
+    if (!prim->gsplat)
+      continue;
+
+    for (input = prim->input; input; input = input->next) {
+      if (input->semantic != AK_INPUT_SH || input->set >= 25
+          || !(source = input->accessor))
+        continue;
+
+      if (!st->shOwners && !(st->shOwners = ak_map_new(NULL)))
+        return false;
+
+      if (!(owner = ak_map_find(st->shOwners, source))) {
+        ak_map_add(st->shOwners, input, source);
+        continue;
+      }
+
+      if (owner == input)
+        continue;
+
+      count = source->count;
+
+      if (source->componentCount != 3 || count > SIZE_MAX / (3 * sizeof(float))
+          || !(heap = ak_heap_getheap(input)) || !(copy = ak_accessor_dup(source)))
+        return false;
+
+      ak_heap_setpm(copy, input);
+      count *= 3;
+
+      if (!(buffer = ak_heap_calloc(heap, copy, sizeof(*buffer)))) {
+        ak_free(copy);
+        return false;
+      }
+
+      buffer->length = count * sizeof(float);
+      buffer->data   = ak_heap_alloc(heap, buffer, buffer->length);
+
+      if (!buffer->data || ak_accessorAsFloat(source, buffer->data, count) != count) {
+        ak_free(copy);
+        return false;
+      }
+
+      copy->next              = NULL;
+      copy->buffer            = buffer;
+      copy->min               = NULL;
+      copy->max               = NULL;
+      copy->byteOffset        = 0;
+      copy->byteStride        = 3 * sizeof(float);
+      copy->byteLength        = buffer->length;
+      copy->fillByteSize      = copy->byteStride;
+      copy->bytesPerComponent = sizeof(float);
+      copy->componentType     = AKT_FLOAT;
+      copy->normalized        = false;
+      input->accessor         = copy;
+
+      ak_map_add(st->shOwners, input, copy);
+    }
+  }
+
+  return true;
+}
+
+static
+void
+ak_coord_doc_cvt_sh(AkCoordDocCvt *st, AkMeshPrimitive *prim) {
+  AkAccessor *accessors[25];
+  AkInput    *input;
+  uint32_t    degree, start, end, i, seen;
+
+  if (!prim->gsplat)
+    return;
+
+  memset(accessors, 0, sizeof(accessors));
+
+  for (input = prim->input; input; input = input->next) {
+    if (input->semantic == AK_INPUT_SH && input->set < 25)
+      accessors[input->set] = input->accessor;
+  }
+
+  for (degree = 1; degree <= 4; degree++) {
+    start = degree * degree;
+    end   = (degree + 1) * (degree + 1);
+
+    for (i = start; i < end && accessors[i]; i++) {}
+
+    if (i != end)
+      break;
+
+    seen = 0;
+
+    for (i = start; i < end; i++)
+      seen += ak_coord_ptrset_seen(&st->accessors, accessors[i]);
+
+    if (seen)
+      continue;
+
+    if (!st->shBasisReady) {
+      ak_coordSHBasis(&st->shBasis, st->oldCoordSys, st->newCoordSys);
+      st->shBasisReady = true;
+    }
+
+    ak_coordSHBand(accessors + start, degree, &st->shBasis);
+  }
+}
+
+static
+void
+ak_coord_doc_cvt_mesh(AkCoordDocCvt *st, AkMesh *mesh) {
+  AkMeshPrimitive *prim;
+
+  ak_coordCvtVector(st->oldCoordSys, mesh->center, st->newCoordSys);
+
+  if (mesh->bbox)
+    mesh->bbox->isvalid = false;
+
+  if (mesh->vertices)
+    ak_coord_doc_cvt_input(st, mesh->vertices->input);
+
+  for (prim = mesh->primitive; prim; prim = prim->next) {
+    ak_coordCvtVector(st->oldCoordSys, prim->center, st->newCoordSys);
+    ak_coord_doc_cvt_input(st, prim->input);
+    ak_coord_doc_cvt_sh(st, prim);
+
+    if (prim->pos)
+      ak_coord_doc_cvt_input(st, prim->pos);
+
+    if (prim->bbox)
+      prim->bbox->isvalid = false;
+  }
+}
+
+AK_HIDE
+void
+ak_coordCvtMesh(AkMesh *mesh, AkCoordSys *oldCoordSys, AkCoordSys *newCoordSys) {
+  AkCoordDocCvt st;
+
+  if (!mesh || !oldCoordSys || !newCoordSys || oldCoordSys == newCoordSys)
+    return;
+
+  memset(&st, 0, sizeof(st));
+  st.oldCoordSys = oldCoordSys;
+  st.newCoordSys = newCoordSys;
+
+  if (ak_coord_doc_prepare_sh(&st, mesh)) {
+    ak_coord_doc_cvt_mesh(&st, mesh);
+
+    if (mesh->geom && mesh->geom->bbox)
+      mesh->geom->bbox->isvalid = false;
+  }
+
+  if (st.shOwners)
+    ak_map_destroy(st.shOwners);
+
+  ak_coord_ptrset_free(&st.accessors);
 }
 
 static
@@ -723,29 +913,10 @@ ak_coord_doc_cvt_geom(AkCoordDocCvt * __restrict st,
   if (primitive) {
     switch ((AkGeometryType)primitive->type) {
       case AK_GEOMETRY_MESH: {
-        AkMeshPrimitive *prim;
-        AkMesh          *mesh;
+        AkMesh *mesh;
 
-        mesh = ak_objGet(primitive);
-        if (mesh) {
-          ak_coordCvtVector(st->oldCoordSys, mesh->center, st->newCoordSys);
-          if (mesh->bbox)
-            mesh->bbox->isvalid = false;
-
-          if (mesh->vertices)
-            ak_coord_doc_cvt_input(st, mesh->vertices->input);
-
-          for (prim = mesh->primitive; prim; prim = prim->next) {
-            ak_coordCvtVector(st->oldCoordSys,
-                              prim->center,
-                              st->newCoordSys);
-            ak_coord_doc_cvt_input(st, prim->input);
-            if (prim->pos)
-              ak_coord_doc_cvt_input(st, prim->pos);
-            if (prim->bbox)
-              prim->bbox->isvalid = false;
-          }
-        }
+        if ((mesh = ak_objGet(primitive)))
+          ak_coord_doc_cvt_mesh(st, mesh);
         break;
       }
       case AK_GEOMETRY_SPLINE:
@@ -1190,12 +1361,59 @@ ak_coord_doc_cvt_skins(AkCoordDocCvt * __restrict st) {
   ak_coordCvtSkinsTo(st->doc, st->oldCoordSys, st->newCoordSys);
 }
 
+static
+bool
+ak_coord_doc_prepare_sh_geom(AkCoordDocCvt *st, AkGeometry *geom) {
+  AkMesh *mesh;
+
+  if (!geom)
+    return true;
+
+  if (geom->gdata && geom->gdata->type == AK_GEOMETRY_MESH
+      && (mesh = ak_objGet(geom->gdata)))
+    return ak_coord_doc_prepare_sh(st, mesh);
+
+  return true;
+}
+
+AK_HIDE
+void
+ak_coordCvtGeometriesTo(AkDoc *doc, AkCoordSys *oldCoordSys, AkCoordSys *newCoordSys) {
+  AkGeometry   *geom;
+  AkCoordDocCvt st;
+
+  if (!doc || !oldCoordSys || !newCoordSys || oldCoordSys == newCoordSys)
+    return;
+
+  memset(&st, 0, sizeof(st));
+  st.doc         = doc;
+  st.oldCoordSys = oldCoordSys;
+  st.newCoordSys = newCoordSys;
+
+  for (geom = doc->lib.geometries.first; geom; geom = geom->next) {
+    if (!ak_coord_doc_prepare_sh_geom(&st, geom))
+      goto cleanup;
+  }
+
+  for (geom = doc->lib.geometries.first; geom; geom = geom->next)
+    ak_coord_doc_cvt_geom(&st, geom);
+
+cleanup:
+  if (st.shOwners)
+    ak_map_destroy(st.shOwners);
+
+  ak_coord_ptrset_free(&st.geoms);
+  ak_coord_ptrset_free(&st.accessors);
+}
+
 AK_EXPORT
 void
 ak_changeCoordSys(AkDoc * __restrict doc,
                   AkCoordSys * newCoordSys) {
-  AkCoordDocCvt st;
-  AkGeometry   *geom;
+  AkGeometry    *geom;
+  AkMorph       *morph;
+  AkMorphTarget *target;
+  AkCoordDocCvt  st;
 
   if (!doc || !newCoordSys)
     return;
@@ -1211,6 +1429,19 @@ ak_changeCoordSys(AkDoc * __restrict doc,
   st.oldCoordSys = doc->coordSys;
   st.newCoordSys = newCoordSys;
 
+  for (geom = doc->lib.geometries.first; geom; geom = geom->next) {
+    if (!ak_coord_doc_prepare_sh_geom(&st, geom))
+      goto cleanup;
+  }
+
+  for (morph = doc->lib.morphs.first; morph; morph = morph->next) {
+    for (target = morph->target; target; target = target->next) {
+      if (target->target && target->target->type == AK_MORPHABLE_GEOMETRY
+          && !ak_coord_doc_prepare_sh_geom(&st, ak_objGetTarget(target->target)))
+        goto cleanup;
+    }
+  }
+
   for (geom = doc->lib.geometries.first; geom; geom = geom->next)
     ak_coord_doc_cvt_geom(&st, geom);
 
@@ -1223,6 +1454,10 @@ ak_changeCoordSys(AkDoc * __restrict doc,
 
   if (doc->inf)
     doc->inf->base.coordSys = newCoordSys;
+
+cleanup:
+  if (st.shOwners)
+    ak_map_destroy(st.shOwners);
 
   ak_coord_ptrset_free(&st.nodes);
   ak_coord_ptrset_free(&st.geoms);

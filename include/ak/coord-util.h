@@ -25,16 +25,38 @@ extern "C" {
 struct AkNode;
 struct AkScene;
 
+/*!
+ * @brief Bake a coordinate-system change into the document's geometry and scene data.
+ *
+ * Gaussian splats convert position, quaternion rotation, principal-axis scales,
+ * and complete RGB spherical-harmonic bands through degree 4 together. Opacity
+ * and the DC coefficient remain unchanged. Shared accessors are converted once;
+ * SH inputs that alias other SH inputs receive independent coefficient storage.
+ * Read-only mapped buffers are copied before modification.
+ * Updates the document's coordinate system and invalidates cached bounds.
+ */
 AK_EXPORT
 void
 ak_changeCoordSys(AkDoc * __restrict doc,
                   AkCoordSys * newCoordSys);
 
+/*!
+ * @brief Bake geometry, including Gaussian splats, into a new coordinate system.
+ *
+ * Uses the owning document's coordinate system as the source. Does not change
+ * the document's coordinate metadata or the transforms of geometry instances.
+ */
 AK_EXPORT
 void
 ak_changeCoordSysGeom(AkGeometry * __restrict geom,
                       AkCoordSys * newCoordSys);
 
+/*!
+ * @brief Bake mesh attributes, including Gaussian rotation, scale and SH bands.
+ *
+ * Uses the owning document's coordinate system as the source, without changing
+ * document metadata or instance transforms. Invalidates mesh and primitive bounds.
+ */
 AK_EXPORT
 void
 ak_changeCoordSysMesh(AkMesh * __restrict mesh,

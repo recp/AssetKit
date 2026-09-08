@@ -22,6 +22,9 @@ void
 io_postscript(AkDoc * __restrict doc) {
   AkGeometry *geom;
 
+  if (ak_opt_get(AK_OPT_COORD_CONVERT_TYPE) == AK_COORD_CVT_ALL)
+    ak_changeCoordSys(doc, (void *)ak_opt_get(AK_OPT_COORD));
+
   for (geom = doc->lib.geometries.first; geom; geom = geom->next) {
       AkObject *primitive;
 
