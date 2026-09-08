@@ -294,7 +294,7 @@ ak_path_join(char   *fragments[],
       continue;
     }
 
-    if (len > 1 && *(buf - 1) != CHR_SLASH)
+    if (len > 0 && *(buf - 1) != CHR_SLASH)
       APPEND_SLASH;
 
     /* protocol e.g. http://, tcp:// */

@@ -1556,6 +1556,22 @@ TEST_IMPL(path_short_ref_does_not_overread) {
   ASSERT(path != NULL);
   ASSERT(strstr(path, "a.bin") != NULL);
 
+  inf.dir = ".";
+  path    = ak_fullpathn(&doc, "a.bin", pathbuf, sizeof(pathbuf));
+  ASSERT(path && strcmp(path, "./a.bin") == 0);
+
+  inf.dir = "./";
+  path    = ak_fullpathn(&doc, "a.bin", pathbuf, sizeof(pathbuf));
+  ASSERT(path && strcmp(path, "./a.bin") == 0);
+
+  inf.dir = "a";
+  path    = ak_fullpathn(&doc, "b.bin", pathbuf, sizeof(pathbuf));
+  ASSERT(path && strcmp(path, "a/b.bin") == 0);
+
+  inf.dir = "/";
+  path    = ak_fullpathn(&doc, "a.bin", pathbuf, sizeof(pathbuf));
+  ASSERT(path && strcmp(path, "/a.bin") == 0);
+
   TEST_SUCCESS
 }
 
