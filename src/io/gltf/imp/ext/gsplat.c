@@ -15,6 +15,7 @@
  */
 
 #include "decoder.h"
+#include "lgsc.h"
 #include "../core/ext.h"
 #include "../../../../string_fast.h"
 #include "../../../../../include/ak/gsplat.h"
@@ -83,7 +84,7 @@ bool
 gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
                                 AkMeshPrimitive * __restrict prim,
                                 const json_t    * __restrict jprim) {
-  const json_t    *jext, *jgsplat, *jcomp, *jformat, *jbv;
+  const json_t    *jext, *jgsplat, *jcomp, *jformat, *jbv, *jlgsc;
   const uint8_t   *bytes;
   json_t         *jkernel, *jcolor, *jproj, *jsort;
   AkGaussianSplat *gs;
@@ -122,6 +123,11 @@ gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
                           sizeof("KHR_gaussian_splatting_compression_spz_2") - 1);
   if (!jcomp)
     jcomp = GLTF_JSON_GET(jgsplat, compression);
+
+  jlgsc = gltf_jsonGetLen(GLTF_JSON_GET(jgsplat, extensions),
+                           AK_GLTF_LGSC_EXT, sizeof(AK_GLTF_LGSC_EXT) - 1);
+  if (jlgsc && (jcomp || !gltf_lgsc_primitive(gst, prim, jlgsc)))
+    return false;
 
   if (jcomp) {
     jformat = GLTF_JSON_GET8(jcomp, format);

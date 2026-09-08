@@ -50,6 +50,9 @@ typedef struct AkGLTFState {
   FListItem    *buffers;
   AkBuffer    **buffersByIndex;
   RBTree       *bufferMap;
+  RBTree       *lgscBuffers;
+  uint8_t      *lgscAccessors;
+  uint8_t      *lgscDegrees;
   AkBufferView **bufferViewsByIndex;
   AkAccessor  **accessorsByIndex;
   AkImage     **imagesByIndex;

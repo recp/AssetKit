@@ -266,6 +266,7 @@ ak_package_supported_root(const char * __restrict path) {
          || ak_package_ascii_eq_ci(ext, "obj")
          || ak_package_ascii_eq_ci(ext, "stl")
          || ak_package_ascii_eq_ci(ext, "ply")
+         || ak_package_ascii_eq_ci(ext, "lgsc")
          || ak_package_ascii_eq_ci(ext, "3mf")
          || ak_package_ascii_eq_ci(ext, "zae")
          || ak_package_ascii_eq_ci(ext, "kmz");
@@ -307,6 +308,8 @@ ak_package_file_type(const char * __restrict path) {
     return AK_FILE_TYPE_PLY;
   if (ak_package_ascii_eq_ci(ext, "spz"))
     return AK_FILE_TYPE_SPZ;
+  if (ak_package_ascii_eq_ci(ext, "lgsc"))
+    return AK_FILE_TYPE_LGSC;
   if (ak_package_ascii_eq_ci(ext, "3mf"))
     return AK_FILE_TYPE_3MF;
   return AK_FILE_TYPE_AUTO;
@@ -318,6 +321,7 @@ ak_package_root_is_self_contained(AkFileType fileType) {
   return fileType == AK_FILE_TYPE_STL
          || fileType == AK_FILE_TYPE_PLY
          || fileType == AK_FILE_TYPE_SPZ
+         || fileType == AK_FILE_TYPE_LGSC
          || fileType == AK_FILE_TYPE_3MF
          || fileType == AK_FILE_TYPE_COLLADA;
 }

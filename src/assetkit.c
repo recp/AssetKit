@@ -23,6 +23,7 @@
 #include "io/stl/stl.h"
 #include "io/ply/ply.h"
 #include "io/spz/spz.h"
+#include "io/lgsc/lgsc.h"
 #include "io/3mf/3mf.h"
 #include "io/common/package.h"
 
@@ -577,6 +578,8 @@ ak_probeFileType(const char * __restrict url,
     *fileType = AK_FILE_TYPE_PLY;
   } else if (ak_ascii_streq_ci(extension, "spz")) {
     *fileType = AK_FILE_TYPE_SPZ;
+  } else if (ak_ascii_streq_ci(extension, "lgsc")) {
+    *fileType = AK_FILE_TYPE_LGSC;
   } else if (ak_ascii_streq_ci(extension, "3mf")) {
     *fileType = AK_FILE_TYPE_3MF;
   } else {
@@ -622,6 +625,7 @@ ak_load(AkDoc ** __restrict dest, const char * __restrict url, ...) {
     {"kmz",  dae_archive_doc},
     {"zip",  ak_zip_package_doc},
     {"spz",  spz_doc},
+    {"lgsc", lgsc_doc},
   };
 
   floader = NULL;
@@ -682,6 +686,9 @@ ak_load(AkDoc ** __restrict dest, const char * __restrict url, ...) {
         break;
       case AK_FILE_TYPE_SPZ:
         floader = &floaders[10];
+        break;
+      case AK_FILE_TYPE_LGSC:
+        floader = &floaders[11];
         break;
       default:
         *dest = NULL;

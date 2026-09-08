@@ -51,6 +51,7 @@ typedef enum AkFileType {
   AK_FILE_TYPE_ALEMBIC   = 9,
   AK_FILE_TYPE_GLB       = 10,
   AK_FILE_TYPE_SPZ       = 11,
+  AK_FILE_TYPE_LGSC      = 12,
 
   AK_FILE_TYPE_DAE       = AK_FILE_TYPE_COLLADA,
   AK_FILE_TYPE_OBJ       = AK_FILE_TYPE_WAVEFRONT

@@ -4,6 +4,7 @@ add_executable(assetkit_tests
   src/core/memory.c
   src/core/coord.c
   src/core/gsplat.c
+  src/io/lgsc/import.c
   src/core/format_edge.c
   src/core/render.c
   src/io/common/package.c
@@ -44,6 +45,7 @@ target_include_directories(assetkit_tests PRIVATE
 ak_target_exporter_definitions(assetkit_tests PRIVATE)
 
 target_link_libraries(assetkit_tests PRIVATE ${PROJECT_NAME})
+target_link_libraries(assetkit_tests PRIVATE libdeflate::libdeflate_static)
 
 add_test(NAME assetkit_tests COMMAND assetkit_tests)
 

@@ -47,12 +47,19 @@ Import and export:
 - COLLADA 1.4 / 1.5 — `.dae`
 - Wavefront OBJ — `.obj` and `.mtl`
 - STL — ASCII and binary
-- PLY — ASCII and binary; meshes, point clouds and Gaussian splats
+- PLY — ASCII and binary; meshes and point clouds
 - 3MF — packaged models, resources and manufacturing data
+
+Additional import support:
+
+- Gaussian-splat PLY — scale, rotation, opacity and spherical harmonics
 - SPZ — standalone `.spz` and glTF Gaussian-splat compression
+- L-GSC — standalone `.lgsc` and glTF/GLB Gaussian-splat compression
 
 Draco, meshoptimizer, KTX2/BasisU and SPZ decoding use optional side libraries,
 loaded on demand. They are not linked into the core C library.
+L-GSC decoding is built into the C library and uses the existing libdeflate
+dependency. See [L-GSC support](EXTENSIONS.md#l-gsc) for the glTF draft version.
 
 ### 🚀 Features
 

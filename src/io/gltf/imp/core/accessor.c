@@ -137,6 +137,14 @@ gltf_accessors(json_t * __restrict json,
 
     memset(&accProps, 0, sizeof(accProps));
     gltf_accessorProps(json, &accProps);
+
+    /* L-GSC supplies these streams. Do not copy, densify, or read their
+       placeholder bufferViews; the compression extension overrides them. */
+    if (gst->lgscAccessors && accIndex > 0 && gst->lgscAccessors[accIndex - 1]) {
+      accProps.bufferView = NULL;
+      accProps.byteOffset = NULL;
+      accProps.sparse     = NULL;
+    }
   
     if ((it = accProps.name)) {
       acc->name = json_strdup(it, heap, acc);

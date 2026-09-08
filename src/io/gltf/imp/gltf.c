@@ -32,6 +32,7 @@
 #include "core/anim.h"
 #include "core/skin.h"
 #include "core/ext.h"
+#include "ext/lgsc.h"
 #include "extra.h"
 #include "postscript.h"
 
@@ -188,6 +189,9 @@ gltf_parse(AkDoc     ** __restrict dest,
   
   gltfRawDoc = json_parse_len(contents, contentsLen, true);
   if (!gltfRawDoc || !gltfRawDoc->root) {
+    rb_destroy(gst->bufferMap);
+    rb_destroy(gst->meshTargets);
+    rb_destroy(gst->skinBound);
     ak_free(doc);
 
     if (gltfRawDoc)
@@ -212,6 +216,9 @@ gltf_parse(AkDoc     ** __restrict dest,
                   _s_gltf_extensionsRequired,
                   GLTF_JSON_GET(json, extensionsRequired));
   gltf_ext_root(GLTF_JSON_GET(json, extensions), gst);
+
+  if (!gltf_lgsc_prepare(gst, json))
+    gst->stop = true;
 
   /* json_print_human(stderr, gltfRawDoc->root); */
 
@@ -271,8 +278,14 @@ err:
 
   gltf_ext_close(gst);
 
+  if (gst->lgscBuffers)
+    rb_destroy(gst->lgscBuffers);
+
   /* probably unsupportted version or verion is missing */
   if (ret == AK_EBADF) {
+    rb_destroy(gst->bufferMap);
+    rb_destroy(gst->meshTargets);
+    rb_destroy(gst->skinBound);
     ak_free(doc);
     return ret;
   }

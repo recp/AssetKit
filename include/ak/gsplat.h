@@ -23,7 +23,7 @@ extern "C" {
 #include "common.h"
 
 /*!
- * @brief Gaussian splat metadata for SPZ, Gaussian PLY and glTF.
+ * @brief Gaussian splat metadata for SPZ, L-GSC, Gaussian PLY and glTF.
  *
  * The base extension stores splats as POINT primitives. Per-splat data
  * stays in AkMeshPrimitive.input: AK_INPUT_POSITION, AK_INPUT_ROTATION
@@ -79,8 +79,8 @@ typedef struct AkGaussianSplat {
 /* dlopens it from AK_OPT_GLTF_GSPLAT_DECODER_PATH or, when autoload   */
 /* is enabled, from the standard side-library name.                    */
 /*                                                                     */
-/* The uncompressed base KHR_gaussian_splatting extension does not     */
-/* need this decoder; renderers read primitive accessors directly.     */
+/* L-GSC and the uncompressed base KHR_gaussian_splatting extension do */
+/* not need an external decoder. Renderers read primitive accessors.   */
 /*---------------------------------------------------------------------*/
 
 struct AkHeap;

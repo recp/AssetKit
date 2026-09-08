@@ -69,13 +69,10 @@ gltf_ext_primitiveVariants(AkGLTFState     * __restrict gst,
  * @brief Parse `KHR_gaussian_splatting` on a mesh primitive.
  *
  * Reads `primitive.extensions.KHR_gaussian_splatting.{kernel,colorSpace,
- * projection,sortingMethod}` and populates `prim->gsplat`. If the
- * extension carries a compression sub-extension (future spec) and an
- * external Gaussian splat decoder is loaded (see
- * AK_OPT_GLTF_GSPLAT_DECODER_PATH), the decoder is invoked to populate
- * `gsplat->decodedData`. Without compression and without a decoder the
- * primitive's standard accessor chain stays authoritative — renderers
- * that don't recognize the extension fall back to point-cloud display.
+ * projection,sortingMethod}` and populates `prim->gsplat`. L-GSC compression
+ * is decoded by the built-in C decoder; SPZ uses the optional side decoder
+ * (AK_OPT_GLTF_GSPLAT_DECODER_PATH). Both expose decoded attributes through
+ * the primitive's input/accessor chain, like uncompressed Gaussian splats.
  */
 AK_HIDE
 bool
