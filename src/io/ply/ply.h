@@ -43,6 +43,14 @@ void
 ply_finish(PLYState * __restrict pst);
 
 AK_HIDE
+bool
+ply_splat_prepare(PLYState *pst);
+
+AK_HIDE
+bool
+ply_splat_finish(PLYState *pst, AkMeshPrimitive *prim);
+
+AK_HIDE
 void
 ply_prepare_color_normalization(PLYState * __restrict pst);
 

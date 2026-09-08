@@ -1,7 +1,17 @@
 /*
- * Copyright (C) 2026 Recep Aslantas
+ * Copyright (C) 2020 Recep Aslantas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include "decoder.h"
@@ -73,13 +83,14 @@ bool
 gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
                                 AkMeshPrimitive * __restrict prim,
                                 const json_t    * __restrict jprim) {
-  const json_t    *jext;
-  const json_t    *jgsplat;
-  json_t          *jkernel;
-  json_t          *jcolor;
-  json_t          *jproj;
-  json_t          *jsort;
+  const json_t    *jext, *jgsplat, *jcomp, *jformat, *jbv;
+  const uint8_t   *bytes;
+  json_t         *jkernel, *jcolor, *jproj, *jsort;
   AkGaussianSplat *gs;
+  AkBufferView    *bv;
+  AkInput         *inp, *previous, **link;
+  uint32_t         shMask, degree, mask;
+  int32_t          bvIdx;
 
   if (!gst || !prim || !jprim)
     return true;
@@ -89,7 +100,9 @@ gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
   if (!jgsplat)
     return true;
 
-  gs = ak_heap_calloc(gst->heap, prim, sizeof(*gs));
+  if (prim->type != AK_PRIMITIVE_POINTS
+      || !(gs = ak_heap_calloc(gst->heap, prim, sizeof(*gs))))
+    return false;
 
   jkernel = GLTF_JSON_GET8(jgsplat, kernel);
   jcolor  = GLTF_JSON_GET(jgsplat, colorSpace);
@@ -104,35 +117,63 @@ gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
 
   prim->gsplat = gs;
 
-  {
-    const json_t *jcomp;
-    const json_t *jformat;
-    const json_t *jbv;
-    int32_t       bvIdx;
-    AkBufferView *bv;
+  jcomp = gltf_jsonGetLen(GLTF_JSON_GET(jgsplat, extensions),
+                          "KHR_gaussian_splatting_compression_spz_2",
+                          sizeof("KHR_gaussian_splatting_compression_spz_2") - 1);
+  if (!jcomp)
+    jcomp = GLTF_JSON_GET(jgsplat, compression);
 
-    if ((jcomp = GLTF_JSON_GET(jgsplat, compression))) {
-      jformat = GLTF_JSON_GET8(jcomp, format);
-      jbv     = GLTF_JSON_GET(jcomp, bufferView);
+  if (jcomp) {
+    jformat = GLTF_JSON_GET8(jcomp, format);
+    jbv     = GLTF_JSON_GET(jcomp, bufferView);
 
-      if (jformat && !GLTF_JSON_VAL_EQ8(jformat, spz))
-        return false;
-      if (!jbv)
-        return false;
+    if (jformat && !GLTF_JSON_VAL_EQ8(jformat, spz))
+      return false;
 
-      bvIdx = json_int32(jbv, -1);
-      bv    = gltf_bufferView_at(gst, bvIdx);
-      if (!bv || !bv->buffer || !bv->buffer->data || bv->byteLength == 0)
-        return false;
+    if (!jbv)
+      return false;
 
-      {
-        const uint8_t *bytes;
+    bvIdx = json_int32(jbv, -1);
+    bv    = gltf_bufferView_at(gst, bvIdx);
+    if (!bv || !bv->buffer || !bv->buffer->data || bv->byteLength == 0
+        || bv->byteOffset > bv->buffer->length
+        || bv->byteLength > bv->buffer->length - bv->byteOffset)
+      return false;
 
-        bytes = (const uint8_t *)bv->buffer->data + bv->byteOffset;
-        if (!gltf_ext_spzDecodeBytes(gst, prim, bytes, bv->byteLength))
-          return false;
-      }
+    bytes = (const uint8_t *)bv->buffer->data + bv->byteOffset;
+    if (!gltf_ext_spzDecodeBytes(gst, prim, bytes, bv->byteLength))
+      return false;
+  }
+
+  /* Do not let placeholder accessors shadow the decoded attributes. */
+  shMask = 0;
+  link   = &prim->input;
+
+  while ((inp = *link)) {
+    for (previous = prim->input; previous != inp; previous = previous->next)
+      if (previous->semantic == inp->semantic && previous->set == inp->set
+          && inp->semantic != AK_INPUT_OTHER)
+        break;
+
+    if (previous != inp && gs->decodedCount) {
+      *link = inp->next;
+      prim->inputCount--;
+      ak_free(inp);
+      continue;
     }
+
+    if (inp->semantic == AK_INPUT_SH && inp->set < 25)
+      shMask |= 1u << inp->set;
+
+    link = &inp->next;
+  }
+
+  for (degree = 0; degree <= 4; degree++) {
+    mask = (1u << ((degree + 1) * (degree + 1))) - 1u;
+    if ((shMask & mask) != mask)
+      break;
+
+    gs->shDegree = (uint8_t)degree;
   }
 
   return true;

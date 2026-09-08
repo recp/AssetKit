@@ -217,6 +217,8 @@ ak_cli_file_type_name(AkFileType type) {
       return "stl";
     case AK_FILE_TYPE_PLY:
       return "ply";
+    case AK_FILE_TYPE_SPZ:
+      return "spz";
     case AK_FILE_TYPE_3MF:
       return "3mf";
     case AK_FILE_TYPE_X3D:

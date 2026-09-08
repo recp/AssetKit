@@ -560,10 +560,18 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   } while (p && p[0] != '\0'/* && (c = *++p) != '\0'*/);
 
   /* prepare property offsets/slots */
+  if (!ply_splat_prepare(pst))
+    goto err;
+
   off  = 0;
   elem = pst->element;
 
   while (elem) {
+    if (elem == pst->splatElement) {
+      elem = elem->next;
+      continue;
+    }
+
     pit = elem->property;
     if (elem->type == PLY_ELEM_VERTEX) {
       PLYProperty *px, *py, *pz;
@@ -690,6 +698,9 @@ ply_ply(AkDoc ** __restrict dest, const char * __restrict filepath) {
   } else {
     ply_bin(p, pst, isLittleEndian);
   }
+
+  if (pst->invalid)
+    goto err;
 
   io_postscript(doc);
 
@@ -1152,6 +1163,17 @@ ply_finish(PLYState * __restrict pst) {
     prim->type        = AK_PRIMITIVE_POINTS;
     prim->indexStride = 1;
     prim->nPolygons   = pst->vertcount;
+
+    if (pst->splatElement) {
+      if (!ply_splat_finish(pst, prim)) {
+        pst->invalid = true;
+        return;
+      }
+
+      ply_mesh_add_primitive(mesh, prim);
+      return;
+    }
+
     ply_primitive_attach_inputs(pst,
                                 prim,
                                 pst->ac_rgb

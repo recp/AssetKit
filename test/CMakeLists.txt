@@ -45,3 +45,12 @@ ak_target_exporter_definitions(assetkit_tests PRIVATE)
 target_link_libraries(assetkit_tests PRIVATE ${PROJECT_NAME})
 
 add_test(NAME assetkit_tests COMMAND assetkit_tests)
+
+if(TARGET assetkit_spz AND TARGET spz::spz)
+  add_executable(assetkit_splat_tests src/io/spz/import.cc)
+  target_compile_features(assetkit_splat_tests PRIVATE cxx_std_17)
+  target_include_directories(assetkit_splat_tests PRIVATE ${AK_SPZ_INCLUDE_DIR})
+  target_link_libraries(assetkit_splat_tests PRIVATE assetkit spz::spz)
+  add_dependencies(assetkit_splat_tests assetkit_spz)
+  add_test(NAME assetkit_splat_tests COMMAND assetkit_splat_tests $<TARGET_FILE:assetkit_spz>)
+endif()

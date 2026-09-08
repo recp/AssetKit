@@ -3,6 +3,7 @@ set(CSources
     bin.c
     common.h
     ply.c
+    splat.c
     ply.h
     util.h)
 

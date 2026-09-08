@@ -123,7 +123,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
       if (!elem->buff || elem->buff->length == 0)
         goto finish;
 
-      if (ply_ascii_vertex_direct(elem)) {
+      if (!pst->splatElement && ply_ascii_vertex_direct(elem)) {
         uint32_t j;
 
         do {
@@ -148,6 +148,15 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
           while (prop) {
             AkFloat value;
 
+            if (pst->splatElement) {
+              p = ply_ascii_skip_inline_space(p);
+              if (p >= pst->end || !(*p == '-' || *p == '+' || *p == '.'
+                                     || ak_str_isdigit_fast(*p))) {
+                pst->invalid = true;
+                goto finish;
+              }
+            }
+
             if (prop->islist) {
               p = ply_ascii_skip_property(p, prop);
             } else {
@@ -160,6 +169,7 @@ ply_ascii(char * __restrict src, PLYState * __restrict pst) {
           }
 
           ply_normalize_color_row(pst, b, i);
+          pst->vertexRows = i + 1;
           b += stride;
 
           NEXT_LINE

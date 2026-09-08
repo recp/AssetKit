@@ -267,8 +267,37 @@ gltf_inputSemantic(AkHeap * __restrict heap,
                    json_t  * __restrict jattrib) {
   const char      *semanticSep;
   const char      *raw;
+  const char      *name;
+  size_t           rawLen, len;
+  uint32_t         degree;
   AkInputSemantic  sem;
-  size_t           rawLen;
+
+  /* Gaussian attributes have their own namespace and SH set numbering. */
+  if (jattrib->keysize > (int)(sizeof("KHR_gaussian_splatting:") - 1)
+      && !memcmp(jattrib->key, "KHR_gaussian_splatting:", sizeof("KHR_gaussian_splatting:") - 1)) {
+    name = jattrib->key + sizeof("KHR_gaussian_splatting:") - 1;
+    len  = jattrib->keysize - (sizeof("KHR_gaussian_splatting:") - 1);
+    sem  = AK_INPUT_OTHER;
+
+    if (len == 8 && !memcmp(name, "ROTATION", 8))
+      sem = AK_INPUT_ROTATION;
+    else if (len == 5 && !memcmp(name, "SCALE", 5))
+      sem = AK_INPUT_SCALE;
+    else if (len == 7 && !memcmp(name, "OPACITY", 7))
+      sem = AK_INPUT_OPACITY;
+    else if (len == 18 && !memcmp(name, "SH_DEGREE_", 10)
+             && name[10] >= '0' && name[10] <= '4'
+             && !memcmp(name + 11, "_COEF_", 6)
+             && name[17] >= '0' && name[17] <= '0' + 2 * (name[10] - '0')) {
+      degree   = (uint32_t)(name[10] - '0');
+      sem      = AK_INPUT_SH;
+      inp->set = degree * degree + (uint32_t)(name[17] - '0');
+    }
+
+    inp->semantic    = sem;
+    inp->semanticRaw = ak_heap_strndup(heap, inp, jattrib->key, jattrib->keysize);
+    return;
+  }
 
   if (gltf_attrKnownIndexedZero(jattrib->key,
                                 jattrib->keysize,

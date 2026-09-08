@@ -29,7 +29,7 @@
 #  define PLY_BIN_HAS_NEON_RGBA 0
 #endif
 
-#define PLY_BIN_FAST_MAX_SLOTS 16
+#define PLY_BIN_FAST_MAX_SLOTS 86
 #define PLY_FACE_INLINE_CAPACITY 64u
 
 typedef enum PLYBinFastKind {
@@ -419,7 +419,10 @@ ply_bin(char * __restrict src, PLYState * __restrict pst, bool le) {
           ply_normalize_color_row(pst, b, i);
           b += stride;
           i++;
+          pst->vertexRows = i;
         }
+      } else {
+        pst->vertexRows = elemc;
       }
     } else if (elem->type == PLY_ELEM_FACE) {
       AkUInt *f, fc, j, count, valid, elemc;

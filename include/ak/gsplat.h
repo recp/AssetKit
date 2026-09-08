@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 Recep Aslantas
+ * Copyright (C) 2020 Recep Aslantas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,17 @@ extern "C" {
 #include "common.h"
 
 /*!
- * @brief KHR_gaussian_splatting metadata.
+ * @brief Gaussian splat metadata for SPZ, Gaussian PLY and glTF.
  *
  * The base extension stores splats as POINT primitives. Per-splat data
- * stays in AkMeshPrimitive.input (POSITION, ROTATION, SCALE, OPACITY,
- * COLOR_0..COLOR_15). This struct stores only the extension-level
- * rendering hints and optional decoder output for compressed payloads.
+ * stays in AkMeshPrimitive.input: AK_INPUT_POSITION, AK_INPUT_ROTATION
+ * (unit quaternion, xyzw), AK_INPUT_SCALE (linear), AK_INPUT_OPACITY
+ * (0..1), and AK_INPUT_SH (unmodified RGB coefficients). SH input sets
+ * use degree * degree + coefficient: DC is set 0, degree 1 is 1..3,
+ * degree 2 is 4..8, degree 3 is 9..15, degree 4 is 16..24.
+ * Evaluate all SH terms before converting the reconstructed color from
+ * colorSpace. The DC-only color is 0.5 + 0.28209479177387814 * SH[0].
+ * All inputs and buffers belong to the document heap.
  */
 
 typedef enum AkGaussianSplatKernel {
@@ -58,10 +63,12 @@ typedef struct AkGaussianSplat {
   AkGaussianSplatProjection    projection;
   AkGaussianSplatSortingMethod sortingMethod;
 
-  /* Filled by an optional decoder when a compression extension is present. */
+  /* Optional opaque payload; the built-in decoder uses primitive inputs. */
   void                        *decodedData;     /* opaque, decoder-owned */
-  uint32_t                     decodedCount;     /* decoded splat count */
-  uint32_t                     padding;
+  uint32_t                     decodedCount;    /* decoded splat count */
+  uint8_t                      shDegree;        /* highest complete SH degree */
+  bool                         antialiased;     /* trained with mip-splat filtering */
+  uint8_t                      reserved[2];
 } AkGaussianSplat;
 
 /*---------------------------------------------------------------------*/

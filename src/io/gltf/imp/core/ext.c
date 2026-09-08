@@ -148,6 +148,9 @@ gltf_ext_supported(AkGLTFState      * __restrict gst,
     return gltf_ext_draco(gst);
   if (GLTF_JSON_VAL_EQ(ext, KHR_texture_basisu))
     return gltf_ext_ktx2(gst);
+  if (ext->valsize == sizeof("KHR_gaussian_splatting_compression_spz_2") - 1
+      && !memcmp(json_string(ext), "KHR_gaussian_splatting_compression_spz_2", ext->valsize))
+    return gltf_ext_spz(gst);
   if (gltf_ext_preserved_supported(ext))
     return true;
 

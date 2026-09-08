@@ -47,9 +47,9 @@ Import and export:
 - COLLADA 1.4 / 1.5 — `.dae`
 - Wavefront OBJ — `.obj` and `.mtl`
 - STL — ASCII and binary
-- PLY — ASCII and binary
+- PLY — ASCII and binary; meshes, point clouds and Gaussian splats
 - 3MF — packaged models, resources and manufacturing data
-- SPZ / Gaussian Splatting as glTF Extension ( direct .spz and others are in TODOs )
+- SPZ — standalone `.spz` and glTF Gaussian-splat compression
 
 Draco, meshoptimizer, KTX2/BasisU and SPZ decoding use optional side libraries,
 loaded on demand. They are not linked into the core C library.

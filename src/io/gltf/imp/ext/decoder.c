@@ -1,13 +1,24 @@
 /*
- * Copyright (C) 2026 Recep Aslantas
+ * Copyright (C) 2020 Recep Aslantas
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include "decoder.h"
 #include "../core/ext.h"
 #include "../../../../platform/dylib.h"
 #include "../../../../../include/ak/gsplat.h"
+#include "../../../spz/spz.h"
 
 typedef int
 (*AkMeshoptDecodeBufferFn)(void                *destination,
@@ -35,12 +46,6 @@ struct AkGLTFDracoLib {
   void                       *lib;
   AkDracoDecodePrimitiveFn    decodePrimitive;
   bool                        tried;
-};
-
-struct AkGLTFSPZLib {
-  void                            *lib;
-  AkGaussianSplatDecoder           decoder;
-  bool                             tried;
 };
 
 struct AkGLTFKTX2Lib {
@@ -125,32 +130,11 @@ gltf_ext_meshopt(AkGLTFState * __restrict gst) {
 AK_HIDE
 bool
 gltf_ext_spz(AkGLTFState * __restrict gst) {
-  AkGLTFSPZLib                    *sp;
-  AkGaussianSplatDecoderCreateFn   createFn;
-  void                            *lib;
-
   if (gst->spz)
     return gltf_ext_spzReady(gst->spz);
-
-  sp        = ak_calloc(NULL, sizeof(*sp));
-  sp->tried = true;
-  gst->spz  = sp;
-
-  lib = gltf_ext_openLib(AK_OPT_GLTF_GSPLAT_DECODER_PATH,
-                         "assetkit_spz");
-  if (!lib)
+  if (!(gst->spz = ak_calloc(NULL, sizeof(*gst->spz))))
     return false;
-
-  createFn = (AkGaussianSplatDecoderCreateFn)
-              ak_dylib_sym(lib, "assetkit_gsplat_create");
-  if (!createFn || createFn(&sp->decoder) != 0
-      || !gltf_ext_spzReady(sp)) {
-    ak_dylib_close(lib);
-    return false;
-  }
-
-  sp->lib = lib;
-  return true;
+  return spz_decoderOpen(gst->spz);
 }
 
 AK_HIDE
@@ -306,10 +290,7 @@ gltf_ext_decoderClose(AkGLTFState * __restrict gst) {
   }
 
   if (gst->spz) {
-    if (gst->spz->decoder.close)
-      gst->spz->decoder.close(gst->spz->decoder.userdata);
-    if (gst->spz->lib)
-      ak_dylib_close(gst->spz->lib);
+    spz_decoderClose(gst->spz);
     ak_free(gst->spz);
     gst->spz = NULL;
   }

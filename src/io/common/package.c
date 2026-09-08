@@ -305,6 +305,8 @@ ak_package_file_type(const char * __restrict path) {
     return AK_FILE_TYPE_STL;
   if (ak_package_ascii_eq_ci(ext, "ply"))
     return AK_FILE_TYPE_PLY;
+  if (ak_package_ascii_eq_ci(ext, "spz"))
+    return AK_FILE_TYPE_SPZ;
   if (ak_package_ascii_eq_ci(ext, "3mf"))
     return AK_FILE_TYPE_3MF;
   return AK_FILE_TYPE_AUTO;
@@ -315,6 +317,7 @@ bool
 ak_package_root_is_self_contained(AkFileType fileType) {
   return fileType == AK_FILE_TYPE_STL
          || fileType == AK_FILE_TYPE_PLY
+         || fileType == AK_FILE_TYPE_SPZ
          || fileType == AK_FILE_TYPE_3MF
          || fileType == AK_FILE_TYPE_COLLADA;
 }

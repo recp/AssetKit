@@ -59,8 +59,11 @@ const AkInputSemanticPair* ak_def_sm_pairs[] = {
   /* _TEXCOORD        */ &ak_def_params[AK_PUSER],
   /* _TEXTANGENT      */ &ak_def_params[AK_PUSER],
   /* _UV              */ &ak_def_params[AK_PUSER],
-  /* _VERTEX          */ &ak_def_params[AK_PUSER],
-  /* _WEIGHT          */ &ak_def_params[AK_PUSER]
+  /* _WEIGHT          */ &ak_def_params[AK_PUSER],
+  /* _ROTATION        */ &ak_def_params[AK_PUSER],
+  /* _SCALE           */ &ak_def_params[AK_PUSER],
+  /* _OPACITY         */ &ak_def_params[AK_PUSER],
+  /* _SH              */ &ak_def_params[AK_PUSER]
 };
 
 const AkInputSemanticPair**

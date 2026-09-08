@@ -50,6 +50,7 @@ typedef enum AkFileType {
   AK_FILE_TYPE_USD       = 8,
   AK_FILE_TYPE_ALEMBIC   = 9,
   AK_FILE_TYPE_GLB       = 10,
+  AK_FILE_TYPE_SPZ       = 11,
 
   AK_FILE_TYPE_DAE       = AK_FILE_TYPE_COLLADA,
   AK_FILE_TYPE_OBJ       = AK_FILE_TYPE_WAVEFRONT
@@ -83,7 +84,11 @@ typedef enum AkInputSemantic {
   AK_INPUT_TEXCOORD        = 19,
   AK_INPUT_TEXTANGENT      = 20,
   AK_INPUT_UV              = 21,
-  AK_INPUT_WEIGHT          = 22
+  AK_INPUT_WEIGHT          = 22,
+  AK_INPUT_ROTATION        = 23, /* unit quaternion, xyzw */
+  AK_INPUT_SCALE           = 24, /* linear scale along local principal axes */
+  AK_INPUT_OPACITY         = 25, /* linear opacity, 0..1 */
+  AK_INPUT_SH              = 26  /* RGB SH coefficient; set = degree² + coefficient */
 } AkInputSemantic;
 
 typedef enum AkCurveElementType {
