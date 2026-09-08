@@ -149,6 +149,12 @@ ak_coordCvtAccessorVec3(AkAccessor * __restrict acc,
                         bool                    noSign);
 
 AK_HIDE
+bool
+ak_coordCvtAccessorTangent(AkAccessor * __restrict acc,
+                           AkCoordSys * __restrict oldCoordSys,
+                           AkCoordSys * __restrict newCoordSys);
+
+AK_HIDE
 void
 ak_coordCvtMatrixTo(AkCoordSys * __restrict oldCoordSys,
                     float                   matrix[4][4],

@@ -713,11 +713,14 @@ ak_coord_doc_cvt_input(AkCoordDocCvt * __restrict st,
     switch (input->semantic) {
       case AK_INPUT_POSITION:
       case AK_INPUT_NORMAL:
-      case AK_INPUT_TANGENT:
       case AK_INPUT_BINORMAL:
       case AK_INPUT_TEXBINORMAL:
       case AK_INPUT_TEXTANGENT:
         ak_coord_doc_cvt_vec3(st, input->accessor, false);
+        break;
+      case AK_INPUT_TANGENT:
+        if (input->accessor && !ak_coord_ptrset_seen(&st->accessors, input->accessor))
+          ak_coordCvtAccessorTangent(input->accessor, st->oldCoordSys, st->newCoordSys);
         break;
       case AK_INPUT_SCALE:
         ak_coord_doc_cvt_vec3(st, input->accessor, true);

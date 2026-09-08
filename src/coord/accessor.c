@@ -60,16 +60,19 @@ ak_coordBufferWritable(AkBuffer *buffer) {
   return true;
 }
 
-AK_HIDE
+static
 bool
-ak_coordCvtAccessorVec3(AkAccessor * __restrict acc,
-                        AkCoordSys * __restrict oldCoordSys,
-                        AkCoordSys * __restrict newCoordSys,
-                        bool                    noSign) {
+ak_coord_cvt_accessor_vector(AkAccessor * __restrict acc,
+                              AkCoordSys * __restrict oldCoordSys,
+                              AkCoordSys * __restrict newCoordSys,
+                              bool                    noSign,
+                              bool                    tangent) {
+  unsigned char *data, *row;
+  size_t         rowBytes, valueBytes, stride, last, offset[3];
   AkAxisAccessor a0, a1;
-  unsigned char *data;
-  size_t         rowBytes, stride, last;
   uint32_t       i;
+  float          values[3], sign[3], w;
+  bool           flipW;
 
   if (!acc
       || !oldCoordSys
@@ -91,9 +94,15 @@ ak_coordCvtAccessorVec3(AkAccessor * __restrict acc,
       || !acc->buffer->data)
     return false;
 
-  rowBytes = (size_t)acc->componentCount * sizeof(float);
-  stride   = acc->byteStride ? acc->byteStride : rowBytes;
-  if (stride < sizeof(float) * 3u
+  /* Keep B = cross(N, T) * w consistent across reflections.
+     Morph tangent deltas are VEC3 and have no handedness component. */
+  flipW      = tangent && acc->componentCount == 4
+               && (oldCoordSys->rotDirection + 1) * (newCoordSys->rotDirection + 1) < 0;
+  rowBytes   = (size_t)acc->componentCount * sizeof(float);
+  valueBytes = (flipW ? 4u : 3u) * sizeof(float);
+  stride     = acc->byteStride ? acc->byteStride : rowBytes;
+
+  if (stride < valueBytes
       || acc->byteOffset > acc->buffer->length)
     return false;
 
@@ -101,7 +110,7 @@ ak_coordCvtAccessorVec3(AkAccessor * __restrict acc,
     return false;
   last = acc->byteOffset + (size_t)(acc->count - 1u) * stride;
   if (last > acc->buffer->length
-      || sizeof(float) * 3u > acc->buffer->length - last)
+      || valueBytes > acc->buffer->length - last)
     return false;
 
   if (!ak_coordBufferWritable(acc->buffer))
@@ -110,20 +119,47 @@ ak_coordCvtAccessorVec3(AkAccessor * __restrict acc,
   data = (unsigned char *)acc->buffer->data + acc->byteOffset;
   ak_coordAxisAccessors(oldCoordSys, newCoordSys, &a0, &a1);
 
-  for (i = 0; i < acc->count; i++) {
-    unsigned char *row;
-    float          values[3];
-    float  tmp[3];
+  offset[a1.right] = (size_t)a0.right * sizeof(float);
+  offset[a1.up]    = (size_t)a0.up    * sizeof(float);
+  offset[a1.fwd]   = (size_t)a0.fwd   * sizeof(float);
+  sign[a1.right]   = noSign ? 1.0f : (float)(a0.s_right * a1.s_right);
+  sign[a1.up]      = noSign ? 1.0f : (float)(a0.s_up    * a1.s_up);
+  sign[a1.fwd]     = noSign ? 1.0f : (float)(a0.s_fwd   * a1.s_fwd);
 
+  for (i = 0; i < acc->count; i++) {
     row = data + (size_t)i * stride;
-    memcpy(values, row, sizeof(values));
-    if (noSign) {
-      AK_CVT_VEC_NOSIGN(values);
-    } else {
-      AK_CVT_VEC(values);
-    }
+    memcpy(&values[0], row + offset[0], sizeof(float));
+    memcpy(&values[1], row + offset[1], sizeof(float));
+    memcpy(&values[2], row + offset[2], sizeof(float));
+
+    values[0] *= sign[0];
+    values[1] *= sign[1];
+    values[2] *= sign[2];
     memcpy(row, values, sizeof(values));
+
+    if (flipW) {
+      memcpy(&w, row + sizeof(values), sizeof(w));
+      w = -w;
+      memcpy(row + sizeof(values), &w, sizeof(w));
+    }
   }
 
   return true;
+}
+
+AK_HIDE
+bool
+ak_coordCvtAccessorVec3(AkAccessor * __restrict acc,
+                        AkCoordSys * __restrict oldCoordSys,
+                        AkCoordSys * __restrict newCoordSys,
+                        bool                    noSign) {
+  return ak_coord_cvt_accessor_vector(acc, oldCoordSys, newCoordSys, noSign, false);
+}
+
+AK_HIDE
+bool
+ak_coordCvtAccessorTangent(AkAccessor * __restrict acc,
+                           AkCoordSys * __restrict oldCoordSys,
+                           AkCoordSys * __restrict newCoordSys) {
+  return ak_coord_cvt_accessor_vector(acc, oldCoordSys, newCoordSys, false, true);
 }

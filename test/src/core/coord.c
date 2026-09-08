@@ -632,3 +632,131 @@ TEST_IMPL(coord_change_rotation_handedness_matches_matrix) {
 
   TEST_SUCCESS
 }
+
+TEST_IMPL(coord_mesh_tangent_handedness) {
+  AkCoordSys *coords[] = {AK_YUP, AK_ZUP, AK_XUP, AK_YUP_LH, AK_ZUP_LH, AK_XUP_LH};
+  AkHeap          *heap;
+  AkDoc           *doc;
+  AkGeometry      *geom;
+  AkMesh          *mesh;
+  AkMeshPrimitive *prim, *shared, *deltaPrim;
+  AkInput         *normal, *tangent, *delta;
+  AkAccessor      *acc;
+  AkBuffer        *buffer;
+  unsigned char   *bytes;
+  int16_t         *shorts;
+  size_t           stride;
+  uint32_t         from, to, layout, entry, row, c;
+  float            oldNormals[9], oldTangents[12], newNormals[9], newTangents[12], newDeltas[9];
+  vec3             bitangent, expected, expectedDelta;
+  const float      positions[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  const float      normals[9]   = {0, 0, 1, 0, 0, 1, 0, 0, 1};
+  const float      tangents[12] = {0.6f, 0.8f, 0, 1, 0.6f, 0.8f, 0, -1, 0.6f, 0.8f, 0, 1};
+  const float      deltas[9]    = {0.1f, 0.2f, 0.3f, -0.2f, 0.4f, 0.1f, 0.3f, -0.1f, 0.2f};
+
+  for (from = 0; from < 6; from++) {
+    for (to = 0; to < 6; to++) {
+      for (layout = 0; layout < 3; layout++) {
+        for (entry = 0; entry < 3; entry++) {
+          heap = ak_heap_new(NULL, NULL, NULL);
+          doc  = ak_heap_calloc(heap, NULL, sizeof(*doc));
+          ak_heap_setdata(heap, doc);
+          doc->coordSys = coords[from];
+
+          geom = ak_test_make_triangle_geom(heap, doc, positions);
+          mesh = ak_objGet(geom->gdata);
+          prim = mesh->primitive;
+          doc->lib.geometries.first = geom;
+
+          normal  = ak_heap_calloc(heap, prim, sizeof(*normal));
+          tangent = ak_heap_calloc(heap, prim, sizeof(*tangent));
+          delta   = ak_heap_calloc(heap, prim, sizeof(*delta));
+
+          normal->semantic  = AK_INPUT_NORMAL;
+          normal->accessor  = ak_test_make_float_accessor(heap, normal, normals, 3, 3);
+          tangent->semantic = AK_INPUT_TANGENT;
+          tangent->accessor = ak_test_make_float_accessor(heap, tangent, tangents, 4, 3);
+          delta->semantic   = AK_INPUT_TANGENT;
+          delta->accessor   = ak_test_make_float_accessor(heap, delta, deltas, 3, 3);
+          prim->pos->next    = normal;
+          normal->next      = tangent;
+
+          acc               = tangent->accessor;
+          stride            = layout == 1 ? 4 * sizeof(int16_t)
+                                          : 4 * sizeof(float) + (layout == 0);
+          buffer            = ak_heap_calloc(heap, acc, sizeof(*buffer));
+          buffer->length    = 3 * stride;
+          buffer->data      = ak_heap_calloc(heap, buffer, buffer->length);
+          acc->buffer       = buffer;
+          acc->byteStride   = stride;
+          acc->byteLength   = buffer->length;
+          acc->fillByteSize = layout == 1 ? 4 * sizeof(int16_t) : 4 * sizeof(float);
+
+          if (layout == 1) {
+            shorts                     = buffer->data;
+            acc->componentType         = AKT_SHORT;
+            acc->bytesPerComponent     = sizeof(int16_t);
+            acc->normalized            = true;
+            acc->originalComponentType = AKT_SHORT;
+            acc->originallyNormalized  = true;
+
+            for (c = 0; c < 12; c++)
+              shorts[c] = (int16_t)roundf(tangents[c] * 32767.0f);
+          } else {
+            bytes           = buffer->data;
+            acc->byteOffset = layout == 0 ? 1 : 0;
+
+            for (row = 0; row < 3; row++)
+              memcpy(bytes + row * stride + acc->byteOffset,
+                     tangents + row * 4, 4 * sizeof(float));
+
+            if (layout == 2)
+              acc->byteStride = 0;
+          }
+
+          /* The same tangent accessor must not have its sign flipped twice.
+             VEC3 tangents, as used by morph deltas, have no handedness field. */
+          shared           = ak_heap_alloc(heap, ak_objFrom(mesh), sizeof(*shared));
+          deltaPrim        = ak_heap_alloc(heap, ak_objFrom(mesh), sizeof(*deltaPrim));
+          *shared          = *prim;
+          *deltaPrim       = *prim;
+          prim->next       = shared;
+          shared->next     = deltaPrim;
+          deltaPrim->input = delta;
+
+          ASSERT(ak_accessorAsFloat(normal->accessor, oldNormals, 9) == 9);
+          ASSERT(ak_accessorAsFloat(tangent->accessor, oldTangents, 12) == 12);
+
+          switch (entry) {
+            case 0: ak_changeCoordSys(doc, coords[to]); break;
+            case 1: ak_changeCoordSysGeom(geom, coords[to]); break;
+            case 2: ak_changeCoordSysMesh(mesh, coords[to]); break;
+          }
+
+          ASSERT(ak_accessorAsFloat(normal->accessor, newNormals, 9) == 9);
+          ASSERT(ak_accessorAsFloat(tangent->accessor, newTangents, 12) == 12);
+          ASSERT(ak_accessorAsFloat(delta->accessor, newDeltas, 9) == 9);
+
+          for (row = 0; row < 3; row++) {
+            glm_vec3_cross(oldNormals + row * 3, oldTangents + row * 4, bitangent);
+            glm_vec3_scale(bitangent, oldTangents[row * 4 + 3], bitangent);
+            ak_coordCvtVectorTo(coords[from], bitangent, coords[to], expected);
+            glm_vec3_cross(newNormals + row * 3, newTangents + row * 4, bitangent);
+            glm_vec3_scale(bitangent, newTangents[row * 4 + 3], bitangent);
+            memcpy(expectedDelta, deltas + row * 3, sizeof(expectedDelta));
+            ak_coordCvtVector(coords[from], expectedDelta, coords[to]);
+
+            for (c = 0; c < 3; c++) {
+              ASSERT(ak_test_near(bitangent[c], expected[c]));
+              ASSERT(ak_test_near(newDeltas[row * 3 + c], expectedDelta[c]));
+            }
+          }
+
+          ak_heap_destroy(heap);
+        }
+      }
+    }
+  }
+
+  TEST_SUCCESS
+}
