@@ -313,6 +313,9 @@ const char _s_gltf_pool_1[] =
 "2.0\0"
 "2.1\0"
 "AssetKit\0"
+"ellipse\0"
+"cameraDistance\0"
+"KHR_gaussian_splatting_compression_spz_2\0"
 ;
 
 #undef _GLTF_STRPOOL_

@@ -928,5 +928,13 @@ _AK_EXTERN const char _s_gltf_pool_1[];
 #define _s_gltf_generatorAssetKit_len 8
 #define _s_gltf_generatorAssetKit_u64 0x74696b7465737361ull
 #define _s_gltf_generatorAssetKit_u64_exact 0x74694b7465737341ull
+#define _s_gltf_ellipse _s_gltf_1(1805)
+#define _s_gltf_ellipse_len 7
+#define _s_gltf_ellipse_u64 0x00657370696c6c65ull
+#define _s_gltf_ellipse_u64_exact 0x00657370696c6c65ull
+#define _s_gltf_cameraDistance _s_gltf_1(1813)
+#define _s_gltf_cameraDistance_len 14
+#define _s_gltf_KHR_gaussian_splatting_compression_spz_2 _s_gltf_1(1828)
+#define _s_gltf_KHR_gaussian_splatting_compression_spz_2_len 40
 
 #endif /* gltf_strpool_h */

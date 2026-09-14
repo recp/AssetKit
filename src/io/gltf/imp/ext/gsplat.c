@@ -23,10 +23,12 @@
 static
 AkGaussianSplatColorSpace
 gltf_gsplatColorSpace(const json_t * __restrict v) {
-  size_t      sz;
   const char *s;
+  size_t      sz;
 
   if (!v)
+    return AK_GSPLAT_COLOR_SRGB_REC709_DISPLAY;
+  if (v->type != JSON_STRING)
     return AK_GSPLAT_COLOR_UNKNOWN;
 
   s  = json_string(v);
@@ -45,40 +47,6 @@ gltf_gsplatColorSpace(const json_t * __restrict v) {
   return AK_GSPLAT_COLOR_UNKNOWN;
 }
 
-static
-AkGaussianSplatProjection
-gltf_gsplatProjection(const json_t * __restrict v) {
-  size_t      sz;
-  const char *s;
-
-  if (!v)
-    return AK_GSPLAT_PROJECTION_PERSPECTIVE;
-
-  s  = json_string(v);
-  sz = v->valsize;
-  if (ak_str_eq_fast(s, sz, _s_gltf_orthographic, _s_gltf_orthographic_len))
-    return AK_GSPLAT_PROJECTION_ORTHOGRAPHIC;
-
-  return AK_GSPLAT_PROJECTION_PERSPECTIVE;
-}
-
-static
-AkGaussianSplatSortingMethod
-gltf_gsplatSorting(const json_t * __restrict v) {
-  size_t      sz;
-  const char *s;
-
-  if (!v)
-    return AK_GSPLAT_SORTING_CAMERA_DISTANCE;
-
-  s  = json_string(v);
-  sz = v->valsize;
-  if (ak_str_eq_packed_fast(s, sz, _s_gltf_none_u64_exact, _s_gltf_none_len))
-    return AK_GSPLAT_SORTING_NONE;
-
-  return AK_GSPLAT_SORTING_CAMERA_DISTANCE;
-}
-
 AK_HIDE
 bool
 gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
@@ -89,8 +57,9 @@ gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
   json_t         *jkernel, *jcolor, *jproj, *jsort;
   AkGaussianSplat *gs;
   AkBufferView    *bv;
-  AkInput         *inp, *previous, **link;
-  uint32_t         shMask, degree, mask;
+  AkInput         *inp, *previous, *declared, **link;
+  AkAccessor      *acc;
+  uint32_t         shMask, degree, mask, count, fields, width;
   int32_t          bvIdx;
 
   if (!gst || !prim || !jprim)
@@ -101,7 +70,7 @@ gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
   if (!jgsplat)
     return true;
 
-  if (prim->type != AK_PRIMITIVE_POINTS
+  if (jgsplat->type != JSON_OBJECT || prim->type != AK_PRIMITIVE_POINTS
       || !(gs = ak_heap_calloc(gst->heap, prim, sizeof(*gs))))
     return false;
 
@@ -110,17 +79,24 @@ gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
   jproj   = GLTF_JSON_GET(jgsplat, projection);
   jsort   = GLTF_JSON_GET(jgsplat, sortingMethod);
 
-  (void)jkernel;
+  /* Early drafts omitted kernel/colorSpace. Preserve those defaults, but
+     never interpret an explicitly different kernel as an ellipse. */
+  if ((jkernel && (jkernel->type != JSON_STRING || !GLTF_JSON_VAL_EQ8(jkernel, ellipse)))
+      || (jproj && (jproj->type != JSON_STRING || !GLTF_JSON_VAL_EQ(jproj, perspective)))
+      || (jsort && (jsort->type != JSON_STRING || !GLTF_JSON_VAL_EQ(jsort, cameraDistance))))
+    return false;
+
   gs->kernel        = AK_GSPLAT_KERNEL_ELLIPSE;
   gs->colorSpace    = gltf_gsplatColorSpace(jcolor);
-  gs->projection    = gltf_gsplatProjection(jproj);
-  gs->sortingMethod = gltf_gsplatSorting(jsort);
+  gs->projection    = AK_GSPLAT_PROJECTION_PERSPECTIVE;
+  gs->sortingMethod = AK_GSPLAT_SORTING_CAMERA_DISTANCE;
+  if (gs->colorSpace == AK_GSPLAT_COLOR_UNKNOWN)
+    return false;
 
   prim->gsplat = gs;
+  declared     = prim->input;
 
-  jcomp = gltf_jsonGetLen(GLTF_JSON_GET(jgsplat, extensions),
-                          "KHR_gaussian_splatting_compression_spz_2",
-                          sizeof("KHR_gaussian_splatting_compression_spz_2") - 1);
+  jcomp = GLTF_JSON_GET(GLTF_JSON_GET(jgsplat, extensions), KHR_gaussian_splatting_compression_spz_2);
   if (!jcomp)
     jcomp = GLTF_JSON_GET(jgsplat, compression);
 
@@ -130,10 +106,13 @@ gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
     return false;
 
   if (jcomp) {
+    if (jcomp->type != JSON_OBJECT)
+      return false;
+
     jformat = GLTF_JSON_GET8(jcomp, format);
     jbv     = GLTF_JSON_GET(jcomp, bufferView);
 
-    if (jformat && !GLTF_JSON_VAL_EQ8(jformat, spz))
+    if (jformat && (jformat->type != JSON_STRING || !GLTF_JSON_VAL_EQ8(jformat, spz)))
       return false;
 
     if (!jbv)
@@ -149,10 +128,19 @@ gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
     bytes = (const uint8_t *)bv->buffer->data + bv->byteOffset;
     if (!gltf_ext_spzDecodeBytes(gst, prim, bytes, bv->byteLength))
       return false;
+
+    /* Compare before removing placeholders; the decoder owns the final data. */
+    for (inp = declared; inp; inp = inp->next)
+      if (!inp->accessor || inp->accessor->count != gs->decodedCount)
+        return false;
   }
 
   /* Do not let placeholder accessors shadow the decoded attributes. */
+  if (!prim->pos || !prim->pos->accessor || !(count = prim->pos->accessor->count))
+    return false;
+
   shMask = 0;
+  fields = 0;
   link   = &prim->input;
 
   while ((inp = *link)) {
@@ -168,19 +156,45 @@ gltf_ext_primitiveGaussianSplat(AkGLTFState     * __restrict gst,
       continue;
     }
 
+    if (previous != inp || !(acc = inp->accessor) || acc->count != count)
+      return false;
+
+    width = 3;
+
+    switch (inp->semantic) {
+      case AK_INPUT_POSITION: fields |= 1u; break;
+      case AK_INPUT_ROTATION: fields |= 2u; width = 4; break;
+      case AK_INPUT_SCALE: fields |= 4u; break;
+      case AK_INPUT_OPACITY: fields |= 8u; width = 1; break;
+      case AK_INPUT_SH:
+        if (inp->set >= 25)
+          return false;
+        break;
+      default: width = 0; break;
+    }
+
+    if (width && (acc->componentCount != width || acc->componentSize != (AkComponentSize)width))
+      return false;
+
     if (inp->semantic == AK_INPUT_SH && inp->set < 25)
       shMask |= 1u << inp->set;
 
     link = &inp->next;
   }
 
+  if (fields != 15u || !(shMask & 1u))
+    return false;
+
   for (degree = 0; degree <= 4; degree++) {
     mask = (1u << ((degree + 1) * (degree + 1))) - 1u;
-    if ((shMask & mask) != mask)
+    if (shMask == mask)
       break;
-
-    gs->shDegree = (uint8_t)degree;
   }
+
+  if (degree > 4)
+    return false;
+
+  gs->shDegree = (uint8_t)degree;
 
   return true;
 }

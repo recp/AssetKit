@@ -286,5 +286,8 @@
   "scatterAnisotropy": "scatterAnisotropy",
   "version2": "2.0",
   "version21": "2.1",
-  "generatorAssetKit": "AssetKit"
+  "generatorAssetKit": "AssetKit",
+  "ellipse": "ellipse",
+  "cameraDistance": "cameraDistance",
+  "KHR_gaussian_splatting_compression_spz_2": "KHR_gaussian_splatting_compression_spz_2"
 }

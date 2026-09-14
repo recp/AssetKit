@@ -239,6 +239,24 @@ int main(int argc, char **argv) {
   ak_free(doc);
   check_coord_load(path);
 
+  {
+    std::ifstream source(path);
+    std::string json((std::istreambuf_iterator<char>(source)), {});
+    const std::string count = "\"count\":2";
+    size_t offset = json.find(count);
+
+    CHECK(offset != std::string::npos);
+    json.replace(offset, count.size(), "\"count\":1");
+    path = dir / "wrong-count.gltf";
+
+    {
+      std::ofstream out(path);
+      out << json;
+    }
+
+    CHECK(ak_load(&doc, path.c_str(), AK_FILE_TYPE_AUTO) != AK_OK && !doc);
+  }
+
   /* Uncompressed namespaced inputs, including the SH band/index mapping. */
   {
     std::ofstream out(dir / "plain.bin", std::ios::binary);

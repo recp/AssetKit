@@ -66,6 +66,62 @@ ak_test_sh_value(uint32_t row, uint32_t set, uint32_t channel) {
   return sinf((float)(row * 75 + set * 3 + channel + 1) * 0.31f) * 0.7f;
 }
 
+TEST_IMPL(gltf_gaussian_validation) {
+  static const char *metadata[] = {
+    "\"kernel\":\"ellipse\",\"colorSpace\":\"srgb_rec709_display\"",
+    "\"kernel\":\"other\"", "\"kernel\":1", "\"kernel\":null",
+    "\"colorSpace\":\"other\"", "\"colorSpace\":1",
+    "\"projection\":\"other\"", "\"sortingMethod\":\"none\"",
+    "\"kernel\":\"ellipse\"", "\"colorSpace\":\"lin_rec709_display\""
+  };
+  AkDoc      *doc;
+  FILE       *file;
+  char       *dir;
+  uint32_t    i, field, invalid;
+  AkResult    result;
+  char        tmp[] = "/tmp/ak-gsplat-validation-XXXXXX", path[512];
+
+  ASSERT((dir = mkdtemp(tmp)));
+  snprintf(path, sizeof(path), "%s/points.gltf", dir);
+
+  for (invalid = 0; invalid < 5; invalid++) {
+    for (i = 0; i < sizeof(metadata) / sizeof(*metadata); i++) {
+      ASSERT((file = fopen(path, "wb")));
+      fputs("{\"asset\":{\"version\":\"2.0\"},\"accessors\":[", file);
+
+      for (field = 0; field < 5; field++)
+        fprintf(file, "%s{\"componentType\":5126,\"count\":%u,\"type\":\"%s\"}",
+                field ? "," : "", invalid == 1 && field == 1 ? 2 : 1,
+                field == 1 ? "VEC4" : field == 3 && invalid != 2 ? "SCALAR" : "VEC3");
+
+      fputs("],\"meshes\":[{\"primitives\":[{\"mode\":0,\"attributes\":{"
+            "\"POSITION\":0,\"KHR_gaussian_splatting:ROTATION\":1,"
+            "\"KHR_gaussian_splatting:SCALE\":2,\"KHR_gaussian_splatting:OPACITY\":3", file);
+      if (invalid != 3)
+        fputs(",\"KHR_gaussian_splatting:SH_DEGREE_0_COEF_0\":4", file);
+      if (invalid == 4)
+        fputs(",\"KHR_gaussian_splatting:SH_DEGREE_1_COEF_0\":4", file);
+      fprintf(file, "},\"extensions\":{\"KHR_gaussian_splatting\":{%s}}}]}],"
+                    "\"nodes\":[{\"mesh\":0}],\"scenes\":[{\"nodes\":[0]}]}", metadata[i]);
+      ASSERT(fclose(file) == 0);
+
+      doc    = NULL;
+      result = ak_load(&doc, path, AK_FILE_TYPE_GLTF);
+
+      if (!invalid && (i == 0 || i >= 8)) {
+        ASSERT(result == AK_OK && doc);
+        ak_free(doc);
+      } else {
+        ASSERT(result != AK_OK && !doc);
+      }
+    }
+  }
+
+  unlink(path);
+  rmdir(dir);
+  TEST_SUCCESS
+}
+
 static
 AkGeometry*
 ak_test_splat_geom(AkHeap *heap, AkDoc *doc, uint32_t degree) {
