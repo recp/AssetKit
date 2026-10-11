@@ -1,6 +1,19 @@
 cmake_minimum_required(VERSION 3.16)
 project(assetkit VERSION 0.7.3 LANGUAGES C)
 
+if(CMAKE_GENERATOR STREQUAL "Xcode")
+  set(CMAKE_XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_WEAK YES)
+endif()
+
+# Xcode upgrades can remove the SDK recorded by FindZLIB in an older cache.
+if(APPLE)
+  foreach(cache_entry ZLIB_INCLUDE_DIR ZLIB_LIBRARY_RELEASE ZLIB_LIBRARY_DEBUG)
+    if(DEFINED ${cache_entry} AND NOT EXISTS "${${cache_entry}}")
+      unset(${cache_entry} CACHE)
+    endif()
+  endforeach()
+endif()
+
 if(POLICY CMP0076)
   cmake_policy(SET CMP0076 NEW)
 endif()
