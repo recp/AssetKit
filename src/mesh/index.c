@@ -142,44 +142,45 @@ ak_movePositions(AkMesh          *mesh,
   dstStride = newacc->byteStride ? newacc->byteStride : copySize;
 
   /* copy vert positions to new location */
-#define AK_MOVE_POSITIONS_FOR_TYPE(DUPTYPE, SUMTYPE)                       \
-  do {                                                                      \
-    const DUPTYPE *dupcItems_;                                               \
-    const SUMTYPE *sumItems_;                                                \
-                                                                            \
-    dupcItems_ = (const DUPTYPE *)(const void *)dupc->items;                 \
-    sumItems_  = (const SUMTYPE *)(const void *)dupcsum->items;              \
-    for (i = 0; i < vc; i++) {                                               \
-      if ((poo = dupcItems_[3 * i + 2]) == 0)                                \
-        continue;                                                            \
-                                                                            \
-      pno = dupcItems_[3 * i];                                               \
-      d   = dupcItems_[3 * i + 1];                                           \
-      s   = sumItems_[pno];                                                  \
-                                                                            \
-      for (j = 0; j <= d; j++) {                                             \
-        memcpy(newitms + dstStride * (pno + j + s),                          \
-               olditms + srcStride * (poo - 1),                              \
-               copySize);                                                    \
-      }                                                                      \
-    }                                                                        \
+#define AK_MOVE_POSITIONS_FOR_TYPE(DUPTYPE, SUMTYPE)                          \
+  do {                                                                        \
+    const DUPTYPE *dupcItems_;                                                \
+    const SUMTYPE *sumItems_;                                                 \
+                                                                              \
+    dupcItems_ = (const DUPTYPE *)(const void *)dupc->items;                  \
+    sumItems_  = (const SUMTYPE *)(const void *)dupcsum->items;               \
+                                                                              \
+    for (i = 0; i < vc; i++) {                                                \
+      if ((poo = dupcItems_[3 * i + 2]) == 0)                                 \
+        continue;                                                             \
+                                                                              \
+      pno = dupcItems_[3 * i];                                                \
+      d   = dupcItems_[3 * i + 1];                                            \
+      s   = sumItems_[pno];                                                   \
+                                                                              \
+      for (j = 0; j <= d; j++) {                                              \
+        memcpy(newitms + dstStride * (pno + j + s),                           \
+               olditms + srcStride * (poo - 1),                               \
+               copySize);                                                     \
+      }                                                                       \
+    }                                                                         \
   } while (0)
 
-#define AK_MOVE_POSITIONS_FOR_SUM_TYPE(DUPTYPE)                             \
-  do {                                                                      \
-    switch (dupcsum->componentType) {                                        \
-      case AKT_UBYTE:                                                        \
-        AK_MOVE_POSITIONS_FOR_TYPE(DUPTYPE, uint8_t);                        \
-        break;                                                               \
-      case AKT_USHORT:                                                       \
-        AK_MOVE_POSITIONS_FOR_TYPE(DUPTYPE, uint16_t);                       \
-        break;                                                               \
-      case AKT_UINT:                                                         \
-        AK_MOVE_POSITIONS_FOR_TYPE(DUPTYPE, AkUInt);                         \
-        break;                                                               \
-      default:                                                               \
-        break;                                                               \
-    }                                                                        \
+#define AK_MOVE_POSITIONS_FOR_SUM_TYPE(DUPTYPE)                               \
+  do {                                                                        \
+    switch (dupcsum->componentType) {                                         \
+      case AKT_UBYTE:                                                         \
+        AK_MOVE_POSITIONS_FOR_TYPE(DUPTYPE, uint8_t);                         \
+        break;                                                                \
+      case AKT_USHORT:                                                        \
+        AK_MOVE_POSITIONS_FOR_TYPE(DUPTYPE, uint16_t);                        \
+        break;                                                                \
+      case AKT_UINT:                                                          \
+        AK_MOVE_POSITIONS_FOR_TYPE(DUPTYPE, AkUInt);                          \
+        break;                                                                \
+      default:                                                                \
+        break;                                                                \
+    }                                                                         \
   } while (0)
 
   switch (dupc->componentType) {
