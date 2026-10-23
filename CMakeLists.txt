@@ -869,7 +869,7 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
         "${CMAKE_CURRENT_BINARY_DIR}/assetkit_ktx2-src")
     set(AK_KTX2_INSTALL_DIR
         "${CMAKE_CURRENT_BINARY_DIR}/assetkit_ktx2-install")
-    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    if(CMAKE_SYSTEM_NAME MATCHES "^(iOS|tvOS|visionOS)$")
       set(AK_KTX2_INCLUDE_DIR "${AK_KTX2_INSTALL_DIR}/lib/ktx.framework/Headers")
     else()
       set(AK_KTX2_INCLUDE_DIR "${AK_KTX2_INSTALL_DIR}/include")
@@ -884,12 +884,12 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
         -DKTX_FEATURE_DOC=OFF
         -DKTX_FEATURE_LOADTEST_APPS=OFF
         -DBUILD_SHARED_LIBS=OFF)
-    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    if(CMAKE_SYSTEM_NAME MATCHES "^(iOS|tvOS|visionOS)$")
       list(APPEND AK_KTX2_CMAKE_ARGS -DBASISU_SSE=OFF)
     else()
       list(APPEND AK_KTX2_CMAKE_ARGS -DBASISU_SSE=ON)
     endif()
-    if(CMAKE_SYSTEM_NAME STREQUAL "iOS"
+    if(CMAKE_SYSTEM_NAME MATCHES "^(iOS|tvOS|visionOS)$"
        AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
       # KTX currently classifies every locked Apple OS build as armv8, even
       # when an Intel simulator slice was explicitly requested. Its ASTC
@@ -928,7 +928,7 @@ if(AK_BUILD_DECODER_SHIMS AND AK_BUILD_GLTF_KTX2_DECODER)
       list(APPEND AK_KTX2_CMAKE_ARGS
            -DCMAKE_OSX_ARCHITECTURES:STRING=${AK_KTX2_OSX_ARCHITECTURES})
     endif()
-    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    if(CMAKE_SYSTEM_NAME MATCHES "^(iOS|tvOS|visionOS)$")
       set(AK_KTX2_LIBRARY "${AK_KTX2_INSTALL_DIR}/lib/ktx.framework/ktx")
     elseif(WIN32)
       set(AK_KTX2_LIBRARY "${AK_KTX2_INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/ktx.lib")
