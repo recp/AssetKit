@@ -15,6 +15,7 @@
  */
 
 #include "buffer.h"
+#include "../../../common/package.h"
 #include "ext.h"
 #include "../../../../utils.h"
 #include "../../../../base64.h"
@@ -186,6 +187,13 @@ gltf_buffers(json_t * __restrict jbuff,
             && ak_str_pack8_fast(uri, _s_gltf_b64d_len)
                == _s_gltf_b64d_u64_exact) {
           base64_buff(uri, jbuffVal->valsize, buff);
+        } else if (gst->archive) {
+          ak_zip_package_read(gst->archive,
+                              gst->archiveRoot,
+                              uri,
+                              heap,
+                              buff,
+                              buff);
         } else {
           localurl = ak_getFileFrom(gst->doc, uri);
           if (localurl) {

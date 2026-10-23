@@ -17,6 +17,9 @@
 #include "../../../../include/ak/path.h"
 #include "../../../id.h"
 #include "../../../endian.h"
+#include "../../common/binary.h"
+#include "../../common/package.h"
+#include "../../common/zip.h"
 #include "gltf.h"
 #include "core/asset.h"
 #include "core/buffer.h"
@@ -45,7 +48,9 @@ gltf_parse(AkDoc     ** __restrict dest,
            const char * __restrict contents,
            size_t                  contentsLen,
            void       * __restrict bindata,
-           size_t                  bindataLen);
+           size_t                  bindataLen,
+           AkZipArchive           *archive,
+           const char             *archiveRoot);
 
 AK_HIDE
 AkResult
@@ -105,7 +110,14 @@ gltf_glb(AkDoc     ** __restrict dest,
    pdata[chunkLength] = '\0';
    */
 
-  ret = gltf_parse(dest, filepath, jsonData, chunkLength, bindata, bindataLen);
+  ret = gltf_parse(dest,
+                   filepath,
+                   jsonData,
+                   chunkLength,
+                   bindata,
+                   bindataLen,
+                   NULL,
+                   NULL);
 
 done:
   if (data) {
@@ -129,12 +141,82 @@ gltf_gltf(AkDoc     ** __restrict dest,
   if ((ret = ak_readfile(filepath, NULL, &jsonString, &jsonSize)) != AK_OK)
     return ret;
 
-  ret = gltf_parse(dest, filepath, jsonString, jsonSize, NULL, 0);
+  ret = gltf_parse(dest, filepath, jsonString, jsonSize, NULL, 0, NULL, NULL);
 
   if (jsonString)
     ak_releasefile(jsonString, jsonSize);
 
   return ret;
+}
+
+AK_HIDE
+AkResult
+gltf_archive(AkDoc       **dest,
+             const char   *filepath,
+             AkZipArchive *archive,
+             const char   *rootEntry) {
+  const unsigned char *bytes, *next;
+  const char          *json;
+  void                *data = NULL, *binary = NULL;
+  size_t               size = 0u, binarySize = 0u, jsonSize;
+  AkResult             result;
+  uint32_t             declared, chunk, length;
+
+  result = ak_zip_archive_extract_file(archive, rootEntry, &data, &size);
+
+  if (result != AK_OK)
+    return result;
+
+  json     = data;
+  jsonSize = size;
+
+  if (size >= 4u && io_load_u32le(data) == 0x46546c67u) {
+    bytes = data;
+
+    if (size < 20u || io_load_u32le(bytes + 4u) != 2u
+        || io_load_u32le(bytes + 16u) != 0x4e4f534au) {
+      result = AK_EBADF;
+      goto done;
+    }
+
+    declared = io_load_u32le(bytes + 8u);
+    chunk    = io_load_u32le(bytes + 12u);
+
+    if (declared > size || declared < 20u || chunk > declared - 20u) {
+      result = AK_EBADF;
+      goto done;
+    }
+
+    json     = (const char *)bytes + 20u;
+    jsonSize = chunk;
+
+    if (declared - 20u - chunk >= 8u) {
+      next   = bytes + 20u + chunk;
+      length = io_load_u32le(next);
+
+      if (io_load_u32le(next + 4u) != 0x004e4942u
+          || length > declared - 20u - chunk - 8u) {
+        result = AK_EBADF;
+        goto done;
+      }
+
+      binary     = (void *)(next + 8u);
+      binarySize = length;
+    }
+  }
+
+  result = gltf_parse(dest,
+                      filepath,
+                      json,
+                      jsonSize,
+                      binary,
+                      binarySize,
+                      archive,
+                      rootEntry);
+
+done:
+  free(data);
+  return result;
 }
 
 static
@@ -144,7 +226,9 @@ gltf_parse(AkDoc     ** __restrict dest,
            const char * __restrict contents,
            size_t                  contentsLen,
            void       * __restrict bindata,
-           size_t                  bindataLen) {
+           size_t                  bindataLen,
+           AkZipArchive           *archive,
+           const char             *archiveRoot) {
   AkHeap           *heap;
   AkDoc            *doc;
   json_doc_t       *gltfRawDoc;
@@ -173,14 +257,18 @@ gltf_parse(AkDoc     ** __restrict dest,
   
   memset(&gstVal, 0, sizeof(gstVal));
   
-  gst              = &gstVal;
-  gstVal.doc       = doc;
-  gstVal.heap      = heap;
-  gstVal.bindata   = bindata;
-  gstVal.bindataLen = bindataLen;
-  gstVal.borrowBufferViews = (bindata ? ak_opt_get(AK_OPT_USE_MMAP) : true)
+  gst                = &gstVal;
+  gstVal.doc         = doc;
+  gstVal.heap        = heap;
+  gstVal.bindata     = bindata;
+  gstVal.bindataLen  = bindataLen;
+  gstVal.archive     = archive;
+  gstVal.archiveRoot = archiveRoot;
+
+  gstVal.borrowBufferViews = (bindata ? (!archive && ak_opt_get(AK_OPT_USE_MMAP)) : true)
                               && (AkCoordCvtType)ak_opt_get(AK_OPT_COORD_CONVERT_TYPE)
                                  != AK_COORD_CVT_ALL;
+
   gstVal.tmpParent = ak_heap_alloc(heap, doc, sizeof(void*));
   gst->bufferMap   = rb_newtree_ptr();
   gst->meshTargets = rb_newtree_ptr();

@@ -15,6 +15,7 @@
  */
 
 #include "image.h"
+#include "../../../common/package.h"
 #include "../extra.h"
 #include "../../../../base64.h"
 
@@ -148,6 +149,24 @@ gltf_images(json_t * __restrict jimage,
       } else {
         source->type = AK_IMAGE_SOURCE_URI;
         source->uri  = json_strdup(it, gst->heap, source);
+
+        if (gst->archive) {
+          source->buffer = ak_heap_calloc(heap, source, sizeof(*source->buffer));
+          source->type   = AK_IMAGE_SOURCE_BUFFER;
+
+          if (source->buffer
+              && ak_zip_package_read(gst->archive,
+                                     gst->archiveRoot,
+                                     source->uri,
+                                     heap,
+                                     source->buffer,
+                                     source->buffer) == AK_OK) {
+            source->buffer->name = ak_heap_strdup(heap,
+                                                  source->buffer,
+                                                  source->uri);
+            source->mimeType = ak_package_image_mime(source->uri);
+          }
+        }
       }
       image->source = source;
     }

@@ -19,6 +19,8 @@
 
 #include "../../common.h"
 
+struct AkZipArchive;
+
 AK_HIDE
 AkResult
 ak_zip_package_doc(AkDoc      ** __restrict dest,
@@ -28,5 +30,19 @@ AK_HIDE
 AkResult
 ak_zip_package_file_type(const char * __restrict filepath,
                          AkFileType * __restrict fileType);
+
+/* reads one archive resource without extracting temporary files */
+AK_HIDE
+AkResult
+ak_zip_package_read(struct AkZipArchive *archive,
+                    const char          *rootEntry,
+                    const char          *uri,
+                    AkHeap              *heap,
+                    void                *parent,
+                    AkBuffer            *buffer);
+
+AK_HIDE
+const char*
+ak_package_image_mime(const char *path);
 
 #endif /* assetkit_io_common_package_h */

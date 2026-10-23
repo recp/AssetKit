@@ -16,8 +16,10 @@
 
 #include "package.h"
 #include "path.h"
+#include "uri.h"
 #include "zip.h"
 #include "../dae/dae.h"
+#include "../gltf/imp/gltf.h"
 #include "../../image/export.h"
 #include "../../resc/file_scope.h"
 #include "../../utils.h"
@@ -61,6 +63,16 @@ typedef struct AkPackageEntries {
   size_t          next;
   bool            overflow;
 } AkPackageEntries;
+
+typedef struct AkPackageResourceLookup {
+  const char *path;
+  char        entry[PATH_MAX];
+} AkPackageResourceLookup;
+
+typedef struct AkPackageResourceAllocation {
+  AkHeap *heap;
+  void   *parent;
+} AkPackageResourceAllocation;
 
 static
 bool
@@ -624,7 +636,7 @@ ak_package_remove_entries(const AkPackageEntries * __restrict entries,
   ak_package_rmdir(tempDir);
 }
 
-static
+AK_HIDE
 const char*
 ak_package_image_mime(const char *path) {
   const char *ext;
@@ -724,6 +736,156 @@ ak_package_restore_document_path(AkDoc      * __restrict doc,
   }
 }
 
+static
+bool
+ak_package_find_resource(const AkZipEntryInfo *info,
+                         void                 *userdata) {
+  char                    normalized[PATH_MAX], name[PATH_MAX];
+  AkPackageResourceLookup *lookup;
+
+  lookup = userdata;
+
+  if (info->nameLen >= sizeof(name))
+    return true;
+
+  memcpy(name, info->name, info->nameLen);
+  name[info->nameLen] = '\0';
+
+  if (!lookup->entry[0]
+      && ak_package_path_normalize(name,
+                                   normalized,
+                                   sizeof(normalized),
+                                   NULL,
+                                   NULL)
+      && strcmp(normalized, lookup->path) == 0) {
+    memcpy(lookup->entry, name, info->nameLen + 1u);
+    return false;
+  }
+
+  return true;
+}
+
+static
+void*
+ak_package_allocate_resource(void *userdata, size_t size) {
+  AkPackageResourceAllocation *allocation;
+
+  allocation = userdata;
+
+  return ak_heap_alloc(allocation->heap, allocation->parent, size);
+}
+
+static
+void
+ak_package_free_resource(void *userdata, void *data) {
+  (void)userdata;
+  ak_free(data);
+}
+
+AK_HIDE
+AkResult
+ak_zip_package_read(AkZipArchive *archive,
+                    const char   *rootEntry,
+                    const char   *uri,
+                    AkHeap       *heap,
+                    void         *parent,
+                    AkBuffer     *buffer) {
+  AkPackageResourceLookup     lookup;
+  AkPackageResourceAllocation allocation;
+  char                        joined[PATH_MAX];
+  char                        decoded[PATH_MAX];
+  char                        normalized[PATH_MAX];
+  const char                 *slash;
+  size_t                      prefix, out, i, start, length;
+  AkResult                    result;
+
+  if (!archive || !rootEntry || !uri || !heap || !buffer
+      || !io_uri_decode_path(uri, decoded, sizeof(decoded)))
+    return AK_EBADF;
+
+  if (decoded[0] == '/' || decoded[0] == '\\' || strchr(decoded, ':'))
+    return AK_EBADF;
+
+  slash  = strrchr(rootEntry, '/');
+  prefix = slash ? (size_t)(slash - rootEntry + 1) : 0u;
+
+  if (prefix + strlen(decoded) >= sizeof(joined))
+    return AK_EBADF;
+
+  memcpy(joined, rootEntry, prefix);
+  strcpy(joined + prefix, decoded);
+
+  /* parent references may stay inside the archive; they never consult the
+     filesystem. central-directory entry paths themselves remain strict. */
+  out = 0u;
+  i   = 0u;
+
+  while (joined[i]) {
+    while (joined[i] == '/' || joined[i] == '\\') {
+      i++;
+    }
+
+    start = i;
+
+    while (joined[i] && joined[i] != '/' && joined[i] != '\\') {
+      i++;
+    }
+
+    length = i - start;
+
+    if (!length || (length == 1u && joined[start] == '.'))
+      continue;
+
+    if (length == 2u && joined[start] == '.' && joined[start + 1u] == '.') {
+      if (!out)
+        return AK_EBADF;
+
+      while (out && normalized[out - 1u] != '/') {
+        out--;
+      }
+
+      if (out)
+        out--;
+      continue;
+    }
+
+    if (out)
+      normalized[out++] = '/';
+
+    if (out + length >= sizeof(normalized))
+      return AK_EBADF;
+
+    memcpy(normalized + out, joined + start, length);
+    out += length;
+  }
+
+  if (!out)
+    return AK_EBADF;
+
+  normalized[out] = '\0';
+  lookup.path     = normalized;
+  lookup.entry[0] = '\0';
+
+  if (ak_zip_archive_visit_entries(archive,
+                                   ak_package_find_resource,
+                                   &lookup) != AK_OK
+      || !lookup.entry[0])
+    return AK_EBADF;
+
+  allocation.heap   = heap;
+  allocation.parent = parent;
+
+  result = ak_zip_archive_extract_file_alloc(archive,
+                                             lookup.entry,
+                                             ak_package_allocate_resource,
+                                             ak_package_free_resource,
+                                             &allocation,
+                                             &buffer->data,
+                                             &buffer->length);
+
+  return result;
+}
+
 AK_HIDE
 AkResult
 ak_zip_package_doc(AkDoc      ** __restrict dest,
@@ -779,6 +941,11 @@ ak_zip_package_doc(AkDoc      ** __restrict dest,
     goto cleanup;
   }
   rootFileType = ak_package_file_type(normalizedRoot);
+
+  if (rootFileType == AK_FILE_TYPE_GLTF || rootFileType == AK_FILE_TYPE_GLB) {
+    result = gltf_archive(dest, filepath, archive, root->name);
+    goto cleanup;
+  }
 
   tempDir = ak_package_temp_dir();
   if (!tempDir) {

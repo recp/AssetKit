@@ -72,6 +72,8 @@ typedef struct AkGLTFState {
   AkGLTFKTX2Lib    *ktx2;  /* KTX2/BasisU decoder, optional */
   AkSampler        *defaultSampler;
   size_t        bindataLen;
+  struct AkZipArchive *archive;
+  const char          *archiveRoot;
   size_t        buffersCount;
   size_t        bufferViewsCount;
   size_t        accessorsCount;

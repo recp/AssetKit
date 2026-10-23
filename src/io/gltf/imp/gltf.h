@@ -19,6 +19,8 @@
 
 #include "common.h"
 
+struct AkZipArchive;
+
 AK_HIDE
 AkResult
 gltf_gltf(AkDoc     ** __restrict dest,
@@ -28,5 +30,12 @@ AK_HIDE
 AkResult
 gltf_glb(AkDoc     ** __restrict dest,
          const char * __restrict filepath);
+
+AK_HIDE
+AkResult
+gltf_archive(AkDoc              **dest,
+             const char          *filepath,
+             struct AkZipArchive *archive,
+             const char          *rootEntry);
 
 #endif /* gltf_imp_h */
