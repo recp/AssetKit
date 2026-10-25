@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(assetkit VERSION 0.7.3 LANGUAGES C)
+project(assetkit VERSION 0.7.4 LANGUAGES C)
 
 if(CMAKE_GENERATOR STREQUAL "Xcode")
   set(CMAKE_XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_WEAK YES)
