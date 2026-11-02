@@ -34,7 +34,7 @@ dae_spline(DAEState   * __restrict dst,
   spline = ak_objGet(obj);
 
   spline->geom   = geom;
-  spline->closed = xmla_u32(DAE_XMLA8(xml, closed), 0);
+  spline->closed = xmla_bool(DAE_XMLA8(xml, closed), 0);
 
   xml = xml->val;
   

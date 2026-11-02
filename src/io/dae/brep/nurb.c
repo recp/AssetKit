@@ -33,7 +33,7 @@ dae_nurbs(DAEState * __restrict dst,
   nurbs = ak_objGet(obj);
 
   nurbs->degree = xmla_u32(DAE_XMLA8(xml, degree), 0);
-  nurbs->closed = xmla_u32(DAE_XMLA8(xml, closed), 0);
+  nurbs->closed = xmla_bool(DAE_XMLA8(xml, closed), 0);
 
   xml = xml->val;
   while (xml) {
@@ -69,8 +69,8 @@ dae_nurbs_surface(DAEState * __restrict dst,
 
   nurbsSurface->degree_u = xmla_u32(DAE_XMLA8(xml, degree_u), 0);
   nurbsSurface->degree_v = xmla_u32(DAE_XMLA8(xml, degree_v), 0);
-  nurbsSurface->closed_u = xmla_u32(DAE_XMLA8(xml, closed_u), 0);
-  nurbsSurface->closed_v = xmla_u32(DAE_XMLA8(xml, closed_v), 0);
+  nurbsSurface->closed_u = xmla_bool(DAE_XMLA8(xml, closed_u), 0);
+  nurbsSurface->closed_v = xmla_bool(DAE_XMLA8(xml, closed_v), 0);
   
   xml = xml->val;
   while (xml) {
