@@ -154,6 +154,45 @@ TEST_IMPL(dae_export_many_vertex_color_sets) {
   TEST_SUCCESS
 }
 
+static bool
+ak_test_brep_analytic_values(const AkBoundryRep *brep) {
+  const AkSurface *surface;
+  const AkSphere  *sphere;
+  const AkCone    *cone;
+  const AkTorus   *torus;
+  uint32_t count = 0;
+
+  if (!brep->surfaces)
+    return false;
+
+  for (surface = brep->surfaces->surface; surface; surface = surface->next) {
+    if (!surface->surface)
+      return false;
+
+    switch (surface->surface->type) {
+      case AK_SURFACE_SPHERE:
+        sphere = ak_objGet(surface->surface);
+        if (sphere->radius != 1.25f)
+          return false;
+        break;
+      case AK_SURFACE_CONE:
+        cone = ak_objGet(surface->surface);
+        if (cone->radius != 2.5f || cone->angle != 30.0f)
+          return false;
+        break;
+      case AK_SURFACE_TORUS:
+        torus = ak_objGet(surface->surface);
+        if (torus->radius[0] != 2.0f || torus->radius[1] != 0.5f)
+          return false;
+        break;
+      default:
+        return false;
+    }
+    count++;
+  }
+  return count == 3;
+}
+
 TEST_IMPL(dae_export_brep_smoke) {
   AkDoc        *doc;
   AkDoc        *roundTrip;
@@ -196,6 +235,7 @@ TEST_IMPL(dae_export_brep_smoke) {
   ASSERT(brep->edges->input != NULL);
   ASSERT(brep->edges->input->semanticRaw != NULL);
   ASSERT(strcmp(brep->edges->input->semanticRaw, "VERTEX") == 0);
+  ASSERT(ak_test_brep_analytic_values(brep));
   ASSERT(ak_export(doc, outDir, AK_FILE_TYPE_DAE) == AK_OK);
   ASSERT(ak_test_file_contains(
     outDae,
@@ -212,6 +252,7 @@ TEST_IMPL(dae_export_brep_smoke) {
   ASSERT(brep->edges->input != NULL);
   ASSERT(brep->edges->input->semanticRaw != NULL);
   ASSERT(strcmp(brep->edges->input->semanticRaw, "VERTEX") == 0);
+  ASSERT(ak_test_brep_analytic_values(brep));
 
   ak_free(roundTrip);
   ak_free(doc);

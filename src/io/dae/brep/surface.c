@@ -48,9 +48,9 @@ dae_surface(DAEState * __restrict dst,
       xcone = xml->val;
       while (xcone) {
         if (DAE_XML_TAG_EQ(xcone, radius) && xcone->val) {
-          cone->radius = xml_float(xcone->val, 0.0f);
+          cone->radius = xml_float(xcone, 0.0f);
         } else if (DAE_XML_TAG_EQ(xcone, angle) && xcone->val) {
-          cone->angle = xml_float(xcone->val, 0.0f);
+          cone->angle = xml_float(xcone, 0.0f);
         } else if (DAE_XML_TAG_EQ(xcone, extra)) {
           cone->extra = tree_fromxml(heap, obj, xcone);
         }
@@ -106,7 +106,7 @@ dae_surface(DAEState * __restrict dst,
       xsphere = xml->val;
       while (xsphere) {
         if (DAE_XML_TAG_EQ(xsphere, radius) && xsphere->val) {
-          sphere->radius = xml_float(xsphere->val, 0.0f);
+          sphere->radius = xml_float(xsphere, 0.0f);
         } else if (DAE_XML_TAG_EQ(xsphere, extra)) {
           sphere->extra = tree_fromxml(heap, obj, xsphere);
         }
